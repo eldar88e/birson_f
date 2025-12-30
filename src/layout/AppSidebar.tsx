@@ -14,7 +14,6 @@ import {
   ListIcon,
   PageIcon,
   PieChartIcon,
-  PlugInIcon,
   TableIcon,
   TaskIcon,
   UserCircleIcon,
@@ -59,14 +58,6 @@ const navItems: NavItem[] = [
     name: "User Profile",
     path: "/profile",
   },
-  {
-    name: "Task",
-    icon: <TaskIcon />,
-    subItems: [
-      { name: "List", path: "/task-list", pro: true },
-      { name: "Kanban", path: "/task-kanban", pro: true },
-    ],
-  },
 ];
 
 const othersItems: NavItem[] = [
@@ -108,20 +99,6 @@ const othersItems: NavItem[] = [
     ],
   },
   {
-    icon: <PlugInIcon />,
-    name: "Authentication",
-    subItems: [
-      { name: "Sign In", path: "/signin", pro: false },
-      { name: "Sign Up", path: "/signup", pro: false },
-      { name: "Reset Password", path: "/reset-password", pro: false },
-      {
-        name: "Two Step Verification",
-        path: "/two-step-verification",
-        pro: false,
-      },
-    ],
-  },
-  {
     name: "Tables",
     icon: <TableIcon />,
     subItems: [
@@ -153,6 +130,14 @@ const othersItems: NavItem[] = [
     subItems: [
       { name: "Form Elements", path: "/form-elements", pro: false },
       { name: "Form Layout", path: "/form-layout", pro: true },
+    ],
+  },
+  {
+    name: "Task",
+    icon: <TaskIcon />,
+    subItems: [
+      { name: "List", path: "/task-list", pro: true },
+      { name: "Kanban", path: "/task-kanban", pro: true },
     ],
   },
 ];

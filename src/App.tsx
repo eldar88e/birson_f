@@ -48,7 +48,6 @@ import Tabs from "./pages/UiElements/Tabs";
 import Tooltips from "./pages/UiElements/Tooltips";
 import Modals from "./pages/UiElements/Modals";
 import ResetPassword from "./pages/AuthPages/ResetPassword";
-import TwoStepVerification from "./pages/AuthPages/TwoStepVerification";
 import Success from "./pages/OtherPage/Success";
 import AppLayout from "./layout/AppLayout";
 
@@ -145,10 +144,6 @@ export default function App() {
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route
-            path="/two-step-verification"
-            element={<TwoStepVerification />}
-          />
 
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
