@@ -12,7 +12,6 @@ import {
   GridIcon,
   HorizontaLDots,
   ListIcon,
-  MailIcon,
   PageIcon,
   PieChartIcon,
   PlugInIcon,
@@ -46,12 +45,8 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Products", path: "/products-list" },
       { name: "Add Product", path: "/add-product" },
-      { name: "Billing", path: "/billing" },
       { name: "Invoices", path: "/invoices" },
       { name: "Single Invoice", path: "/single-invoice" },
-      { name: "Create Invoice", path: "/create-invoice" },
-      { name: "Transactions", path: "/transactions" },
-      { name: "Single Transaction", path: "/single-transaction" },
     ],
   },
   {
@@ -70,40 +65,6 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "List", path: "/task-list", pro: true },
       { name: "Kanban", path: "/task-kanban", pro: true },
-    ],
-  },
-  {
-    name: "Forms",
-    icon: <ListIcon />,
-    subItems: [
-      { name: "Form Elements", path: "/form-elements", pro: false },
-      { name: "Form Layout", path: "/form-layout", pro: true },
-    ],
-  },
-  {
-    name: "Tables",
-    icon: <TableIcon />,
-    subItems: [
-      { name: "Basic Tables", path: "/basic-tables", pro: false },
-      { name: "Data Tables", path: "/data-tables", pro: true },
-    ],
-  },
-  {
-    name: "Pages",
-    icon: <PageIcon />,
-    subItems: [
-      { name: "File Manager", path: "/file-manager" },
-      { name: "Pricing Tables", path: "/pricing-tables" },
-      { name: "FAQ", path: "/faq" },
-      { name: "API Keys", path: "/api-keys", new: true },
-      { name: "Integrations", path: "/integrations", new: true },
-      { name: "Blank Page", path: "/blank" },
-      { name: "404 Error", path: "/error-404" },
-      { name: "500 Error", path: "/error-500" },
-      { name: "503 Error", path: "/error-503" },
-      { name: "Coming Soon", path: "/coming-soon" },
-      { name: "Maintenance", path: "/maintenance" },
-      { name: "Success", path: "/success" },
     ],
   },
 ];
@@ -160,6 +121,40 @@ const othersItems: NavItem[] = [
       },
     ],
   },
+  {
+    name: "Tables",
+    icon: <TableIcon />,
+    subItems: [
+      { name: "Basic Tables", path: "/basic-tables", pro: false },
+      { name: "Data Tables", path: "/data-tables", pro: true },
+    ],
+  },
+  {
+    name: "Pages",
+    icon: <PageIcon />,
+    subItems: [
+      { name: "File Manager", path: "/file-manager" },
+      { name: "Pricing Tables", path: "/pricing-tables" },
+      { name: "FAQ", path: "/faq" },
+      { name: "API Keys", path: "/api-keys", new: true },
+      { name: "Integrations", path: "/integrations", new: true },
+      { name: "Blank Page", path: "/blank" },
+      { name: "404 Error", path: "/error-404" },
+      { name: "500 Error", path: "/error-500" },
+      { name: "503 Error", path: "/error-503" },
+      { name: "Coming Soon", path: "/coming-soon" },
+      { name: "Maintenance", path: "/maintenance" },
+      { name: "Success", path: "/success" },
+    ],
+  },
+  {
+    name: "Forms",
+    icon: <ListIcon />,
+    subItems: [
+      { name: "Form Elements", path: "/form-elements", pro: false },
+      { name: "Form Layout", path: "/form-layout", pro: true },
+    ],
+  },
 ];
 
 const supportItems: NavItem[] = [
@@ -175,14 +170,6 @@ const supportItems: NavItem[] = [
     subItems: [
       { name: "Ticket List", path: "/support-tickets" },
       { name: "Ticket Reply", path: "/support-ticket-reply" },
-    ],
-  },
-  {
-    icon: <MailIcon />,
-    name: "Email",
-    subItems: [
-      { name: "Inbox", path: "/inbox" },
-      { name: "Details", path: "/inbox-details" },
     ],
   },
 ];

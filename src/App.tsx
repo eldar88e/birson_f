@@ -57,11 +57,8 @@ import TaskList from "./pages/Task/TaskList";
 
 import ProductList from "./pages/Ecommerce/ProductList";
 import AddProduct from "./pages/Ecommerce/AddProduct";
-import Billing from "./pages/Ecommerce/Billing";
 import SingleInvoice from "./pages/Ecommerce/SingleInvoice";
 import CreateInvoice from "./pages/Ecommerce/CreateInvoice";
-import Transactions from "./pages/Ecommerce/Transactions";
-import SingleTransaction from "./pages/Ecommerce/SingleTransaction";
 import TicketList from "./pages/Support/TicketList";
 import TicketReply from "./pages/Support/TicketReply";
 import Integrations from "./pages/OtherPage/Integrations";
@@ -86,11 +83,8 @@ export default function App() {
             {/* E-commerce */}
             <Route path="/products-list" element={<ProductList />} />
             <Route path="/add-product" element={<AddProduct />} />
-            <Route path="/billing" element={<Billing />} />
             <Route path="/single-invoice" element={<SingleInvoice />} />
             <Route path="/create-invoice" element={<CreateInvoice />} />
-            <Route path="/transactions" element={<Transactions />} />
-            <Route path="/single-transaction" element={<SingleTransaction />} />
 
             {/* Support */}
             <Route path="/support-tickets" element={<TicketList />} />
