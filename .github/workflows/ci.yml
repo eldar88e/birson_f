@@ -6,7 +6,7 @@ on:
     branches: [ main ]
 
 jobs:
-  scan_js:
+  lint:
     runs-on: ubuntu-24.04
 
     steps:
