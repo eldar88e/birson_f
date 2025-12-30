@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router";
 
 // Assume these icons are imported from an icon library
 import {
-  AiIcon,
   BoxCubeIcon,
   CalenderIcon,
   CallIcon,
@@ -38,23 +37,6 @@ const navItems: NavItem[] = [
     name: "Dashboard",
     subItems: [
       { name: "Ecommerce", path: "/" },
-      { name: "Analytics", path: "/analytics" },
-      { name: "Marketing", path: "/marketing" },
-      { name: "CRM", path: "/crm" },
-      { name: "Stocks", path: "/stocks" },
-      { name: "SaaS", path: "/saas", new: true },
-      { name: "Logistics", path: "/logistics", new: true },
-    ],
-  },
-  {
-    name: "AI Assistant",
-    icon: <AiIcon />,
-    new: true,
-    subItems: [
-      { name: "Text Generator", path: "/text-generator" },
-      { name: "Image Generator", path: "/image-generator" },
-      { name: "Code Generator", path: "/code-generator" },
-      { name: "Video Generator", path: "/video-generator" },
     ],
   },
   {

@@ -1,9 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import Ecommerce from "./pages/Dashboard/Ecommerce";
-import Stocks from "./pages/Dashboard/Stocks";
-import Crm from "./pages/Dashboard/Crm";
-import Marketing from "./pages/Dashboard/Marketing";
-import Analytics from "./pages/Dashboard/Analytics";
+
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
 import NotFound from "./pages/OtherPage/NotFound";
@@ -36,8 +33,6 @@ import Chats from "./pages/Chat/Chats";
 import FormElements from "./pages/Forms/FormElements";
 import FormLayout from "./pages/Forms/FormLayout";
 import Blank from "./pages/Blank";
-import EmailInbox from "./pages/Email/EmailInbox";
-import EmailDetails from "./pages/Email/EmailDetails";
 
 import TaskKanban from "./pages/Task/TaskKanban";
 import BreadCrumb from "./pages/UiElements/BreadCrumb";
@@ -56,15 +51,10 @@ import ResetPassword from "./pages/AuthPages/ResetPassword";
 import TwoStepVerification from "./pages/AuthPages/TwoStepVerification";
 import Success from "./pages/OtherPage/Success";
 import AppLayout from "./layout/AppLayout";
-import AlternativeLayout from "./layout/AlternativeLayout";
+
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import TaskList from "./pages/Task/TaskList";
-import Saas from "./pages/Dashboard/Saas";
-import Logistics from "./pages/Dashboard/Logistics";
-import TextGeneratorPage from "./pages/Ai/TextGenerator";
-import ImageGeneratorPage from "./pages/Ai/ImageGenerator";
-import CodeGeneratorPage from "./pages/Ai/CodeGenerator";
-import VideoGeneratorPage from "./pages/Ai/VideoGenerator";
+
 import ProductList from "./pages/Ecommerce/ProductList";
 import AddProduct from "./pages/Ecommerce/AddProduct";
 import Billing from "./pages/Ecommerce/Billing";
@@ -86,12 +76,6 @@ export default function App() {
           {/* Dashboard Layout */}
           <Route element={<AppLayout />}>
             <Route index path="/" element={<Ecommerce />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/marketing" element={<Marketing />} />
-            <Route path="/crm" element={<Crm />} />
-            <Route path="/stocks" element={<Stocks />} />
-            <Route path="/saas" element={<Saas />} />
-            <Route path="/logistics" element={<Logistics />} />
 
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/invoice" element={<Invoices />} />
@@ -128,9 +112,6 @@ export default function App() {
             <Route path="/task-list" element={<TaskList />} />
             <Route path="/task-kanban" element={<TaskKanban />} />
 
-            {/* Email */}
-            <Route path="/inbox" element={<EmailInbox />} />
-            <Route path="/inbox-details" element={<EmailDetails />} />
 
             {/* Tables */}
             <Route path="/basic-tables" element={<BasicTables />} />
@@ -164,15 +145,6 @@ export default function App() {
             <Route path="/line-chart" element={<LineChart />} />
             <Route path="/bar-chart" element={<BarChart />} />
             <Route path="/pie-chart" element={<PieChart />} />
-          </Route>
-
-          {/* Alternative Layout - for special pages */}
-          <Route element={<AlternativeLayout />}>
-            {/* AI Generator */}
-            <Route path="/text-generator" element={<TextGeneratorPage />} />
-            <Route path="/image-generator" element={<ImageGeneratorPage />} />
-            <Route path="/code-generator" element={<CodeGeneratorPage />} />
-            <Route path="/video-generator" element={<VideoGeneratorPage />} />
           </Route>
 
           {/* Auth Layout */}
