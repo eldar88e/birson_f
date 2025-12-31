@@ -5,17 +5,13 @@ import { Link, useLocation } from "react-router";
 import {
   BoxCubeIcon,
   CalenderIcon,
-  CallIcon,
   CartIcon,
-  ChatIcon,
   ChevronDownIcon,
   GridIcon,
   HorizontaLDots,
-  ListIcon,
   PageIcon,
   PieChartIcon,
-  TableIcon,
-  TaskIcon,
+  SettingsIcon,
   UserCircleIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
@@ -55,19 +51,23 @@ const navItems: NavItem[] = [
   },
   {
     icon: <UserCircleIcon />,
-    name: "User Profile",
-    path: "/profile",
+    name: "Пользователи",
+    path: "/support-tickets",
   },
 ];
 
 const othersItems: NavItem[] = [
   {
     icon: <PieChartIcon />,
-    name: "Charts",
+    name: "Компоненты",
     subItems: [
       { name: "Line Chart", path: "/line-chart", pro: true },
       { name: "Bar Chart", path: "/bar-chart", pro: true },
       { name: "Pie Chart", path: "/pie-chart", pro: true },
+      { name: "Form Elements", path: "/form-elements", pro: false },
+      { name: "Form Layout", path: "/form-layout", pro: true },
+      { name: "Basic Tables", path: "/basic-tables", pro: false },
+      { name: "Data Tables", path: "/data-tables", pro: true },
     ],
   },
   {
@@ -99,17 +99,12 @@ const othersItems: NavItem[] = [
     ],
   },
   {
-    name: "Tables",
-    icon: <TableIcon />,
-    subItems: [
-      { name: "Basic Tables", path: "/basic-tables", pro: false },
-      { name: "Data Tables", path: "/data-tables", pro: true },
-    ],
-  },
-  {
     name: "Pages",
     icon: <PageIcon />,
     subItems: [
+      { name: "List", path: "/task-list", pro: true },
+      { name: "Kanban", path: "/task-kanban", pro: true },
+      { name: "Chat", path: "/chat" },
       { name: "File Manager", path: "/file-manager" },
       { name: "Pricing Tables", path: "/pricing-tables" },
       { name: "FAQ", path: "/faq" },
@@ -124,38 +119,13 @@ const othersItems: NavItem[] = [
       { name: "Success", path: "/success" },
     ],
   },
-  {
-    name: "Forms",
-    icon: <ListIcon />,
-    subItems: [
-      { name: "Form Elements", path: "/form-elements", pro: false },
-      { name: "Form Layout", path: "/form-layout", pro: true },
-    ],
-  },
-  {
-    name: "Task",
-    icon: <TaskIcon />,
-    subItems: [
-      { name: "List", path: "/task-list", pro: true },
-      { name: "Kanban", path: "/task-kanban", pro: true },
-    ],
-  },
 ];
 
 const supportItems: NavItem[] = [
   {
-    icon: <ChatIcon />,
-    name: "Chat",
-    path: "/chat",
-  },
-  {
-    icon: <CallIcon />,
-    name: "Support Ticket",
-    new: true,
-    subItems: [
-      { name: "Ticket List", path: "/support-tickets" },
-      { name: "Ticket Reply", path: "/support-ticket-reply" },
-    ],
+    icon: <SettingsIcon />,
+    name: "Основные настройки",
+    path: "/support-ticket-reply",
   },
 ];
 
@@ -442,7 +412,7 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Menu"
+                  "Меню"
                 ) : (
                   <HorizontaLDots className="size-6" />
                 )}
@@ -458,7 +428,7 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Support"
+                  "Настройки"
                 ) : (
                   <HorizontaLDots className="size-6" />
                 )}
@@ -474,7 +444,7 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Others"
+                  "Админ"
                 ) : (
                   <HorizontaLDots className="size-6" />
                 )}

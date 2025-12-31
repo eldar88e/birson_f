@@ -58,6 +58,7 @@ import { ReactComponent as BoxMoving } from "./box-moving.svg?react";
 import { ReactComponent as AiIcon } from "./ai-icon.svg?react";
 import { ReactComponent as CartIcon } from "./cart-icon.svg?react";
 import { ReactComponent as CallIcon } from "./call-icon.svg?react";
+import { ReactComponent as SettingsIcon } from "./settings.svg?react";
 
 export {
   CallIcon,
@@ -120,4 +121,5 @@ export {
   HorizontaLDots,
   ChevronUpIcon,
   ChatIcon,
+  SettingsIcon,
 };
