@@ -26,4 +26,4 @@ jobs:
           username: deploy
           key: ${{ secrets.SSH_KEY }}
           source: "dist/*"
-          target: "/home/deploy/spa_sites/crm.tgapp.online/dist"
+          target: "/home/deploy/spa_sites/crm.tgapp.online"
