@@ -1,4 +1,4 @@
-export default function SupportMetrics() {
+export default function UserMetrics() {
   return (
     <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
       <article className="flex gap-5 rounded-xl border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-800 dark:bg-white/[0.03]">

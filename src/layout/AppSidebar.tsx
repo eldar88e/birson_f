@@ -52,7 +52,7 @@ const navItems: NavItem[] = [
   {
     icon: <UserCircleIcon />,
     name: "Пользователи",
-    path: "/support-tickets",
+    path: "/users",
   },
 ];
 
@@ -125,7 +125,7 @@ const supportItems: NavItem[] = [
   {
     icon: <SettingsIcon />,
     name: "Основные настройки",
-    path: "/support-ticket-reply",
+    path: "#",
   },
 ];
 

@@ -1,7 +1,7 @@
-import SupportMetrics from "../../components/support/SupportMetrics";
+// import UserMetrics from "../../components/users/UserMetrics";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import SupportTicketsList from "../../components/support/SupportList";
+import UserList from "../../components/users/UserList";
 
 export default function TicketList() {
   return (
@@ -11,8 +11,8 @@ export default function TicketList() {
         description="Пользователи CRM"
       />
       <PageBreadcrumb pageTitle="Пользователи" />
-      <SupportMetrics />
-      <SupportTicketsList />
+      {/*<UserMetrics />*/}
+      <UserList />
     </div>
   );
 }

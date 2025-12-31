@@ -53,12 +53,12 @@ import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import TaskList from "./pages/Task/TaskList";
 
+import UserList from "./pages/Users/UserList";
+
 import ProductList from "./pages/Ecommerce/ProductList";
 import AddProduct from "./pages/Ecommerce/AddProduct";
 import SingleInvoice from "./pages/Ecommerce/SingleInvoice";
 import CreateInvoice from "./pages/Ecommerce/CreateInvoice";
-import TicketList from "./pages/Support/TicketList";
-import TicketReply from "./pages/Support/TicketReply";
 import Integrations from "./pages/OtherPage/Integrations";
 import ApiKeys from "./pages/OtherPage/ApiKeys";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -85,9 +85,8 @@ export default function App() {
             <Route path="/single-invoice" element={<SingleInvoice />} />
             <Route path="/create-invoice" element={<CreateInvoice />} />
 
-            {/* Support */}
-            <Route path="/support-tickets" element={<TicketList />} />
-            <Route path="/support-ticket-reply" element={<TicketReply />} />
+            {/* Users */}
+            <Route path="/users" element={<UserList />} />
 
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />

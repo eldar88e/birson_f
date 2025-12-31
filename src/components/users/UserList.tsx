@@ -1,153 +1,45 @@
-import React, { ChangeEvent, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import TableDropdown from "../common/TableDropdown";
+import { apiClient } from "../../api/client";
 
-interface Ticket {
+interface User {
   id: string;
-  name: string;
+  full_name: string;
   email: string;
-  subject: string;
-  date: string;
-  status: "Solved" | "Pending";
-  statusClass: string;
+  role?: string;
+  phone?: string;
+  created_at?: string;
+  status?: "active" | "inactive";
 }
 
-interface FilterData {
-  category: string;
-  company: string;
-}
+const UserList: React.FC = () => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-const SupportTicketsList: React.FC = () => {
-  const [tickets] = useState<Ticket[]>([
-    {
-      id: "#323534",
-      name: "Lindsey Curtis",
-      email: "demoemail@gmail.com",
-      subject: "Issue with Dashboard Login Access",
-      date: "12 Feb, 2027",
-      status: "Solved",
-      statusClass:
-        "bg-success-50 dark:bg-success-500/15 text-success-700 dark:text-success-500",
-    },
-    {
-      id: "#323535",
-      name: "Kaiya George",
-      email: "demoemail@gmail.com",
-      subject: "Billing Information Not Updating Properly",
-      date: "13 Mar, 2027",
-      status: "Pending",
-      statusClass:
-        "bg-warning-50 dark:bg-warning-500/15 text-warning-600 dark:text-warning-500",
-    },
-    {
-      id: "#323536",
-      name: "Zain Geidt",
-      email: "demoemail@gmail.com",
-      subject: "Bug Found in Dark Mode Layout",
-      date: "19 Mar, 2027",
-      status: "Pending",
-      statusClass:
-        "bg-warning-50 dark:bg-warning-500/15 text-warning-600 dark:text-warning-500",
-    },
-    {
-      id: "#323537",
-      name: "Abram Schleifer",
-      email: "demoemail@gmail.com",
-      subject: "Request to Add New Integration Feature",
-      date: "25 Apr, 2027",
-      status: "Solved",
-      statusClass:
-        "bg-success-50 dark:bg-success-500/15 text-success-700 dark:text-success-500",
-    },
-    {
-      id: "#323538",
-      name: "Mia Chen",
-      email: "mia.chen@email.com",
-      subject: "Unable to Reset Password",
-      date: "28 Apr, 2027",
-      status: "Pending",
-      statusClass:
-        "bg-warning-50 dark:bg-warning-500/15 text-warning-600 dark:text-warning-500",
-    },
-    {
-      id: "#323539",
-      name: "John Doe",
-      email: "john.doe@email.com",
-      subject: "Feature Request: Dark Mode",
-      date: "30 Apr, 2027",
-      status: "Solved",
-      statusClass:
-        "bg-success-50 dark:bg-success-500/15 text-success-700 dark:text-success-500",
-    },
-    {
-      id: "#323540",
-      name: "Jane Smith",
-      email: "jane.smith@email.com",
-      subject: "Error 500 on Dashboard",
-      date: "01 May, 2027",
-      status: "Pending",
-      statusClass:
-        "bg-warning-50 dark:bg-warning-500/15 text-warning-600 dark:text-warning-500",
-    },
-    {
-      id: "#323541",
-      name: "Carlos Ruiz",
-      email: "carlos.ruiz@email.com",
-      subject: "Cannot Download Invoice",
-      date: "02 May, 2027",
-      status: "Solved",
-      statusClass:
-        "bg-success-50 dark:bg-success-500/15 text-success-700 dark:text-success-500",
-    },
-    {
-      id: "#323542",
-      name: "Emily Clark",
-      email: "emily.clark@email.com",
-      subject: "UI Bug in Mobile View",
-      date: "03 May, 2027",
-      status: "Pending",
-      statusClass:
-        "bg-warning-50 dark:bg-warning-500/15 text-warning-600 dark:text-warning-500",
-    },
-    {
-      id: "#323543",
-      name: "Liam Wong",
-      email: "liam.wong@email.com",
-      subject: "Account Locked",
-      date: "04 May, 2027",
-      status: "Solved",
-      statusClass:
-        "bg-success-50 dark:bg-success-500/15 text-success-700 dark:text-success-500",
-    },
-    {
-      id: "#323544",
-      name: "Sophia Patel",
-      email: "sophia.patel@email.com",
-      subject: "Integration Not Working",
-      date: "05 May, 2027",
-      status: "Pending",
-      statusClass:
-        "bg-warning-50 dark:bg-warning-500/15 text-warning-600 dark:text-warning-500",
-    },
-    {
-      id: "#323545",
-      name: "Noah Kim",
-      email: "noah.kim@email.com",
-      subject: "Request for API Access",
-      date: "06 May, 2027",
-      status: "Solved",
-      statusClass:
-        "bg-success-50 dark:bg-success-500/15 text-success-700 dark:text-success-500",
-    },
-  ]);
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setIsLoading(true);
+      try {
+        const data = await apiClient.get<any>("/users", true);
 
-  const [selectedStatus, setSelectedStatus] = useState<
-    "All" | "Solved" | "Pending"
-  >("All");
+        // Handle different response formats
+        const usersList = data.users || data.data || data;
+        setUsers(Array.isArray(usersList) ? usersList : []);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Failed to load users";
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [filterData, setFilterData] = useState<FilterData>({
-    category: "",
-    company: "",
-  });
+  // const [roleFilter, setRoleFilter] = useState<string>("");
+  const [selectedRole, setSelectedRole] = useState<string>("All");
   const [showFilter, setShowFilter] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [perPage] = useState<number>(10);
@@ -156,51 +48,39 @@ const SupportTicketsList: React.FC = () => {
   const [selectAll, setSelectAll] = useState<boolean>(false);
   const [selected, setSelected] = useState<string[]>([]);
 
-  const filteredTickets = useMemo(() => {
-    return tickets
-      .filter(
-        (ticket) => selectedStatus === "All" || ticket.status === selectedStatus
-      )
-      .filter(
-        (ticket) =>
-          ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          ticket.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          ticket.email.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-      .filter(
-        (ticket) =>
-          ticket.subject
-            .toLowerCase()
-            .includes(filterData.category.toLowerCase()) &&
-          ticket.email.toLowerCase().includes(filterData.company.toLowerCase())
-      );
-  }, [tickets, selectedStatus, searchQuery, filterData]);
+  const filteredUsers = useMemo(() => {
+    return users.filter(
+      (user) =>
+        (user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchQuery.toLowerCase())) &&
+        (selectedRole === "All" || user.role?.toLowerCase() === selectedRole.toLowerCase())
+        // && (roleFilter === "" || user.role?.toLowerCase().includes(roleFilter.toLowerCase()))
+    );
+  }, [users, searchQuery, selectedRole]); // , roleFilter
 
-  const sortedTickets = useMemo(() => {
-    const sorted = [...filteredTickets];
+  const sortedUsers = useMemo(() => {
+    const sorted = [...filteredUsers];
     if (sortBy) {
       sorted.sort((a, b) => {
-        let valA: any = a[sortBy as keyof Ticket];
-        let valB: any = b[sortBy as keyof Ticket];
-        if (sortBy === "date") {
-          const parse = (v: string) =>
-            new Date(v.replace(/(\d{2}) (\w+), (\d{4})/, "$2 $1, $3"));
-          valA = parse(valA as string);
-          valB = parse(valB as string);
-        } else {
-          valA = (valA as string).toLowerCase();
-          valB = (valB as string).toLowerCase();
-        }
+        let valA: any = a[sortBy as keyof User];
+        let valB: any = b[sortBy as keyof User];
+
+        if (!valA) return 1;
+        if (!valB) return -1;
+
+        valA = valA.toString().toLowerCase();
+        valB = valB.toString().toLowerCase();
+
         if (valA < valB) return sortAsc ? -1 : 1;
         if (valA > valB) return sortAsc ? 1 : -1;
         return 0;
       });
     }
     return sorted;
-  }, [filteredTickets, sortBy, sortAsc]);
+  }, [filteredUsers, sortBy, sortAsc]);
 
-  const totalPages = Math.ceil(sortedTickets.length / perPage);
-  const paginatedTickets = sortedTickets.slice(
+  const totalPages = Math.ceil(sortedUsers.length / perPage);
+  const paginatedUsers = sortedUsers.slice(
     (currentPage - 1) * perPage,
     currentPage * perPage
   );
@@ -230,7 +110,7 @@ const SupportTicketsList: React.FC = () => {
     if (selectAll) {
       setSelected([]);
     } else {
-      setSelected(paginatedTickets.map((ticket) => ticket.id));
+      setSelected(paginatedUsers.map((user) => user.id));
     }
     setSelectAll(!selectAll);
   };
@@ -240,14 +120,21 @@ const SupportTicketsList: React.FC = () => {
       ? selected.filter((i) => i !== id)
       : [...selected, id];
     setSelected(newSelected);
-    setSelectAll(newSelected.length === paginatedTickets.length);
+    setSelectAll(newSelected.length === paginatedUsers.length);
   };
 
-  const handleFilterChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFilterData((prev) => ({ ...prev, [name]: value }));
+  // Get badge style based on role
+  const getRoleBadgeClass = (role?: string): string => {
+    const roleMap: Record<string, string> = {
+      admin: "bg-error-50 dark:bg-error-500/15 text-error-700 dark:text-error-500",
+      manager: "bg-brand-50 dark:bg-brand-500/15 text-brand-700 dark:text-brand-500",
+      staff: "bg-warning-50 dark:bg-warning-500/15 text-warning-600 dark:text-warning-500",
+      user: "bg-success-50 dark:bg-success-500/15 text-success-700 dark:text-success-500",
+    };
+    return roleMap[role?.toLowerCase() || "user"] || roleMap.user;
   };
 
+  // Close filter dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -263,32 +150,57 @@ const SupportTicketsList: React.FC = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [showFilter]);
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500 dark:text-gray-400">Загрузка пользователей...</div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="p-4 text-red-600 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400">
+        Ошибка: {error}
+      </div>
+    );
+  }
+
+  // Empty state
+  if (users.length === 0) {
+    return (
+      <div className="text-center text-gray-500 py-8 dark:text-gray-400">
+        Пользователи не найдены
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
       <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
         <div>
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Support Tickets
+            Пользователи
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Your most recent support tickets list
+            Ваши пользователи
           </p>
         </div>
         <div className="flex gap-3.5">
           <div className="hidden h-11 items-center gap-0.5 rounded-lg bg-gray-100 p-0.5 lg:inline-flex dark:bg-gray-900">
-            {["All", "Solved", "Pending"].map((status) => (
+            {["All", "Admin", "Manager", "Staff", "User"].map((role) => (
               <button
-                key={status}
-                onClick={() =>
-                  setSelectedStatus(status as "All" | "Solved" | "Pending")
-                }
+                key={role}
+                onClick={() => setSelectedRole(role)}
                 className={`text-theme-sm h-10 rounded-md px-3 py-2 font-medium hover:text-gray-900 dark:hover:text-white ${
-                  selectedStatus === status
+                  selectedRole === role
                     ? "shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800"
                     : "text-gray-500 dark:text-gray-400"
                 }`}
               >
-                {status}
+                {role}
               </button>
             ))}
           </div>
@@ -319,66 +231,65 @@ const SupportTicketsList: React.FC = () => {
                 className="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pr-4 pl-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden xl:w-[300px] dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
               />
             </div>
-            <div className="relative filter-dropdown">
-              <button
-                className="shadow-theme-xs flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 sm:w-auto sm:min-w-[100px] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-                onClick={() => setShowFilter(!showFilter)}
-                type="button"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                >
-                  <path
-                    d="M14.6537 5.90414C14.6537 4.48433 13.5027 3.33331 12.0829 3.33331C10.6631 3.33331 9.51206 4.48433 9.51204 5.90415M14.6537 5.90414C14.6537 7.32398 13.5027 8.47498 12.0829 8.47498C10.663 8.47498 9.51204 7.32398 9.51204 5.90415M14.6537 5.90414L17.7087 5.90411M9.51204 5.90415L2.29199 5.90411M5.34694 14.0958C5.34694 12.676 6.49794 11.525 7.91777 11.525C9.33761 11.525 10.4886 12.676 10.4886 14.0958M5.34694 14.0958C5.34694 15.5156 6.49794 16.6666 7.91778 16.6666C9.33761 16.6666 10.4886 15.5156 10.4886 14.0958M5.34694 14.0958L2.29199 14.0958M10.4886 14.0958L17.7087 14.0958"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                Filter
-              </button>
-              {showFilter && (
-                <div className="absolute right-0 z-10 mt-2 w-56 rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                  <div className="mb-5">
-                    <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
-                      Category
-                    </label>
-                    <input
-                      type="text"
-                      name="category"
-                      value={filterData.category}
-                      onChange={handleFilterChange}
-                      className="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-                      placeholder="Search category..."
-                    />
-                  </div>
-                  <div className="mb-5">
-                    <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
-                      Company
-                    </label>
-                    <input
-                      type="text"
-                      name="company"
-                      value={filterData.company}
-                      onChange={handleFilterChange}
-                      className="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-                      placeholder="Search company..."
-                    />
-                  </div>
-                  <button
-                    className="bg-brand-500 hover:bg-brand-600 h-10 w-full rounded-lg px-3 py-2 text-sm font-medium text-white"
-                    onClick={() => setShowFilter(false)}
-                  >
-                    Apply
-                  </button>
-                </div>
-              )}
-            </div>
+            {/*<div className="relative filter-dropdown">*/}
+            {/*  <button*/}
+            {/*    className="shadow-theme-xs flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 sm:w-auto sm:min-w-[100px] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"*/}
+            {/*    onClick={() => setShowFilter(!showFilter)}*/}
+            {/*    type="button"*/}
+            {/*  >*/}
+            {/*    <svg*/}
+            {/*      xmlns="http://www.w3.org/2000/svg"*/}
+            {/*      width="20"*/}
+            {/*      height="20"*/}
+            {/*      viewBox="0 0 20 20"*/}
+            {/*      fill="none"*/}
+            {/*    >*/}
+            {/*      <path*/}
+            {/*        d="M14.6537 5.90414C14.6537 4.48433 13.5027 3.33331 12.0829 3.33331C10.6631 3.33331 9.51206 4.48433 9.51204 5.90415M14.6537 5.90414C14.6537 7.32398 13.5027 8.47498 12.0829 8.47498C10.663 8.47498 9.51204 7.32398 9.51204 5.90415M14.6537 5.90414L17.7087 5.90411M9.51204 5.90415L2.29199 5.90411M5.34694 14.0958C5.34694 12.676 6.49794 11.525 7.91777 11.525C9.33761 11.525 10.4886 12.676 10.4886 14.0958M5.34694 14.0958C5.34694 15.5156 6.49794 16.6666 7.91778 16.6666C9.33761 16.6666 10.4886 15.5156 10.4886 14.0958M5.34694 14.0958L2.29199 14.0958M10.4886 14.0958L17.7087 14.0958"*/}
+            {/*        stroke="currentColor"*/}
+            {/*        strokeWidth="1.5"*/}
+            {/*        strokeLinecap="round"*/}
+            {/*        strokeLinejoin="round"*/}
+            {/*      />*/}
+            {/*    </svg>*/}
+            {/*    Filter*/}
+            {/*  </button>*/}
+            {/*  {showFilter && (*/}
+            {/*    <div className="absolute right-0 z-10 mt-2 w-56 rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800">*/}
+            {/*      <div className="mb-5">*/}
+            {/*        <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">*/}
+            {/*          Роль*/}
+            {/*        </label>*/}
+            {/*        <input*/}
+            {/*          type="text"*/}
+            {/*          name="role"*/}
+            {/*          value={roleFilter}*/}
+            {/*          onChange={(e) => setRoleFilter(e.target.value)}*/}
+            {/*          className="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"*/}
+            {/*          placeholder="Поиск по роли..."*/}
+            {/*        />*/}
+            {/*      </div>*/}
+            {/*      <div className="flex gap-2">*/}
+            {/*        <button*/}
+            {/*          className="bg-brand-500 hover:bg-brand-600 h-10 flex-1 rounded-lg px-3 py-2 text-sm font-medium text-white"*/}
+            {/*          onClick={() => setShowFilter(false)}*/}
+            {/*        >*/}
+            {/*          Применить*/}
+            {/*        </button>*/}
+            {/*        <button*/}
+            {/*          className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 h-10 flex-1 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300"*/}
+            {/*          onClick={() => {*/}
+            {/*            setRoleFilter("");*/}
+            {/*            setSelectedRole("All");*/}
+            {/*            setShowFilter(false);*/}
+            {/*          }}*/}
+            {/*        >*/}
+            {/*          Сбросить*/}
+            {/*        </button>*/}
+            {/*      </div>*/}
+            {/*    </div>*/}
+            {/*  )}*/}
+            {/*</div>*/}
           </div>
         </div>
       </div>
@@ -425,7 +336,7 @@ const SupportTicketsList: React.FC = () => {
                       </span>
                     </label>
                     <p className="text-theme-xs font-medium text-gray-700 dark:text-gray-400">
-                      Ticket ID
+                      ID
                     </p>
                   </div>
                 </div>
@@ -436,7 +347,7 @@ const SupportTicketsList: React.FC = () => {
                   onClick={() => handleSort("name")}
                 >
                   <p className="text-theme-xs font-medium text-gray-700 dark:text-gray-400">
-                    Requested By
+                    ФИО
                   </p>
                   <span className="flex flex-col gap-0.5">
                     <svg
@@ -477,20 +388,17 @@ const SupportTicketsList: React.FC = () => {
                 </div>
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
-                Subject
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
                 <div
                   className="flex cursor-pointer items-center justify-between gap-3"
-                  onClick={() => handleSort("date")}
+                  onClick={() => handleSort("email")}
                 >
                   <p className="text-theme-xs font-medium text-gray-700 dark:text-gray-400">
-                    Create Date
+                    Email
                   </p>
                   <span className="flex flex-col gap-0.5">
                     <svg
                       className={
-                        sortBy === "date" && sortAsc
+                        sortBy === "email" && sortAsc
                           ? "text-gray-500 dark:text-gray-300"
                           : "text-gray-300 dark:text-gray-400"
                       }
@@ -507,7 +415,7 @@ const SupportTicketsList: React.FC = () => {
                     </svg>
                     <svg
                       className={
-                        sortBy === "date" && !sortAsc
+                        sortBy === "email" && !sortAsc
                           ? "text-gray-500 dark:text-gray-300"
                           : "text-gray-300 dark:text-gray-400"
                       }
@@ -526,14 +434,20 @@ const SupportTicketsList: React.FC = () => {
                 </div>
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
-                Status
+                Телефон
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
+                Роль
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
+                Действия
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-            {paginatedTickets.map((ticket) => (
+            {paginatedUsers.map((user) => (
               <tr
-                key={ticket.id}
+                key={user.id}
                 className="transition hover:bg-gray-50 dark:hover:bg-gray-900"
               >
                 <td className="px-4 py-3 whitespace-nowrap">
@@ -543,20 +457,20 @@ const SupportTicketsList: React.FC = () => {
                         <input
                           type="checkbox"
                           className="sr-only"
-                          value={ticket.id}
-                          checked={selected.includes(ticket.id)}
-                          onChange={() => handleToggleOne(ticket.id)}
+                          value={user.id}
+                          checked={selected.includes(user.id)}
+                          onChange={() => handleToggleOne(user.id)}
                         />
                         <span
                           className={`flex h-4 w-4 items-center justify-center rounded-sm border-[1.25px] ${
-                            selected.includes(ticket.id)
+                            selected.includes(user.id)
                               ? "border-brand-500 bg-brand-500"
                               : "bg-transparent border-gray-300 dark:border-gray-700"
                           }`}
                         >
                           <span
                             className={
-                              selected.includes(ticket.id) ? "" : "opacity-0"
+                              selected.includes(user.id) ? "" : "opacity-0"
                             }
                           >
                             <svg
@@ -579,37 +493,32 @@ const SupportTicketsList: React.FC = () => {
                       </span>
                     </label>
                     <p className="text-theme-xs font-medium text-gray-700 dark:text-gray-400">
-                      {ticket.id}
+                      {user.id}
                     </p>
                   </div>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <div>
-                    <span className="text-sm font-medium text-gray-800 dark:text-white/90">
-                      {ticket.name}
-                    </span>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {ticket.email}
-                    </p>
-                  </div>
+                  <span className="text-sm font-medium text-gray-800 dark:text-white/90">
+                    {user.full_name || "—"}
+                  </span>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <p className="text-sm text-gray-700 dark:text-gray-400">
-                    {ticket.subject}
+                    {user.email}
                   </p>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <p className="text-sm text-gray-700 dark:text-gray-400">
-                    {ticket.date}
+                    {user.phone || "—"}
                   </p>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <span
-                    className={`${ticket.statusClass} text-theme-xs rounded-full px-2 py-0.5 font-medium`}
+                    className={`${getRoleBadgeClass(user.role)} text-theme-xs rounded-full px-2 py-0.5 font-medium`}
                   >
-                    {ticket.status}
+                    {user.role || "User"}
                   </span>
-                </td>{" "}
+                </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div className=" flex items-center justify-center">
                     <TableDropdown
@@ -659,11 +568,11 @@ const SupportTicketsList: React.FC = () => {
             </span>{" "}
             to
             <span className="text-gray-800 dark:text-white/90">
-              {Math.min(currentPage * perPage, sortedTickets.length)}
+              {Math.min(currentPage * perPage, sortedUsers.length)}
             </span>{" "}
             of{" "}
             <span className="text-gray-800 dark:text-white/90">
-              {sortedTickets.length}
+              {sortedUsers.length}
             </span>
           </span>
         </div>
@@ -741,4 +650,4 @@ const SupportTicketsList: React.FC = () => {
   );
 };
 
-export default SupportTicketsList;
+export default UserList;
