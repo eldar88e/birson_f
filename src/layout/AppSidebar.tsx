@@ -28,13 +28,13 @@ type NavItem = {
 const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
-    name: "Dashboard",
+    name: "Дашборд",
     subItems: [
-      { name: "Ecommerce", path: "/" },
+      { name: "Аналитика", path: "/" },
     ],
   },
   {
-    name: "E-commerce",
+    name: "Бизнес",
     icon: <CartIcon />,
     new: true,
     subItems: [
@@ -46,7 +46,7 @@ const navItems: NavItem[] = [
   },
   {
     icon: <CalenderIcon />,
-    name: "Calendar",
+    name: "Календарь",
     path: "/calendar",
   },
   {
@@ -72,7 +72,7 @@ const othersItems: NavItem[] = [
   },
   {
     icon: <BoxCubeIcon />,
-    name: "UI Elements",
+    name: "UI Компоненты",
     subItems: [
       { name: "Alerts", path: "/alerts", pro: false },
       { name: "Avatar", path: "/avatars", pro: false },
@@ -99,7 +99,7 @@ const othersItems: NavItem[] = [
     ],
   },
   {
-    name: "Pages",
+    name: "Примеры страниц",
     icon: <PageIcon />,
     subItems: [
       { name: "List", path: "/task-list", pro: true },
