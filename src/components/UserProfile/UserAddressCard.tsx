@@ -1,59 +1,127 @@
+import { useState } from "react";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
+import { apiClient } from "../../api/client";
 
-export default function UserAddressCard() {
+interface User {
+  id: number;
+  company_name: string;
+  inn: string;
+  kpp: string;
+  ogrn: string;
+  legal_address: string;
+  actual_address: string;
+  contact_person: string;
+  contact_phone: string;
+  bank_name: string;
+  bik: string;
+  checking_account: string;
+  correspondent_account: string;
+}
+
+interface UserAddressCardProps {
+  user: User;
+}
+
+export default function UserAddressCard({ user }: UserAddressCardProps) {
   const { isOpen, openModal, closeModal } = useModal();
-  const handleSave = () => {
-    // Handle save logic here
-    console.log("Saving changes...");
-    closeModal();
+  const [formData, setFormData] = useState({
+    company_name: user.company_name || "",
+    inn: user.inn || "",
+    kpp: user.kpp || "",
+    ogrn: user.ogrn || "",
+    legal_address: user.legal_address || "",
+    actual_address: user.actual_address || "",
+    contact_person: user.contact_person || "",
+    contact_phone: user.contact_phone || "",
+    bank_name: user.bank_name || "",
+    bik: user.bik || "",
+    checking_account: user.checking_account || "",
+    correspondent_account: user.correspondent_account || "",
+  });
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await apiClient.put(`/users/${user.id}`, formData, true);
+      console.log("Company info updated successfully!");
+      closeModal();
+    } catch (error) {
+      console.error("Failed to update company info:", error);
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   return (
     <>
       <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">
-              Address
+              Реквизиты компании
             </h4>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
               <div>
                 <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                  Country
+                  Название компании
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  United States.
+                  {user.company_name || "—"}
                 </p>
               </div>
 
               <div>
                 <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                  City/State
+                  ИНН
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  Phoenix, Arizona, United States.
+                  {user.inn || "—"}
                 </p>
               </div>
 
               <div>
                 <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                  Postal Code
+                  КПП
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  ERT 2489
+                  {user.kpp || "—"}
                 </p>
               </div>
 
               <div>
                 <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                  TAX ID
+                  ОГРН
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  AS4568384
+                  {user.ogrn || "—"}
+                </p>
+              </div>
+
+              <div className="col-span-1 lg:col-span-2">
+                <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                  Юридический адрес
+                </p>
+                <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                  {user.legal_address || "—"}
+                </p>
+              </div>
+
+              <div className="col-span-1 lg:col-span-2">
+                <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                  Фактический адрес
+                </p>
+                <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                  {user.actual_address || "—"}
                 </p>
               </div>
             </div>
@@ -86,42 +154,142 @@ export default function UserAddressCard() {
         <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
           <div className="px-2 pr-14">
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-              Edit Address
+              Редактировать реквизиты
             </h4>
             <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-              Update your details to keep your profile up-to-date.
+              Обновите реквизиты компании
             </p>
           </div>
-          <form className="flex flex-col">
-            <div className="px-2 overflow-y-auto custom-scrollbar">
+          <form className="flex flex-col" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
+            <div className="px-2 overflow-y-auto custom-scrollbar max-h-[500px]">
               <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                <div>
-                  <Label>Country</Label>
-                  <Input type="text" value="United States" />
+                <div className="col-span-2">
+                  <Label>Название компании</Label>
+                  <Input
+                    type="text"
+                    value={formData.company_name}
+                    onChange={(e) => handleChange("company_name", e.target.value)}
+                    placeholder="ООО Компания"
+                  />
                 </div>
 
                 <div>
-                  <Label>City/State</Label>
-                  <Input type="text" value="Arizona, United States." />
+                  <Label>ИНН</Label>
+                  <Input
+                    type="text"
+                    value={formData.inn}
+                    onChange={(e) => handleChange("inn", e.target.value)}
+                    placeholder="1234567890"
+                  />
                 </div>
 
                 <div>
-                  <Label>Postal Code</Label>
-                  <Input type="text" value="ERT 2489" />
+                  <Label>КПП</Label>
+                  <Input
+                    type="text"
+                    value={formData.kpp}
+                    onChange={(e) => handleChange("kpp", e.target.value)}
+                    placeholder="123456789"
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <Label>ОГРН</Label>
+                  <Input
+                    type="text"
+                    value={formData.ogrn}
+                    onChange={(e) => handleChange("ogrn", e.target.value)}
+                    placeholder="1234567890123"
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <Label>Юридический адрес</Label>
+                  <Input
+                    type="text"
+                    value={formData.legal_address}
+                    onChange={(e) => handleChange("legal_address", e.target.value)}
+                    placeholder="г. Москва, ул. Примерная, д. 1"
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <Label>Фактический адрес</Label>
+                  <Input
+                    type="text"
+                    value={formData.actual_address}
+                    onChange={(e) => handleChange("actual_address", e.target.value)}
+                    placeholder="г. Москва, ул. Примерная, д. 1"
+                  />
                 </div>
 
                 <div>
-                  <Label>TAX ID</Label>
-                  <Input type="text" value="AS4568384" />
+                  <Label>Контактное лицо</Label>
+                  <Input
+                    type="text"
+                    value={formData.contact_person}
+                    onChange={(e) => handleChange("contact_person", e.target.value)}
+                    placeholder="Иванов Иван Иванович"
+                  />
+                </div>
+
+                <div>
+                  <Label>Контактный телефон</Label>
+                  <Input
+                    type="text"
+                    value={formData.contact_phone}
+                    onChange={(e) => handleChange("contact_phone", e.target.value)}
+                    placeholder="+79001234567"
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <Label>Название банка</Label>
+                  <Input
+                    type="text"
+                    value={formData.bank_name}
+                    onChange={(e) => handleChange("bank_name", e.target.value)}
+                    placeholder="ПАО Сбербанк"
+                  />
+                </div>
+
+                <div>
+                  <Label>БИК</Label>
+                  <Input
+                    type="text"
+                    value={formData.bik}
+                    onChange={(e) => handleChange("bik", e.target.value)}
+                    placeholder="044525225"
+                  />
+                </div>
+
+                <div>
+                  <Label>Расчетный счет</Label>
+                  <Input
+                    type="text"
+                    value={formData.checking_account}
+                    onChange={(e) => handleChange("checking_account", e.target.value)}
+                    placeholder="40702810000000000000"
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <Label>Корреспондентский счет</Label>
+                  <Input
+                    type="text"
+                    value={formData.correspondent_account}
+                    onChange={(e) => handleChange("correspondent_account", e.target.value)}
+                    placeholder="30101810000000000000"
+                  />
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-              <Button size="sm" variant="outline" onClick={closeModal}>
-                Close
+              <Button size="sm" variant="outline" onClick={closeModal} type="button">
+                Отмена
               </Button>
-              <Button size="sm" onClick={handleSave}>
-                Save Changes
+              <Button size="sm" onClick={handleSave} type="button" disabled={isSaving}>
+                {isSaving ? "Сохранение..." : "Сохранить"}
               </Button>
             </div>
           </form>

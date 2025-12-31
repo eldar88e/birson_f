@@ -3,6 +3,7 @@ import TableDropdown from "../common/TableDropdown";
 import { apiClient } from "../../api/client";
 import Pagination from "../../shared/ui/Pages";
 import SvgIcon from "../../shared/ui/SvgIcon";
+import {Link} from "react-router";
 
 interface User {
   id: string;
@@ -174,14 +175,13 @@ const UserList: React.FC = () => {
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
       <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Пользователи
-          </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Ваши пользователи
-          </p>
-        </div>
+        <Link
+          to={`/users`}
+          className="bg-brand-500 shadow-sm hover inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white transition hover:bg-brand-600"
+        >
+          <SvgIcon name="plus" />
+          Добавить
+        </Link>
         <div className="flex gap-3.5">
           <div className="hidden h-11 items-center gap-0.5 rounded-lg bg-gray-100 p-0.5 lg:inline-flex dark:bg-gray-900">
             {["All", "Admin", "Manager", "Staff", "User"].map((role) => (
@@ -422,11 +422,14 @@ const UserList: React.FC = () => {
                       }
                       dropdownContent={
                         <>
+                          <Link
+                            to={`/users/${user.id}`}
+                            className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                          >
+                            Подробнее
+                          </Link>
                           <button className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
-                            View More
-                          </button>
-                          <button className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
-                            Delete
+                            Удалить
                           </button>
                         </>
                       }

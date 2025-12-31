@@ -3,7 +3,6 @@ import Ecommerce from "./pages/Dashboard/Ecommerce";
 
 import SignIn from "./pages/AuthPages/SignIn";
 import NotFound from "./pages/OtherPage/NotFound";
-import UserProfiles from "./pages/UserProfiles";
 import Carousel from "./pages/UiElements/Carousel";
 import Maintenance from "./pages/OtherPage/Maintenance";
 import FiveZeroZero from "./pages/OtherPage/FiveZeroZero";
@@ -54,6 +53,7 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import TaskList from "./pages/Task/TaskList";
 
 import UserList from "./pages/Users/UserList";
+import UserProfiles from "./pages/Users/UserProfiles";
 
 import ProductList from "./pages/Ecommerce/ProductList";
 import AddProduct from "./pages/Ecommerce/AddProduct";
@@ -87,9 +87,9 @@ export default function App() {
 
             {/* Users */}
             <Route path="/users" element={<UserList />} />
+            <Route path="/users/:userId" element={<UserProfiles />} />
 
             {/* Others Page */}
-            <Route path="/profile" element={<UserProfiles />} />
             <Route path="/faq" element={<Faqs />} />
             <Route path="/pricing-tables" element={<PricingTables />} />
             <Route path="/integrations" element={<Integrations />} />
