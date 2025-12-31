@@ -19,15 +19,15 @@ class AuthService {
     return localStorage.getItem("token") || sessionStorage.getItem("token");
   }
 
-  private getUser(): any {
-    const userStr = localStorage.getItem("user") || sessionStorage.getItem("user");
-    if (!userStr) return null;
-    try {
-      return JSON.parse(userStr);
-    } catch {
-      return null;
-    }
-  }
+  // private getUser(): any {
+  //   const userStr = localStorage.getItem("user") || sessionStorage.getItem("user");
+  //   if (!userStr) return null;
+  //   try {
+  //     return JSON.parse(userStr);
+  //   } catch {
+  //     return null;
+  //   }
+  // }
 
   async login(credentials: LoginCredentials, rememberMe: boolean = false): Promise<LoginResponse> {
     const response = await apiClient.post<any>(
@@ -40,8 +40,8 @@ class AuthService {
       }
     );
 
-    let token = response.token || response.access_token || response.jwt;
-    let user = response.user || response.data?.user;
+    const token = response.token || response.access_token || response.jwt;
+    const user = response.user || response.data?.user;
     const storage = rememberMe ? localStorage : sessionStorage;
 
     if (token) {
@@ -65,9 +65,9 @@ class AuthService {
     return !!this.getToken();
   }
 
-  getCurrentUser(): any {
-    return this.getUser();
-  }
+  // getCurrentUser(): any {
+  //   return this.getUser();
+  // }
 }
 
 export const authService = new AuthService();
