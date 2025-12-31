@@ -15,4 +15,39 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          charts: ["apexcharts", "react-apexcharts"],
+          swiper: ["swiper"],
+          calendar: [
+            "@fullcalendar/core",
+            "@fullcalendar/react",
+            "@fullcalendar/daygrid",
+            "@fullcalendar/timegrid",
+            "@fullcalendar/list",
+            "@fullcalendar/interaction",
+          ],
+          vendor: [
+            "react",
+            "react-dom",
+            "react-router",
+            "react-helmet-async",
+          ],
+          ui: [
+            "simplebar-react",
+            "flatpickr",
+            "prismjs",
+            "clsx",
+          ],
+          dnd: [
+            "react-dnd",
+            "react-dnd-html5-backend",
+          ],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1300,
+  },
 });
