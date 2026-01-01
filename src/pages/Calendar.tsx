@@ -94,7 +94,7 @@ const Calendar: React.FC = () => {
     } else {
       // Add new event
       const newEvent: CalendarEvent = {
-        id: Date.now().toString(),
+        id: crypto.randomUUID(),
         title: eventTitle,
         start: eventStartDate,
         end: eventEndDate,
