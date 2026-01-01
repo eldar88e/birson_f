@@ -5,6 +5,7 @@ import { authService } from "../../api/auth";
 import type { User } from "../../entities/user/model";
 import { useNavigate } from "react-router";
 import SvgIcon from "../../shared/ui/SvgIcon";
+import { ROUTES } from "../../shared/config/routes";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,7 +14,7 @@ export default function UserDropdown() {
 
   function handleLogout(){
     authService.logout();
-    navigate("/signin");
+    navigate(ROUTES.AUTH.SIGN_IN);
   };
 
   const toggleDropdown = () => setIsOpen(!isOpen);

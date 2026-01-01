@@ -1,9 +1,9 @@
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import TaskHeader from "../../components/task/TaskHeader";
-import KanbanBoard from "../../components/task/kanban/KanbanBoard";
-import PageMeta from "../../components/common/PageMeta";
+import PageBreadcrumb from "../components/common/PageBreadCrumb";
+import TaskHeader from "../components/task/TaskHeader";
+import KanbanBoard from "../components/task/kanban/KanbanBoard";
+import PageMeta from "../components/common/PageMeta";
 
-export default function TaskKanban() {
+export default function Kanban() {
   return (
     <div>
       <PageMeta

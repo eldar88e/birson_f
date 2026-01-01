@@ -1,16 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
+import { ROUTES } from "../shared/config/routes";
 
 // Assume these icons are imported from an icon library
 import {
-  BoxCubeIcon,
   CalenderIcon,
   CartIcon,
   ChevronDownIcon,
   GridIcon,
   HorizontaLDots,
   PageIcon,
-  PieChartIcon,
   SettingsIcon,
   UserCircleIcon,
 } from "../icons";
@@ -30,7 +29,7 @@ const navItems: NavItem[] = [
     icon: <GridIcon />,
     name: "Дашборд",
     subItems: [
-      { name: "Аналитика", path: "/" },
+      { name: "Аналитика", path: ROUTES.ROOT },
     ],
   },
   {
@@ -38,85 +37,29 @@ const navItems: NavItem[] = [
     icon: <CartIcon />,
     new: true,
     subItems: [
-      { name: "Products", path: "/products-list" },
-      { name: "Add Product", path: "/add-product" },
-      { name: "Invoices", path: "/invoices" },
-      { name: "Single Invoice", path: "/single-invoice" },
+      { name: "Products", path: ROUTES.PRODUCTS.INDEX },
+      { name: "Add Product", path: ROUTES.PRODUCTS.ADD_PRODUCT },
+      { name: "Invoices", path: ROUTES.INVOICES.INDEX },
+      { name: "Single Invoice", path: ROUTES.INVOICES.SHOW },
     ],
   },
-  {
-    icon: <CalenderIcon />,
+  { icon: <CalenderIcon />,
     name: "Календарь",
-    path: "/calendar",
+    path: ROUTES.CALENDAR,
   },
   {
     icon: <UserCircleIcon />,
     name: "Пользователи",
-    path: "/users",
+    path: ROUTES.USERS.INDEX,
   },
 ];
 
 const othersItems: NavItem[] = [
   {
-    icon: <PieChartIcon />,
-    name: "Компоненты",
-    subItems: [
-      { name: "Line Chart", path: "/line-chart", pro: true },
-      { name: "Bar Chart", path: "/bar-chart", pro: true },
-      { name: "Pie Chart", path: "/pie-chart", pro: true },
-      { name: "Form Elements", path: "/form-elements", pro: false },
-      { name: "Form Layout", path: "/form-layout", pro: true },
-      { name: "Basic Tables", path: "/basic-tables", pro: false },
-      { name: "Data Tables", path: "/data-tables", pro: true },
-    ],
-  },
-  {
-    icon: <BoxCubeIcon />,
-    name: "UI Компоненты",
-    subItems: [
-      { name: "Alerts", path: "/alerts", pro: false },
-      { name: "Avatar", path: "/avatars", pro: false },
-      { name: "Badge", path: "/badge", pro: false },
-      { name: "Breadcrumb", path: "/breadcrumb", pro: false },
-      { name: "Buttons", path: "/buttons", pro: false },
-      { name: "Buttons Group", path: "/buttons-group", pro: false },
-      { name: "Cards", path: "/cards", pro: false },
-      { name: "Carousel", path: "/carousel", pro: false },
-      { name: "Dropdowns", path: "/dropdowns", pro: false },
-      { name: "Images", path: "/images", pro: false },
-      { name: "Links", path: "/links", pro: false },
-      { name: "List", path: "/list", pro: false },
-      { name: "Modals", path: "/modals", pro: false },
-      { name: "Notification", path: "/notifications", pro: false },
-      { name: "Pagination", path: "/pagination", pro: false },
-      { name: "Popovers", path: "/popovers", pro: false },
-      { name: "Progressbar", path: "/progress-bar", pro: false },
-      { name: "Ribbons", path: "/ribbons", pro: false },
-      { name: "Spinners", path: "/spinners", pro: false },
-      { name: "Tabs", path: "/tabs", pro: false },
-      { name: "Tooltips", path: "/tooltips", pro: false },
-      { name: "Videos", path: "/videos", pro: false },
-    ],
-  },
-  {
     name: "Примеры страниц",
     icon: <PageIcon />,
     subItems: [
-      { name: "List", path: "/task-list", pro: true },
-      { name: "Kanban", path: "/task-kanban", pro: true },
-      { name: "Chat", path: "/chat" },
-      { name: "File Manager", path: "/file-manager" },
-      { name: "Pricing Tables", path: "/pricing-tables" },
-      { name: "FAQ", path: "/faq" },
-      { name: "API Keys", path: "/api-keys", new: true },
-      { name: "Integrations", path: "/integrations", new: true },
-      { name: "Blank Page", path: "/blank" },
-      { name: "404 Error", path: "/error-404" },
-      { name: "500 Error", path: "/error-500" },
-      { name: "503 Error", path: "/error-503" },
-      { name: "Coming Soon", path: "/coming-soon" },
-      { name: "Maintenance", path: "/maintenance" },
-      { name: "Success", path: "/success" },
+      { name: "Kanban", path: ROUTES.KANBAN, pro: true },
     ],
   },
 ];

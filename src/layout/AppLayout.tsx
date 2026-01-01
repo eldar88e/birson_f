@@ -5,12 +5,13 @@ import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
 import { authService } from "../api/auth";
 import { Navigate } from "react-router";
+import { ROUTES } from "../shared/config/routes";
 
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
 
   if (!authService.isAuthenticated()) {
-    return <Navigate to="/signin" replace />;
+    return <Navigate to={ROUTES.AUTH.SIGN_IN} replace />;
   }
 
   return (

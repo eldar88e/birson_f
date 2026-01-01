@@ -1,6 +1,6 @@
-import PageBreadcrumb from "../components/common/PageBreadCrumb";
-import Invoice from "../components/invoice/Invoice";
-import PageMeta from "../components/common/PageMeta";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb.tsx";
+import Invoice from "../../components/invoice/Invoice.tsx";
+import PageMeta from "../../components/common/PageMeta.tsx";
 
 export default function Invoices() {
   return (
