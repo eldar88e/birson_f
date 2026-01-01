@@ -5,16 +5,7 @@ import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import { apiClient } from "../../api/client";
-
-interface User {
-  id: number;
-  email: string;
-  full_name: string;
-  phone: string;
-  additional_phone: string;
-  role: string;
-  comment: string | null;
-}
+import type { User } from "../../entities/user/model";
 
 interface UserInfoCardProps {
   user: User;

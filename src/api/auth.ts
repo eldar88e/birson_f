@@ -1,4 +1,6 @@
 import { apiClient } from "./client";
+import { clearAuth, saveAuth, saveUser, getStoredToken, getStoredUser } from "../shared/lib/authStorage";
+import type { User } from "../entities/user/model";
 
 export interface LoginCredentials {
   email: string;
@@ -7,85 +9,23 @@ export interface LoginCredentials {
 
 export interface LoginResponse {
   token: string;
-  user: {
-    id: string;
-    email: string;
-    name?: string;
-  };
+  user: User;
 }
 
-export interface User {
-  id: number;
-  email: string;
-  full_name: string;
-  first_name: string;
-  middle_name: string;
-  last_name: string;
-  phone: string;
-  additional_phone: string;
-  company_name: string;
-  inn: string;
-  kpp: string;
-  ogrn: string;
-  legal_address: string;
-  actual_address: string;
-  contact_person: string;
-  contact_phone: string;
-  bank_name: string;
-  bik: string;
-  checking_account: string;
-  correspondent_account: string;
-  source: string;
-  comment: string | null;
-  active: boolean;
-  role: string;
-  created_at: string;
-}
+type LoginApiResponse = {
+  access_token: string;
+  // refresh_token: string;
+  user_id: number;
+};
 
 class AuthService {
-  private getToken(): string | null {
-    return localStorage.getItem("token") || sessionStorage.getItem("token");
-  }
-
-  private getUser(): User | null {
-    const userStr = localStorage.getItem("user") || sessionStorage.getItem("user");
-    if (!userStr) return null;
-
-    try {
-      return JSON.parse(userStr);
-    } catch {
-      return null;
-    }
-  }
-
-  private decodeToken(token: string): { user_id?: number } | null {
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      );
-      return JSON.parse(jsonPayload);
-    } catch (error) {
-      console.error("Failed to decode token:", error);
-      return null;
-    }
-  }
-
-  private async fetchUserData(userId: number, storage: Storage): Promise<User> {
+  private async fetchUserData(userId: number): Promise<User> {
     const response = await apiClient.get<{ user: User }>(`/users/${userId}`, true);
-    const user = response.user;
-
-    storage.setItem("user", JSON.stringify(user));
-
-    return user;
+    return response.user;
   }
 
   async login(credentials: LoginCredentials, rememberMe: boolean = false): Promise<LoginResponse> {
-    const response = await apiClient.post<any>(
+    const response = await apiClient.post<LoginApiResponse>(
       "/login",
       {
         user: {
@@ -95,76 +35,29 @@ class AuthService {
       }
     );
 
-    const token = response.token || response.access_token || response.jwt;
-    const storage = rememberMe ? localStorage : sessionStorage;
+    const token = response.access_token;
+    if (!token) throw new Error("No token received from server");
 
-    if (!token) {
-      throw new Error("No token received from server");
-    }
+    saveAuth(token, rememberMe);
+    const user = await this.fetchUserData(response.user_id);
+    saveUser(user, rememberMe);
 
-    storage.setItem("token", token);
-
-    const decoded = this.decodeToken(token);
-    const userId = decoded?.user_id;
-
-    if (!userId) {
-      throw new Error("No user_id found in token");
-    }
-
-    try {
-      const user = await this.fetchUserData(userId, storage);
-
-      return {
-        token,
-        user: {
-          id: user.id.toString(),
-          email: user.email,
-          name: user.full_name
-        }
-      };
-    } catch (error) {
-      return {
-        token,
-        user: {
-          id: userId.toString(),
-          email: credentials.email
-        }
-      };
-    }
+    return {
+      token,
+      user,
+    };
   }
 
   logout(): void {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("user");
+    clearAuth();
   }
 
   isAuthenticated(): boolean {
-    return !!this.getToken();
+    return !!getStoredToken();
   }
 
   getCurrentUser(): User | null {
-    return this.getUser();
-  }
-
-  async refreshUserData(): Promise<User | null> {
-    const token = this.getToken();
-    if (!token) return null;
-
-    const decoded = this.decodeToken(token);
-    const userId = decoded?.user_id;
-
-    if (!userId) return null;
-
-    const storage = localStorage.getItem("token") ? localStorage : sessionStorage;
-
-    try {
-      return await this.fetchUserData(userId, storage);
-    } catch (error) {
-      console.error("Failed to refresh user data:", error);
-      return null;
-    }
+    return getStoredUser();
   }
 }
 

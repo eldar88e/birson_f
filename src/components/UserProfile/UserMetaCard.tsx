@@ -1,12 +1,4 @@
-interface User {
-  id: number;
-  email: string;
-  full_name: string;
-  phone: string;
-  role: string;
-  active: boolean;
-  created_at: string;
-}
+import type { User } from "../../entities/user/model";
 
 interface UserMetaCardProps {
   user: User;

@@ -6,31 +6,7 @@ import PageMeta from "../../components/common/PageMeta.tsx";
 import { apiClient } from "../../api/client";
 import { useParams } from "react-router";
 import { useEffect, useState } from "react";
-
-interface User {
-  id: number;
-  email: string;
-  full_name: string;
-  phone: string;
-  additional_phone: string;
-  company_name: string;
-  inn: string;
-  kpp: string;
-  ogrn: string;
-  legal_address: string;
-  actual_address: string;
-  contact_person: string;
-  contact_phone: string;
-  bank_name: string;
-  bik: string;
-  checking_account: string;
-  correspondent_account: string;
-  source: string;
-  comment: string | null;
-  active: boolean;
-  role: string;
-  created_at: string;
-}
+import { User } from "../../entities/user/model";
 
 export default function UserProfiles() {
   const { userId } = useParams<{ userId: string }>();

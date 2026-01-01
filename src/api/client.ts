@@ -1,3 +1,5 @@
+import { getStoredToken } from "../shared/lib/authStorage";
+
 const API_BASE_URL = "https://birson.tgapp.online/api/v1";
 
 export class ApiError extends Error {
@@ -23,7 +25,7 @@ class ApiClient {
   }
 
   private getAuthToken(): string | null {
-    return localStorage.getItem("token") || sessionStorage.getItem("token");
+    return getStoredToken();
   }
 
   private buildHeaders(requiresAuth: boolean = false): HeadersInit {

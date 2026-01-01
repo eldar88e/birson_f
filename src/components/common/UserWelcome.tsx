@@ -1,4 +1,5 @@
-import { authService, type User } from "../../api/auth";
+import { authService } from "../../api/auth";
+import type { User } from "../../entities/user/model";
 import {useState} from "react";
 
 export default function UserWelcome() {
