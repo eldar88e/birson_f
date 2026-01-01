@@ -3,10 +3,11 @@ import AppLayout from "../layout/AppLayout";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { ROUTES } from "../shared/config/routes";
 
-// pages imports (можно lazy)
+// TODO: pages imports (implement lazy)
 
 import UserList from "../pages/Users/UserList";
 import UserProfiles from "../pages/Users/UserProfiles";
+import AddUser from "../pages/Users/AddUser";
 
 import ProductList from "../pages/Ecommerce/ProductList";
 import AddProduct from "../pages/Ecommerce/AddProduct";
@@ -22,6 +23,7 @@ export const protectedRoutes = (
     <Route index path={ROUTES.ROOT} element={<Ecommerce />} />
 
     <Route path={ROUTES.USERS.INDEX} element={<UserList />} />
+    <Route path={ROUTES.USERS.ADD_USER} element={<AddUser />} />
     <Route path={`${ROUTES.USERS.INDEX}/:userId`} element={<UserProfiles />} />
 
     <Route path={ROUTES.PRODUCTS.INDEX} element={<ProductList />} />

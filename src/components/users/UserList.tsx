@@ -3,17 +3,15 @@ import TableDropdown from "../common/TableDropdown";
 import { apiClient } from "../../api/client";
 import Pagination from "../../shared/ui/Pages";
 import SvgIcon from "../../shared/ui/SvgIcon";
-import {Link} from "react-router";
+import { Link } from "react-router";
+import { ROUTES } from "../../shared/config/routes";
+import type { User } from "../../entities/user/model";
 
-interface User {
-  id: string;
-  full_name: string;
-  email: string;
-  role?: string;
-  phone?: string;
-  created_at?: string;
-  status?: "active" | "inactive";
+interface Users {
+  data: User[];
 }
+
+export type UserSortKey = "full_name" | "email" | "role" | "phone";
 
 const UserList: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -24,11 +22,8 @@ const UserList: React.FC = () => {
     const fetchUsers = async () => {
       setIsLoading(true);
       try {
-        const data = await apiClient.get<any>("/users", true);
-
-        // Handle different response formats
-        const usersList = data.users || data.data || data;
-        setUsers(Array.isArray(usersList) ? usersList : []);
+        const data = await apiClient.get<Users>(ROUTES.USERS.INDEX, true);
+        setUsers(data.data);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Failed to load users";
         setError(errorMessage);
@@ -46,10 +41,10 @@ const UserList: React.FC = () => {
   const [showFilter, setShowFilter] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [perPage] = useState<number>(10);
-  const [sortBy, setSortBy] = useState<string>("");
+  const [sortBy, setSortBy] = useState<UserSortKey>("full_name");
   const [sortAsc, setSortAsc] = useState<boolean>(true);
   const [selectAll, setSelectAll] = useState<boolean>(false);
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<number[]>([]);
 
   const filteredUsers = useMemo(() => {
     return users.filter(
@@ -62,24 +57,22 @@ const UserList: React.FC = () => {
   }, [users, searchQuery, selectedRole]); // , roleFilter
 
   const sortedUsers = useMemo(() => {
-    const sorted = [...filteredUsers];
-    if (sortBy) {
-      sorted.sort((a, b) => {
-        let valA: any = a[sortBy as keyof User];
-        let valB: any = b[sortBy as keyof User];
+    if (!sortBy) return filteredUsers;
 
-        if (!valA) return 1;
-        if (!valB) return -1;
+    return [...filteredUsers].sort((a, b) => {
+      const valA = a[sortBy];
+      const valB = b[sortBy];
 
-        valA = valA.toString().toLowerCase();
-        valB = valB.toString().toLowerCase();
+      if (valA == null) return 1;
+      if (valB == null) return -1;
 
-        if (valA < valB) return sortAsc ? -1 : 1;
-        if (valA > valB) return sortAsc ? 1 : -1;
-        return 0;
-      });
-    }
-    return sorted;
+      const strA = String(valA).toLowerCase();
+      const strB = String(valB).toLowerCase();
+
+      if (strA < strB) return sortAsc ? -1 : 1;
+      if (strA > strB) return sortAsc ? 1 : -1;
+      return 0;
+    });
   }, [filteredUsers, sortBy, sortAsc]);
 
   const totalPages = Math.ceil(sortedUsers.length / perPage);
@@ -88,7 +81,7 @@ const UserList: React.FC = () => {
     currentPage * perPage
   );
 
-  const handleSort = (field: string) => {
+  const handleSort = (field: UserSortKey) => {
     if (sortBy === field) {
       setSortAsc(!sortAsc);
     } else {
@@ -110,7 +103,7 @@ const UserList: React.FC = () => {
     setSelectAll(!selectAll);
   };
 
-  const handleToggleOne = (id: string) => {
+  const handleToggleOne = (id: number) => {
     const newSelected = selected.includes(id)
       ? selected.filter((i) => i !== id)
       : [...selected, id];
@@ -118,7 +111,6 @@ const UserList: React.FC = () => {
     setSelectAll(newSelected.length === paginatedUsers.length);
   };
 
-  // Get badge style based on role
   const getRoleBadgeClass = (role?: string): string => {
     const roleMap: Record<string, string> = {
       admin: "bg-error-50 dark:bg-error-500/15 text-error-700 dark:text-error-500",
@@ -129,7 +121,6 @@ const UserList: React.FC = () => {
     return roleMap[role?.toLowerCase() || "user"] || roleMap.user;
   };
 
-  // Close filter dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -145,7 +136,6 @@ const UserList: React.FC = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [showFilter]);
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -154,7 +144,6 @@ const UserList: React.FC = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="p-4 text-red-600 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400">
@@ -163,7 +152,6 @@ const UserList: React.FC = () => {
     );
   }
 
-  // Empty state
   if (users.length === 0) {
     return (
       <div className="text-center text-gray-500 py-8 dark:text-gray-400">
@@ -176,7 +164,7 @@ const UserList: React.FC = () => {
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
       <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
         <Link
-          to={`/users`}
+          to={ROUTES.USERS.ADD_USER}
           className="bg-brand-500 shadow-sm hover inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white transition hover:bg-brand-600"
         >
           <SvgIcon name="plus" />
@@ -251,7 +239,7 @@ const UserList: React.FC = () => {
               <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
                 <div
                   className="flex cursor-pointer items-center justify-between gap-3"
-                  onClick={() => handleSort("name")}
+                  onClick={() => handleSort("full_name")}
                 >
                   <p className="text-theme-xs font-medium text-gray-700 dark:text-gray-400">
                     ФИО
@@ -259,7 +247,7 @@ const UserList: React.FC = () => {
                   <span className="flex flex-col gap-0.5">
                     <svg
                       className={
-                        sortBy === "name" && sortAsc
+                        sortBy === "full_name" && sortAsc
                           ? "text-gray-500 dark:text-gray-300"
                           : "text-gray-300 dark:text-gray-400"
                       }
@@ -276,7 +264,7 @@ const UserList: React.FC = () => {
                     </svg>
                     <svg
                       className={
-                        sortBy === "name" && !sortAsc
+                        sortBy === "full_name" && !sortAsc
                           ? "text-gray-500 dark:text-gray-300"
                           : "text-gray-300 dark:text-gray-400"
                       }

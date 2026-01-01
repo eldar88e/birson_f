@@ -15,11 +15,12 @@ export const ROUTES = {
 
   PRODUCTS: {
     INDEX: "/products",
-    ADD_PRODUCT: "/add-product",
+    ADD_PRODUCT: "/products/add",
   },
 
   USERS: {
-    INDEX: "/users"
+    INDEX: "/users",
+    ADD_USER: "/users/add",
   },
 
   SYSTEM: {
