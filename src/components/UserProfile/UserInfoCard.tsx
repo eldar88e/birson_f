@@ -6,15 +6,19 @@ import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import { apiClient } from "../../api/client";
 import type { User } from "../../entities/user/model";
+import { useNotification } from "../../context/NotificationContext";
 
 interface UserInfoCardProps {
   user: User;
 }
 
 export default function UserInfoCard({ user }: UserInfoCardProps) {
+  const { showNotification } = useNotification();
   const { isOpen, openModal, closeModal } = useModal();
   const [formData, setFormData] = useState({
-    full_name: user.full_name,
+    first_name: user.first_name,
+    middle_name: user.middle_name,
+    last_name: user.last_name,
     email: user.email,
     phone: user.phone,
     additional_phone: user.additional_phone || "",
@@ -27,12 +31,18 @@ export default function UserInfoCard({ user }: UserInfoCardProps) {
     setIsSaving(true);
     try {
       await apiClient.put(`/users/${user.id}`, formData, true);
-      console.log("User updated successfully!");
       closeModal();
-      // Можно добавить toast уведомление
-    } catch (error) {
-      console.error("Failed to update user:", error);
-      // Можно добавить toast с ошибкой
+      showNotification({
+        variant: "success",
+        title: "Сохранено!",
+        description: "Данные обновлены",
+      });
+    } catch {
+      showNotification({
+        variant: "error",
+        title: "Ошибка!",
+        description: "Не удалось сохранить данные",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -41,8 +51,6 @@ export default function UserInfoCard({ user }: UserInfoCardProps) {
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
-
-  const [firstName, lastName] = user.full_name.trim().split(" ");
 
   return (
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
@@ -58,7 +66,7 @@ export default function UserInfoCard({ user }: UserInfoCardProps) {
                 Имя
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {firstName || "—"}
+                {user.first_name || "—"}
               </p>
             </div>
 
@@ -67,7 +75,16 @@ export default function UserInfoCard({ user }: UserInfoCardProps) {
                 Фамилия
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {lastName || "—"}
+                {user.middle_name || "—"}
+              </p>
+            </div>
+
+            <div>
+              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                Отчество
+              </p>
+              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                {user.last_name || "—"}
               </p>
             </div>
 
@@ -151,12 +168,32 @@ export default function UserInfoCard({ user }: UserInfoCardProps) {
 
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                   <div className="col-span-2">
-                    <Label>Полное имя</Label>
+                    <Label>Фамилия</Label>
                     <Input
                       type="text"
-                      value={formData.full_name}
-                      onChange={(e) => handleChange("full_name", e.target.value)}
-                      placeholder="Иван Иванов"
+                      value={formData.middle_name}
+                      onChange={(e) => handleChange("middle_name", e.target.value)}
+                      placeholder="Иванов"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <Label>Имя</Label>
+                    <Input
+                      type="text"
+                      value={formData.first_name}
+                      onChange={(e) => handleChange("first_name", e.target.value)}
+                      placeholder="Иван"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <Label>Отчество</Label>
+                    <Input
+                      type="text"
+                      value={formData.last_name}
+                      onChange={(e) => handleChange("last_name", e.target.value)}
+                      placeholder="Иванович"
                     />
                   </div>
 
