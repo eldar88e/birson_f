@@ -1,6 +1,8 @@
 export interface Appointment {
   id: number;
-  user_id: number;
+  client_id: number;
+  client: string;
+  car: string;
   car_id: number;
   state: "initial" | "processing" | "completed" | "cancelled";
   price: number;

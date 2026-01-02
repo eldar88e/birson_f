@@ -1,4 +1,6 @@
 import { Link } from "react-router";
+import SvgIcon from "../../shared/ui/SvgIcon";
+import { ROUTES } from "../../shared/config/routes.ts";
 
 export default function AppointmentMetrics() {
   return (
@@ -11,25 +13,11 @@ export default function AppointmentMetrics() {
         </div>
         <div>
           <Link
-            to="/create-invoice"
+            to={ROUTES.APPOINTMENTS.ADD_APPOINTMENT}
             className="bg-brand-500 shadow-theme-xs hover:bg-brand-600 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white transition"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-            >
-              <path
-                d="M5 10.0002H15.0006M10.0002 5V15.0006"
-                stroke="white"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Create an Invoice
+            <SvgIcon name="plus" />
+            Добавить
           </Link>
         </div>
       </div>

@@ -25,7 +25,7 @@ interface SortState {
 }
 
 const sortKeyMap: Record<UISortKey, keyof Appointment> = {
-  customer: "user_id",
+  customer: "client",
   created_at: "created_at",
   processing_at: "processing_at"
 };
@@ -416,6 +416,9 @@ const AppointmentListTable: React.FC = () => {
                   </span>
                 </div>
               </th>
+              <th className="p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400">
+                Авто
+              </th>
               <th
                 className="cursor-pointer p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400"
                 onClick={() => sortBy("created_at")}
@@ -573,13 +576,18 @@ const AppointmentListTable: React.FC = () => {
                       </span>
                     </label>
                     <p className="text-theme-xs font-medium text-gray-700 group-hover:underline dark:text-gray-400">
-                      {appointment.user_id}
+                      {appointment.id}
                     </p>
                   </div>
                 </td>
                 <td className="p-4 whitespace-nowrap">
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-400">
-                    {appointment.user_id}
+                    {appointment.client}
+                  </span>
+                </td>
+                <td className="p-4 whitespace-nowrap">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-400">
+                    {appointment.car}
                   </span>
                 </td>
                 <td className="p-4 whitespace-nowrap">
@@ -594,7 +602,7 @@ const AppointmentListTable: React.FC = () => {
                 </td>
                 <td className="p-4 whitespace-nowrap">
                   <p className="text-sm text-gray-700 dark:text-gray-400">
-                    ${appointment.price}
+                    {appointment.price}₽
                   </p>
                 </td>
                 <td className="p-4 whitespace-nowrap">
