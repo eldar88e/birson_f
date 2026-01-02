@@ -29,6 +29,6 @@ export interface User {
 
   role: "user" | "admin" | "manager" | "staff";
   active: boolean;
-  created_at?: string;
+  created_at: string;
   password?: string;
 }

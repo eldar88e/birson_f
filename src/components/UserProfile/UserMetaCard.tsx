@@ -1,4 +1,5 @@
 import type { User } from "../../entities/user/model";
+import AvatarText from "../../shared/ui/AvatarText";
 
 interface UserMetaCardProps {
   user: User;
@@ -14,24 +15,12 @@ export default function UserMetaCard({ user }: UserMetaCardProps) {
     });
   };
 
-  const getInitials = (name: string) => {
-    const parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
-  };
-
   return (
     <>
       <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex flex-col items-center w-full gap-6 xl:flex-row">
-            <div className="w-20 h-20 overflow-hidden border border-gray-200 rounded-full dark:border-gray-800 bg-brand-500 flex items-center justify-center">
-              <span className="text-2xl font-semibold text-white">
-                {getInitials(user.full_name)}
-              </span>
-            </div>
+            <AvatarText name={user.full_name} size={20} classText="text-3xl" />
             <div className="order-3 xl:order-2">
               <h4 className="mb-2 text-lg font-semibold text-center text-gray-800 dark:text-white/90 xl:text-left">
                 {user.full_name}
@@ -54,7 +43,7 @@ export default function UserMetaCard({ user }: UserMetaCardProps) {
                   {user.active ? 'Активен' : 'Неактивен'}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                  Создан: {formatDate(user.created_at)}
+                  Зарегистрирован: {formatDate(user.created_at)}
                 </span>
               </div>
             </div>

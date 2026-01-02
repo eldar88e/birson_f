@@ -5,22 +5,7 @@ import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import { apiClient } from "../../api/client";
-
-interface User {
-  id: number;
-  company_name: string;
-  inn: string;
-  kpp: string;
-  ogrn: string;
-  legal_address: string;
-  actual_address: string;
-  contact_person: string;
-  contact_phone: string;
-  bank_name: string;
-  bik: string;
-  checking_account: string;
-  correspondent_account: string;
-}
+import { User } from "../../entities/user/model";
 
 interface UserAddressCardProps {
   user: User;

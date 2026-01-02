@@ -6,6 +6,7 @@ import SvgIcon from "../../shared/ui/SvgIcon";
 import { Link } from "react-router";
 import { ROUTES } from "../../shared/config/routes";
 import type { User } from "../../entities/user/model";
+import AvatarText from "../../shared/ui/AvatarText";
 
 interface Users {
   data: User[];
@@ -379,9 +380,10 @@ const UserList: React.FC = () => {
                   </div>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <span className="text-sm font-medium text-gray-800 dark:text-white/90">
-                    {user.full_name || "—"}
-                  </span>
+                  <div className="text-sm font-medium text-gray-800 dark:text-white/90 flex items-center gap-2">
+                    <AvatarText name={user.full_name} size={8} classText="text-xs" />
+                    <div>{user.full_name || "—"}</div>
+                  </div>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <p className="text-sm text-gray-700 dark:text-gray-400">
