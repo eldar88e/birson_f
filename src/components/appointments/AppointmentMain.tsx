@@ -1,12 +1,12 @@
 import Button from "../ui/button/Button";
-import InvoiceTable from "./InvoiceTable";
+import AppointmentTable from "./AppointmentTable.tsx";
 
-export default function InvoiceMain() {
+export default function AppointmentMain() {
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] w-full">
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
         <h3 className="font-medium text-gray-800 text-theme-xl dark:text-white/90">
-          Invoice
+          Запись
         </h3>
 
         <h4 className="text-base font-medium text-gray-700 dark:text-gray-400">
@@ -66,7 +66,7 @@ export default function InvoiceMain() {
         </div>
 
         {/* <!-- Invoice Table Start --> */}
-        <InvoiceTable />
+        <AppointmentTable />
         {/* <!-- Invoice Table End --> */}
 
         <div className="pb-6 my-6 text-right border-b border-gray-100 dark:border-gray-800">

@@ -8,9 +8,9 @@ export const ROUTES = {
   CALENDAR: "/calendar",
   KANBAN: "/task-kanban",
 
-  INVOICES: {
-    INDEX: "/invoices",
-    SHOW: "/single-invoice",
+  APPOINTMENTS: {
+    INDEX: "/appointments",
+    ADD_APPOINTMENT: "/appointments/add",
   },
 
   PRODUCTS: {

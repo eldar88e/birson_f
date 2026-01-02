@@ -6,10 +6,10 @@ export default function ProductList() {
   return (
     <>
       <PageMeta
-        title="React.js E-commerce Products | TailAdmin - React.js Admin Dashboard Template"
-        description="This is React.js E-commerce Products  page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+        title="Услуги | CRM"
+        description="Услуги CRM"
       />
-      <PageBreadcrumb pageTitle="Product List" />
+      <PageBreadcrumb pageTitle="Услуги" />
       <ProductListTable />
     </>
   );

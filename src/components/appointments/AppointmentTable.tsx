@@ -1,4 +1,4 @@
-export default function InvoiceTable() {
+export default function AppointmentTable() {
   return (
     <div>
       <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800">

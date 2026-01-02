@@ -4,6 +4,7 @@ import Button from "../ui/button/Button";
 import TableDropdown from "../common/TableDropdown";
 import SvgIcon from "../../shared/ui/SvgIcon";
 import Pages from "../../shared/ui/Pages";
+import { ROUTES } from "../../shared/config/routes";
 
 interface Product {
   id: number;
@@ -360,11 +361,11 @@ const ProductListTable: React.FC = () => {
             <SvgIcon name="download" />
           </Button>
           <Link
-            to="/add-product"
+            to={ROUTES.PRODUCTS.ADD_PRODUCT}
             className="bg-brand-500 shadow-sm hover inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white transition hover:bg-brand-600"
           >
             <SvgIcon name="plus" />
-            Add Product
+            Добавить
           </Link>
         </div>
       </div>

@@ -37,10 +37,8 @@ const navItems: NavItem[] = [
     icon: <CartIcon />,
     new: true,
     subItems: [
-      { name: "Products", path: ROUTES.PRODUCTS.INDEX },
-      { name: "Add Product", path: ROUTES.PRODUCTS.ADD_PRODUCT },
-      { name: "Invoices", path: ROUTES.INVOICES.INDEX },
-      { name: "Single Invoice", path: ROUTES.INVOICES.SHOW },
+      { name: "Услуги", path: ROUTES.PRODUCTS.INDEX },
+      { name: "Записи", path: ROUTES.APPOINTMENTS.INDEX },
     ],
   },
   { icon: <CalenderIcon />,

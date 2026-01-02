@@ -1,4 +1,4 @@
-export default function InvoiceSidebar() {
+export default function AppointmentSidebar() {
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03] xl:w-1/5">
       <div className="relative w-full mb-5">
@@ -23,7 +23,7 @@ export default function InvoiceSidebar() {
 
           <input
             type="text"
-            placeholder="Search Invoice..."
+            placeholder="Search Appointment..."
             className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-[42px] pr-3.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
           />
         </form>

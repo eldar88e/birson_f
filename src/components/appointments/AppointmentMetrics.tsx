@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 
-export default function InvoiceMetrics() {
+export default function AppointmentMetrics() {
   return (
     <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 dark:border-gray-800 dark:bg-white/[0.03]">
       <div className="mb-6 flex items-center justify-between">

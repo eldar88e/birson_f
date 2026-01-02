@@ -7,25 +7,25 @@ import Button from "../../components/ui/button/Button";
 import InvoicePreviewModal from "../../components/ecommerce/create-invoice/InvoicePreviewModal";
 import CreateInvoiceTable from "../../components/ecommerce/create-invoice/CreateInvoiceTable";
 
-export default function CreateInvoice() {
+export default function CreateAppointment() {
   return (
     <>
       <PageMeta
-        title="React.js  E-commerce Create Invoice | TailAdmin - React.js Admin Dashboard Template"
-        description="This is React.js E-commerce Create Invoice  for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+        title="React.js  E-commerce Create Appointment | TailAdmin - React.js Admin Dashboard Template"
+        description="This is React.js E-commerce Create Appointment  for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
       />
-      <PageBreadcrumb pageTitle="Create Invoice" />
+      <PageBreadcrumb pageTitle="Create Appointment" />
       <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h2 className="text-xl font-medium text-gray-800 dark:text-white">
-            Create Invoice
+            Create Appointment
           </h2>
         </div>
         <div className="border-b border-gray-200 p-4 sm:p-8 dark:border-gray-800">
           <form className="space-y-6">
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
-                <Label>Invoice Number</Label>
+                <Label>Appointment Number</Label>
                 <Input placeholder="WP-3434434" />
               </div>{" "}
               <div>
@@ -61,7 +61,7 @@ export default function CreateInvoice() {
                   strokeLinejoin="round"
                 />
               </svg>
-              Save Invoice
+              Save Appointment
             </Button>
           </div>
         </div>
