@@ -1,13 +1,18 @@
+import { useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
+import UserAutocomplete from "../../components/form/UserAutocomplete";
+import type { User } from "../../entities/user/model";
 
 import Button from "../../components/ui/button/Button";
 import InvoicePreviewModal from "../../components/ecommerce/create-invoice/InvoicePreviewModal";
 import CreateInvoiceTable from "../../components/ecommerce/create-invoice/CreateInvoiceTable";
 
 export default function CreateAppointment() {
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
   return (
     <>
       <PageMeta
@@ -25,8 +30,12 @@ export default function CreateAppointment() {
           <form className="space-y-6">
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
-                <Label>Клиент</Label>
-                <Input placeholder="Иван Иванов" />
+                <UserAutocomplete
+                  label="Клиент"
+                  placeholder="Введите имя или номер телефона"
+                  value={selectedUser}
+                  onChange={setSelectedUser}
+                />
               </div>{" "}
               <div>
                 <Label>Авто</Label>
