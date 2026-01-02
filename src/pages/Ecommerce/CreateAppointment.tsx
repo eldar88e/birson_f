@@ -11,32 +11,51 @@ export default function CreateAppointment() {
   return (
     <>
       <PageMeta
-        title="React.js  E-commerce Create Appointment | TailAdmin - React.js Admin Dashboard Template"
-        description="This is React.js E-commerce Create Appointment  for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+        title="Создать запись | CRM"
+        description="Добавление новой записи в CRM систему"
       />
-      <PageBreadcrumb pageTitle="Create Appointment" />
+      <PageBreadcrumb pageTitle="Запись" />
       <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h2 className="text-xl font-medium text-gray-800 dark:text-white">
-            Create Appointment
+            Добавить запись
           </h2>
         </div>
         <div className="border-b border-gray-200 p-4 sm:p-8 dark:border-gray-800">
           <form className="space-y-6">
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
-                <Label>Appointment Number</Label>
-                <Input placeholder="WP-3434434" />
+                <Label>Клиент</Label>
+                <Input placeholder="Иван Иванов" />
               </div>{" "}
               <div>
-                <Label>Customer Name</Label>
-                <Input placeholder="John Deniyal" />
-              </div>{" "}
-              <div className="col-span-full">
-                <Label>Customer Address</Label>
-                <Input placeholder="Enter customer address" />
+                <Label>Авто</Label>
+                <Input placeholder="BMW, Audi" />
               </div>{" "}
             </div>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <div>
+                <Label>Статус</Label>
+                <select className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30">
+                  <option value="initial">В ожидании</option>
+                  <option value="processing">В процессе</option>
+                  <option value="completed">Завершен</option>
+                  <option value="cancelled">Отменен</option>
+                </select>
+              </div>{" "}
+              <div>
+                <Label>Оплата</Label>
+                <select className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30">
+                  <option value="initial">Не оплачен</option>
+                  <option value="processing">Оплачен</option>
+                </select>
+              </div>{" "}
+            </div>
+            <Label>Комментарий</Label>
+            <textarea
+              className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+              placeholder="Введите коментарий..."
+            ></textarea>
           </form>
         </div>
         <div className="border-b border-gray-200 p-4 sm:p-8 dark:border-gray-800">
