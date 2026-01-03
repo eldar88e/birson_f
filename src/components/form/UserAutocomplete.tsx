@@ -28,7 +28,7 @@ export default function UserAutocomplete({
 
   useEffect(() => {
     if (value) {
-      setSearchQuery(value.full_name || `${value.first_name} ${value.last_name || ""}`.trim() || value.phone);
+      setSearchQuery(value.full_name || value.phone);
     } else {
       setSearchQuery("");
     }
@@ -91,11 +91,7 @@ export default function UserAutocomplete({
   };
 
   const handleSelectUser = (user: User) => {
-    setSearchQuery(
-      user.full_name ||
-        `${user.first_name} ${user.last_name || ""}`.trim() ||
-        user.phone
-    );
+    setSearchQuery(user.full_name || user.phone);
     onChange?.(user);
     setIsOpen(false);
     setHighlightedIndex(-1);
@@ -129,9 +125,7 @@ export default function UserAutocomplete({
   };
 
   const getUserDisplayName = (user: User): string => {
-    if (user.full_name) return user.full_name;
-    const name = `${user.first_name} ${user.last_name || ""}`.trim();
-    return name || user.phone;
+    return user.full_name || user.phone;
   };
 
   return (
