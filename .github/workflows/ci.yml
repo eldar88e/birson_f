@@ -19,8 +19,8 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'npm'
 
-      - name: Install packages
-        run: npm ci --prefer-offline
+#      - name: Install packages
+#        run: npm ci --prefer-offline
 
 #      - name: Lint Javascript code for consistent style
 #        run: npm run lint
