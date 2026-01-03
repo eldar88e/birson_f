@@ -1,7 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { userService } from "../../api/users";
+import { userService, type CreateUserData } from "../../api/users";
 import type { User } from "../../entities/user/model";
 import Label from "./Label";
+import { Modal } from "../ui/modal";
+import { useModal } from "../../hooks/useModal";
+import { useNotification } from "../../context/NotificationContext";
+import Input from "./input/InputField";
+import SvgIcon from "../../shared/ui/SvgIcon";
 
 interface UserAutocompleteProps {
   label?: string;
@@ -25,6 +30,19 @@ export default function UserAutocomplete({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { isOpen: isModalOpen, openModal, closeModal } = useModal();
+  const { showNotification } = useNotification();
+  const [formData, setFormData] = useState<{
+    first_name: string;
+    last_name: string;
+    phone: string;
+    email: string;
+  }>({
+    first_name: "",
+    last_name: "",
+    phone: "",
+    email: "",
+  });
 
   useEffect(() => {
     if (value) {
@@ -43,23 +61,20 @@ export default function UserAutocomplete({
     }
 
     setIsLoading(true);
-    
-    // Делаем запрос к API при вводе текста
+
     const searchUsers = async () => {
       try {
         const results = await userService.searchUsers(searchQuery);
         setUsers(results);
-        setIsOpen(results.length > 0);
-      } catch (error) {
-        console.error("Error searching users:", error);
+        setIsOpen(true);
+      } catch {
         setUsers([]);
-        setIsOpen(false);
+        setIsOpen(true);
       } finally {
         setIsLoading(false);
       }
     };
 
-    // Используем debounce для плавности
     const debounceTimer = setTimeout(searchUsers, 300);
 
     return () => {
@@ -128,6 +143,78 @@ export default function UserAutocomplete({
     return user.full_name || user.phone;
   };
 
+  const handleOpenAddUserModal = () => {
+    const queryParts = searchQuery.trim().split(/\s+/);
+    setFormData({
+      first_name: queryParts[0] || "",
+      last_name: queryParts.slice(1).join(" ") || "",
+      phone: /^[\d\s\+\-\(\)]+$/.test(searchQuery) ? searchQuery : "",
+      email: "",
+    });
+    openModal();
+  };
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleOpenAddUserModal();
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.first_name || !formData.phone || !formData.email) {
+      showNotification({
+        variant: "error",
+        title: "Ошибка валидации",
+        description: "Заполните обязательные поля: Имя, Телефон, Email",
+      });
+      return;
+    }
+
+    try {
+      const userData: CreateUserData = {
+        first_name: formData.first_name,
+        last_name: formData.last_name || "",
+        phone: formData.phone,
+        email: formData.email,
+        role: "user",
+        active: true,
+        source: "manual",
+        password: "",
+        position: "other",
+      };
+
+      const newUser = await userService.createUser(userData);
+
+      showNotification({
+        variant: "success",
+        title: "Пользователь создан!",
+        description: "Новый пользователь успешно добавлен",
+      });
+
+      const displayName = newUser.full_name || newUser.phone;
+      
+      onChange?.(newUser);
+      setSearchQuery(displayName);
+      closeModal();
+      setIsOpen(false);
+
+      setFormData({
+        first_name: "",
+        last_name: "",
+        phone: "",
+        email: "",
+      });
+    } catch (error) {
+      showNotification({
+        variant: "error",
+        title: "Ошибка создания",
+        description: `Не удалось создать пользователя. ${error}`,
+      });
+    }
+  };
+
   return (
     <div className={`relative ${className}`} ref={wrapperRef}>
       {label && <Label>{label}</Label>}
@@ -139,7 +226,9 @@ export default function UserAutocomplete({
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={() => {
-            if (users.length > 0) setIsOpen(true);
+            if (searchQuery.length >= 2) {
+              setIsOpen(true);
+            }
           }}
           placeholder={placeholder}
           className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
@@ -197,48 +286,142 @@ export default function UserAutocomplete({
         )}
       </div>
 
-      {isOpen && users.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-700 max-h-60 overflow-auto">
-          {users.map((user, index) => (
-            <div
-              key={user.id}
-              onClick={() => handleSelectUser(user)}
-              onMouseEnter={() => setHighlightedIndex(index)}
-              className={`px-4 py-3 cursor-pointer border-b border-gray-100 dark:border-gray-800 last:border-b-0 ${
-                index === highlightedIndex
-                  ? "bg-gray-100 dark:bg-gray-800"
-                  : "hover:bg-gray-50 dark:hover:bg-gray-800"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-800 dark:text-white">
-                    {getUserDisplayName(user)}
+      {isOpen && searchQuery.length >= 2 && (
+        <div className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-700">
+          {isLoading ? (
+            <div className="p-4 text-center">
+              <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-brand-500 border-r-transparent"></div>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Поиск...</p>
+            </div>
+          ) : users.length > 0 ? (
+            <>
+              <div className="max-h-60 overflow-auto pb-4">
+                {users.map((user, index) => (
+                  <div
+                    key={user.id}
+                    onClick={() => handleSelectUser(user)}
+                    onMouseEnter={() => setHighlightedIndex(index)}
+                    className={`px-4 py-3 cursor-pointer border-b border-gray-100 dark:border-gray-800 ${
+                      index === highlightedIndex
+                        ? "bg-gray-100 dark:bg-gray-800"
+                        : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-gray-800 dark:text-white">
+                          {getUserDisplayName(user)}
+                        </div>
+                        {user.phone && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                            {user.phone}
+                          </div>
+                        )}
+                        {user.email && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {user.email}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  {user.phone && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                      {user.phone}
-                    </div>
-                  )}
-                  {user.email && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {user.email}
-                    </div>
-                  )}
-                </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="pt-4 px-4 text-center">
+              <div className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                Пользователи не найдены
               </div>
             </div>
-          ))}
-        </div>
-      )}
-
-      {isOpen && searchQuery.length >= 2 && !isLoading && users.length === 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-700 p-4">
-          <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
-            Пользователи не найдены
+          )}
+          <div className="pb-4 px-4 text-center">
+            <button
+              type="button"
+              onClick={handleButtonClick}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600"
+            >
+              <SvgIcon name="plus" width={16} />
+              Добавить пользователя
+            </button>
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        className="max-w-[500px] p-6 lg:p-8"
+      >
+        <div onClick={(e) => e.stopPropagation()}>
+          <h4 className="font-semibold text-gray-800 mb-6 text-title-sm dark:text-white/90">
+            Добавить нового клиента
+          </h4>
+          <form className="space-y-4">
+          <div>
+            <Label>Имя *</Label>
+            <Input
+              type="text"
+              placeholder="Введите имя"
+              value={formData.first_name}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, first_name: e.target.value }))
+              }
+              required
+            />
+          </div>
+
+          <div>
+            <Label>Фамилия</Label>
+            <Input
+              type="text"
+              placeholder="Введите фамилию"
+              value={formData.last_name}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, last_name: e.target.value }))
+              }
+            />
+          </div>
+
+          <div>
+            <Label>Телефон *</Label>
+            <Input
+              type="tel"
+              placeholder="+7 (999) 999-99-99"
+              value={formData.phone}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, phone: e.target.value }))
+              }
+              required
+            />
+          </div>
+
+          <div>
+            <Label>Email *</Label>
+            <Input
+              type="email"
+              placeholder="user@example.com"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, email: e.target.value }))
+              }
+              required
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-3 mt-6">
+          
+            <button
+              type="button"
+              onClick={handleCreateUser}
+              className="inline-flex items-center justify-center gap-2 rounded-lg transition px-5 py-3.5 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Создать
+            </button>
+          </div>
+        </form>
+        </div>
+      </Modal>
     </div>
   );
 }

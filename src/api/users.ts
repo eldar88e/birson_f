@@ -6,6 +6,8 @@ interface UsersResponse {
   data: User[];
 }
 
+export type CreateUserData = Omit<User, "id" | "created_at" | "full_name">;
+
 class UserService {
   async getUsers(): Promise<User[]> {
     const response = await apiClient.get<UsersResponse>(ROUTES.USERS.INDEX, true);
@@ -18,6 +20,15 @@ class UserService {
       true
     );
     return response.data;
+  }
+
+  async createUser(userData: CreateUserData): Promise<User> {
+    const response = await apiClient.post<{ user: User }>(
+      ROUTES.USERS.INDEX,
+      { user: userData },
+      true
+    );
+    return response.user;
   }
 }
 

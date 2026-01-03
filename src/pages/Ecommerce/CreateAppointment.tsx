@@ -5,7 +5,6 @@ import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import UserAutocomplete from "../../components/form/UserAutocomplete";
 import type { User } from "../../entities/user/model";
-
 import Button from "../../components/ui/button/Button";
 import InvoicePreviewModal from "../../components/ecommerce/create-invoice/InvoicePreviewModal";
 import CreateInvoiceTable from "../../components/ecommerce/create-invoice/CreateInvoiceTable";
@@ -27,7 +26,14 @@ export default function CreateAppointment() {
           </h2>
         </div>
         <div className="border-b border-gray-200 p-4 sm:p-8 dark:border-gray-800">
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+            {selectedUser && (
+              <input
+                type="hidden"
+                name="client_id"
+                value={selectedUser.id}
+              />
+            )}
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
                 <UserAutocomplete
