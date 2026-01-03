@@ -17,15 +17,10 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
+          cache: 'npm'
 
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/yarn.lock') }}
-
-      - name: Install Yarn packages
-        run: yarn install --prefer-offline
+      - name: Install packages
+        run: npm ci --prefer-offline
 
 #      - name: Lint Javascript code for consistent style
-#        run: yarn lint
+#        run: npm run lint
