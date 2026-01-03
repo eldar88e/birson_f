@@ -28,7 +28,7 @@ export interface User {
   comment?: string;
 
   role: "user" | "admin" | "manager" | "staff";
-  position: string;
+  position?: string;
   active: boolean;
   created_at: string;
   password?: string;

@@ -42,6 +42,7 @@ export default function AddUser() {
     source: "manual",
     comment: "",
     active: true,
+    position: "",
   });
 
   const handleChange = (field: keyof CreateUserData, value: string | boolean) => {
