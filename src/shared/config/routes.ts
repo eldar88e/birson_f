@@ -31,4 +31,8 @@ export const ROUTES = {
     COMING_SOON: "/coming-soon",
     NOT_FOUND: "*",
   },
+  CARS: {
+    INDEX: "/cars",
+    ADD: "/cars/add"
+  },
 } as const;

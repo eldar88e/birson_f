@@ -50,6 +50,12 @@ const navItems: NavItem[] = [
     name: "Пользователи",
     path: ROUTES.USERS.INDEX,
   },
+  {
+    icon: <CartIcon />,
+    name: "Автомобили",
+    new: true,
+    path: ROUTES.CARS.INDEX,
+  },
 ];
 
 const othersItems: NavItem[] = [

@@ -20,6 +20,11 @@ import CreateAppointment from "../pages/Ecommerce/CreateAppointment";
 import CreateInvoice from "../pages/Kanban";
 import Calendar from "../pages/Calendar";
 
+import CarList from "../pages/Cars/CarList";
+import AddCar from "../pages/Cars/AddCar";
+import EditCar from "../pages/Cars/EditCar";
+import ViewCar from "../pages/Cars/ViewCar";
+
 export const protectedRoutes = (
   <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
     <Route index path={ROUTES.ROOT} element={<Ecommerce />} />
@@ -37,5 +42,10 @@ export const protectedRoutes = (
 
     <Route path={ROUTES.KANBAN} element={<CreateInvoice />} />
     <Route path={ROUTES.CALENDAR} element={<Calendar />} />
+
+    <Route path={ROUTES.CARS.INDEX} element={<CarList />} />
+    <Route path={ROUTES.CARS.ADD} element={<AddCar />} />
+    <Route path={`${ROUTES.CARS.INDEX}/:carId`} element={<ViewCar />} />
+    <Route path={`${ROUTES.CARS.INDEX}/:carId/edit`} element={<EditCar />} />
   </Route>
 );
