@@ -1,0 +1,211 @@
+import React, { useEffect, useState } from "react";
+import { apiClient } from "../../api/client";
+import Pagination from "../../shared/ui/Pages";
+import SvgIcon from "../../shared/ui/SvgIcon";
+import { Link } from "react-router";
+import { ROUTES } from "../../shared/config/routes";
+import type { Car } from "../../entities/car/model";
+import { useNotification } from "../../context/NotificationContext";
+
+interface Cars {
+  data: Car[];
+  meta: {
+    page: number;
+    count: number;
+    limit: number;
+    from: number;
+    in: number;
+    last: number;
+  };
+}
+
+const CarListComponent: React.FC = () => {
+  const [cars, setCars] = useState<Car[]>([]);
+  const [pages, setPages] = useState<Cars["meta"]>({
+    page: 1,
+    count: 0,
+    limit: 0,
+    from: 0,
+    in: 0,
+    last: 0,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const { showNotification } = useNotification();
+
+  useEffect(() => {
+    const fetchCars = async () => {
+      setIsLoading(true);
+      try {
+        const data = await apiClient.get<Cars>(ROUTES.CARS.INDEX, true);
+        setCars(data.data);
+        setPages(data.meta);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Failed to load cars";
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCars();
+  }, []);
+
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const totalPages = pages.count / pages.limit;
+
+  const handleGoToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await apiClient.delete<Cars>(`${ROUTES.CARS.INDEX}/${id}`, true);
+  
+      showNotification({
+        variant: "success",
+        title: "Автомобиль удален",
+        description: `Автомобиль ${id} удален`,
+      });
+    } catch (e) {
+      showNotification({
+        variant: "error",
+        title: "Ошибка удаления",
+        description: "Не удалось удалить автомобиль",
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500 dark:text-gray-400">Загрузка автомобилей...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 text-red-600 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400">
+        Ошибка: {error}
+      </div>
+    );
+  }
+
+  if (cars.length === 0) {
+    return (
+      <div className="text-center text-gray-500 py-8 dark:text-gray-400">
+        Автомобили не найдены
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+      <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
+        <Link
+          to={ROUTES.CARS.ADD}
+          className="bg-brand-500 shadow-sm hover inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white transition hover:bg-brand-600"
+        >
+          <SvgIcon name="plus" />
+          Добавить
+        </Link>
+        <div className="flex gap-3.5">
+          <div className="hidden flex-col gap-3 sm:flex sm:flex-row sm:items-center">
+            <div className="relative">
+              <span className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+                <SvgIcon name="search" />
+              </span>
+              <input
+                type="text"
+                placeholder="Search..."
+                value=""
+                // onChange={(e) => setSearchQuery(e.target.value)}
+                className="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pr-4 pl-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden xl:w-[300px] dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="overflow-x-auto custom-scrollbar">
+        <table className="w-full table-auto">
+          <thead>
+            <tr className="border-b border-gray-200 dark:border-gray-800">
+              <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
+                ID
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
+                Модель
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
+                Марка
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
+                Действия
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+            {cars.map((car) => (
+              <tr
+                key={car.id}
+                className="transition hover:bg-gray-50 dark:hover:bg-gray-900"
+              >
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <p className="text-theme-xs font-medium text-gray-700 dark:text-gray-400">
+                    {car.id}
+                  </p>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <div className="text-sm font-medium text-gray-800 dark:text-white/90 flex items-center gap-2">
+                    {car.model}
+                  </div>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <p className="text-sm text-gray-700 dark:text-gray-400">
+                    {car.brand}
+                  </p>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <div className=" flex items-center justify-center">
+                  <button 
+                    onClick={() => handleDelete(car.id)}
+                    className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                  >
+                    Удалить
+                  </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="flex items-center flex-col sm:flex-row justify-between border-t border-gray-200 px-5 py-4 dark:border-gray-800">
+        <div className="pb-3 sm:pb-0">
+          <span className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+            Showing{" "}
+            <span className="text-gray-800 dark:text-white/90">
+              {pages.from}
+            </span>{" "}
+            to
+            <span className="text-gray-800 dark:text-white/90">
+              {pages.in}
+            </span>{" "}
+            of{" "}
+            <span className="text-gray-800 dark:text-white/90">
+              {pages.count}
+            </span>
+          </span>
+        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handleGoToPage}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default CarListComponent;

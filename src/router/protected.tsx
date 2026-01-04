@@ -23,7 +23,6 @@ import Calendar from "../pages/Calendar";
 import CarList from "../pages/Cars/CarList";
 import AddCar from "../pages/Cars/AddCar";
 import EditCar from "../pages/Cars/EditCar";
-import ViewCar from "../pages/Cars/ViewCar";
 
 export const protectedRoutes = (
   <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
@@ -45,7 +44,6 @@ export const protectedRoutes = (
 
     <Route path={ROUTES.CARS.INDEX} element={<CarList />} />
     <Route path={ROUTES.CARS.ADD} element={<AddCar />} />
-    <Route path={`${ROUTES.CARS.INDEX}/:carId`} element={<ViewCar />} />
     <Route path={`${ROUTES.CARS.INDEX}/:carId/edit`} element={<EditCar />} />
   </Route>
 );
