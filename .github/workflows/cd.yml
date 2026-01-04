@@ -1,4 +1,4 @@
-name: Deploy SPA
+name: CD
 
 on:
   push:
