@@ -30,6 +30,7 @@ export default function UserAutocomplete({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const isUserSelectedRef = useRef(false);
   const { isOpen: isModalOpen, openModal, closeModal } = useModal();
   const { showNotification } = useNotification();
   const [formData, setFormData] = useState<{
@@ -46,6 +47,7 @@ export default function UserAutocomplete({
 
   useEffect(() => {
     if (value) {
+      isUserSelectedRef.current = true;
       setSearchQuery(value.full_name || value.phone);
     } else {
       setSearchQuery("");
@@ -53,6 +55,11 @@ export default function UserAutocomplete({
   }, [value]);
 
   useEffect(() => {
+    if (isUserSelectedRef.current) {
+      isUserSelectedRef.current = false;
+      return;
+    }
+
     if (searchQuery.length < 2) {
       setUsers([]);
       setIsOpen(false);
@@ -106,6 +113,7 @@ export default function UserAutocomplete({
   };
 
   const handleSelectUser = (user: User) => {
+    isUserSelectedRef.current = true;
     setSearchQuery(user.full_name || user.phone);
     onChange?.(user);
     setIsOpen(false);
@@ -195,6 +203,7 @@ export default function UserAutocomplete({
 
       const displayName = newUser.full_name || newUser.phone;
       
+      isUserSelectedRef.current = true;
       onChange?.(newUser);
       setSearchQuery(displayName);
       closeModal();
@@ -295,7 +304,7 @@ export default function UserAutocomplete({
             </div>
           ) : users.length > 0 ? (
             <>
-              <div className="max-h-60 overflow-auto pb-4">
+              <div className="max-h-60 overflow-auto">
                 {users.map((user, index) => (
                   <div
                     key={user.id}
@@ -330,12 +339,12 @@ export default function UserAutocomplete({
             </>
           ) : (
             <div className="pt-4 px-4 text-center">
-              <div className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+              <div className="text-sm text-gray-500 dark:text-gray-400">
                 Пользователи не найдены
               </div>
             </div>
           )}
-          <div className="pb-4 px-4 text-center">
+          <div className="p-4 text-center">
             <button
               type="button"
               onClick={handleButtonClick}

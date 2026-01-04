@@ -15,6 +15,15 @@ import {ROUTES} from "../../shared/config/routes.ts";
 import {useNavigate} from "react-router";
 import Button from "../../components/ui/button/Button";
 
+type AppointmentFormData = {
+  client_id: number | null;
+  car_id: number;
+  car: string;
+  state: Appointment["state"];
+  comment: string;
+  appointment_at: string;
+};
+
 export default function CreateAppointment() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
@@ -22,32 +31,63 @@ export default function CreateAppointment() {
   const { showNotification } = useNotification();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState<Appointment>({
+  const [formData, setFormData] = useState<AppointmentFormData>({
     client_id: null,
-    car_id: null,
+    car_id: 0,
+    car: "",
     state: "initial",
     comment: "",
     appointment_at: ""
   });
 
-  const handleUserChange = (user: User) => {
+  const handleUserChange = (user: User | null) => {
     setSelectedUser(user);
-    handleChange("client_id", user.id);
+    const client_id = user ? user.id : null;
+    handleChange("client_id", client_id);
   };
 
-  const handleChange = (field: keyof Appointment, value: string | boolean) => {
+  const handleChange = (
+    field: keyof typeof formData,
+    value: string | boolean | number | null
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!formData.client_id) {
+      showNotification({
+        variant: "error",
+        title: "Ошибка валидации",
+        description: "Необходимо выбрать клиента",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      const orderData: Appointment = {
+        ...formData,
+        client_id: formData.client_id,
+        car_id: formData.car_id,
+        id: 0,
+        client: "",
+        car: "",
+        price: 0,
+        expense: 0,
+        paid: false,
+        processing_at: "",
+        completed_at: "",
+        cancelled_at: "",
+        created_at: "",
+        updated_at: "",
+      };
+
       const response = await apiClient.post<{ order: Appointment }>(
         "/orders",
-        { order: formData },
+        { order: orderData },
         true
       );
 
@@ -98,15 +138,19 @@ export default function CreateAppointment() {
               <div>
                 <Label>Авто</Label>
                 <Input
-                  type="text"
-                  placeholder="BMW, Audi"
-                  value={formData.car_id}
-                  onChange={(e) => handleChange("car_id", e.target.value)}
+                  type="number"
+                  placeholder="Введите ID автомобиля"
+                  value={formData.car_id === 0 ? "" : formData.car_id}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const numValue = value === "" ? 0 : Number(value);
+                    handleChange("car_id", isNaN(numValue) ? 0 : numValue);
+                  }}
                   required
                 />
               </div>
               <div>
-                <Label>Авто</Label>
+                <Label>Дата записи</Label>
                 <Input
                   type="date"
                   placeholder="2023-09-15"
@@ -142,6 +186,8 @@ export default function CreateAppointment() {
             <textarea
               className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
               placeholder="Введите коментарий..."
+              value={formData.comment}
+              onChange={(e) => handleChange("comment", e.target.value)}
             ></textarea>
           </form>
         </div>
