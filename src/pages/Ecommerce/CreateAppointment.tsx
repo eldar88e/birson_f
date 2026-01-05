@@ -111,7 +111,6 @@ export default function CreateAppointment() {
         updated_at: "",
       };
 
-      // Подготовка позиций для отправки (убираем временные id и order_id)
       const itemsToSend = orderItems.map(({ id, order_id, ...item }) => item);
 
       const response = await apiClient.post<{ order: Appointment }>(
