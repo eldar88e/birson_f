@@ -2,7 +2,7 @@ import React, {useEffect, useMemo, useState} from "react";
 import TableDropdown from "../common/TableDropdown";
 import type { Appointment } from "../../entities/appointments/model";
 import { apiClient } from "../../api/client";
-import Pagination from "../../shared/ui/Pages.tsx";
+import Pages from "../../shared/ui/Pages.tsx";
 import SvgIcon from "../../shared/ui/SvgIcon";
 
 interface Appointments {
@@ -671,10 +671,10 @@ const AppointmentListTable: React.FC = () => {
             <b>{meta.count}</b>
           </span>
         </div>
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handleGoToPage}
+        <Pages
+          page={currentPage}
+          lastPages={totalPages}
+          onChange={handleGoToPage}
         />
       </div>
     </div>
