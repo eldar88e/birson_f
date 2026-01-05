@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import TableDropdown from "../common/TableDropdown";
 import { apiClient } from "../../api/client";
-import Pagination from "../../shared/ui/Pages";
+import Pages from "../../shared/ui/Pages";
 import SvgIcon from "../../shared/ui/SvgIcon";
 import { Link } from "react-router";
 import { ROUTES } from "../../shared/config/routes";
@@ -461,7 +461,7 @@ const UserList: React.FC = () => {
             </span>
           </span>
         </div>
-        <Pagination
+        <Pages
           page={page}
           lastPages={pages.last}
           onChange={setPage}

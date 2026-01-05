@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { apiClient } from "../../api/client";
-import Pagination from "../../shared/ui/Pages";
+import Pages from "../../shared/ui/Pages";
 import SvgIcon from "../../shared/ui/SvgIcon";
 import { Link } from "react-router";
 import { ROUTES } from "../../shared/config/routes";
@@ -192,7 +192,7 @@ const CarListComponent: React.FC = () => {
             </span>
           </span>
         </div>
-        <Pagination
+        <Pages
           page={page}
           lastPages={pages.last}
           onChange={setPage}

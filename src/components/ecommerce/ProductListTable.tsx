@@ -728,7 +728,7 @@ const ProductListTable: React.FC = () => {
             </span>
           </span>
         </div>
-        <Pages currentPage={page} totalPages={totalPages()} onPageChange={setPage} />
+        <Pages page={page} lastPages={totalPages()} onChange={setPage} />
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-import React from "react";
 import SvgIcon from "./SvgIcon";
 
 const MAX_VISIBLE_PAGES = 20;
@@ -12,7 +11,7 @@ interface PaginationProps {
   showMobileInfo?: boolean;
 }
 
-export default function Pagination({
+export default function Pages({
   page,
   lastPages,
   onChange,
