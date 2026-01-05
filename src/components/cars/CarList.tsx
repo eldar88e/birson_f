@@ -32,12 +32,13 @@ const CarListComponent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const { showNotification } = useNotification();
+  const [page, setPage] = useState(pages.page);
 
   useEffect(() => {
     const fetchCars = async () => {
       setIsLoading(true);
       try {
-        const data = await apiClient.get<Cars>(ROUTES.CARS.INDEX, true);
+        const data = await apiClient.get<Cars>(`${ROUTES.CARS.INDEX}?page=${page}`, true);
         setCars(data.data);
         setPages(data.meta);
       } catch (err) {
@@ -49,14 +50,7 @@ const CarListComponent: React.FC = () => {
     };
 
     fetchCars();
-  }, []);
-
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const totalPages = pages.count / pages.limit;
-
-  const handleGoToPage = (page: number) => {
-    if (page >= 1 && page <= totalPages) setCurrentPage(page);
-  };
+  }, [page]);
 
   const handleDelete = async (id: number) => {
     try {
@@ -199,9 +193,9 @@ const CarListComponent: React.FC = () => {
           </span>
         </div>
         <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handleGoToPage}
+          page={page}
+          lastPages={pages.last}
+          onChange={setPage}
         />
       </div>
     </div>

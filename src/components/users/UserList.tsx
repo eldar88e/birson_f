@@ -10,6 +10,14 @@ import AvatarText from "../../shared/ui/AvatarText";
 
 interface Users {
   data: User[];
+  meta: {
+    page: number;
+    count: number;
+    limit: number;
+    from: number;
+    in: number;
+    last: number;
+  };
 }
 
 export type UserSortKey = "full_name" | "email" | "role" | "phone";
@@ -18,13 +26,23 @@ const UserList: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState<Users["meta"]>({
+    page: 1,
+    count: 0,
+    limit: 0,
+    from: 0,
+    in: 0,
+    last: 0,
+  });
 
   useEffect(() => {
     const fetchUsers = async () => {
       setIsLoading(true);
       try {
-        const data = await apiClient.get<Users>(ROUTES.USERS.INDEX, true);
+        const data = await apiClient.get<Users>(`${ROUTES.USERS.INDEX}?page=${page}`, true);
         setUsers(data.data);
+        setPages(data.meta);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Failed to load users";
         setError(errorMessage);
@@ -34,14 +52,12 @@ const UserList: React.FC = () => {
     };
 
     fetchUsers();
-  }, []);
+  }, [page]);
 
   const [searchQuery, setSearchQuery] = useState<string>("");
   // const [roleFilter, setRoleFilter] = useState<string>("");
   const [selectedRole, setSelectedRole] = useState<string>("All");
   const [showFilter, setShowFilter] = useState<boolean>(false);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [perPage] = useState<number>(10);
   const [sortBy, setSortBy] = useState<UserSortKey>("full_name");
   const [sortAsc, setSortAsc] = useState<boolean>(true);
   const [selectAll, setSelectAll] = useState<boolean>(false);
@@ -56,6 +72,11 @@ const UserList: React.FC = () => {
         // && (roleFilter === "" || user.role?.toLowerCase().includes(roleFilter.toLowerCase()))
     );
   }, [users, searchQuery, selectedRole]); // , roleFilter
+
+  useEffect(() => {
+    setSelected([]);
+    setSelectAll(false);
+  }, [page]);
 
   const sortedUsers = useMemo(() => {
     if (!sortBy) return filteredUsers;
@@ -76,11 +97,7 @@ const UserList: React.FC = () => {
     });
   }, [filteredUsers, sortBy, sortAsc]);
 
-  const totalPages = Math.ceil(sortedUsers.length / perPage);
-  const paginatedUsers = sortedUsers.slice(
-    (currentPage - 1) * perPage,
-    currentPage * perPage
-  );
+  const paginatedUsers = sortedUsers;
 
   const handleSort = (field: UserSortKey) => {
     if (sortBy === field) {
@@ -89,10 +106,6 @@ const UserList: React.FC = () => {
       setSortBy(field);
       setSortAsc(true);
     }
-  };
-
-  const handleGoToPage = (page: number) => {
-    if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
   const handleToggleAll = () => {
@@ -433,25 +446,26 @@ const UserList: React.FC = () => {
       </div>
       <div className="flex items-center flex-col sm:flex-row justify-between border-t border-gray-200 px-5 py-4 dark:border-gray-800">
         <div className="pb-3 sm:pb-0">
-          <span className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+        <span className="block text-sm font-medium text-gray-500 dark:text-gray-400">
             Showing{" "}
             <span className="text-gray-800 dark:text-white/90">
-              {(currentPage - 1) * perPage + 1}
+              {pages.from}
             </span>{" "}
             to
             <span className="text-gray-800 dark:text-white/90">
-              {Math.min(currentPage * perPage, sortedUsers.length)}
+              {pages.in}
             </span>{" "}
             of{" "}
             <span className="text-gray-800 dark:text-white/90">
-              {sortedUsers.length}
+              {pages.count}
             </span>
           </span>
         </div>
         <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handleGoToPage}
+          page={page}
+          lastPages={pages.last}
+          onChange={setPage}
+          maxVisible={pages.limit}
         />
       </div>
     </div>
