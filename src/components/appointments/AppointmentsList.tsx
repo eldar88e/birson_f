@@ -105,7 +105,7 @@ export default function AppointmentListTable() {
   const isAllSelected = appointments.length > 0 && appointments.every(a => selected.has(a.id));
 
   const toggleSelectAll = () => {
-    setSelected(prev => {
+    setSelected(_prev => {
       if (isAllSelected) return new Set();
       return new Set(appointments.map(a => a.id));
     });
