@@ -1,20 +1,12 @@
 import type { User } from "../../entities/user/model";
 import AvatarText from "../../shared/ui/AvatarText";
+import { formatDate } from "../../shared/lib/formatDate";
 
 interface UserMetaCardProps {
   user: User;
 }
 
 export default function UserMetaCard({ user }: UserMetaCardProps) {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
   return (
     <>
       <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">

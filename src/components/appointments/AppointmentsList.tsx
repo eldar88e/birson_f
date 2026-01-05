@@ -4,6 +4,8 @@ import type { Appointment } from "../../entities/appointments/model";
 import { apiClient } from "../../api/client";
 import Pages from "../../shared/ui/Pages.tsx";
 import SvgIcon from "../../shared/ui/SvgIcon";
+import { StatusBadge } from "../../shared/ui/StatusBadge";
+import { formatDate } from "../../shared/lib/formatDate";
 
 interface Appointments {
   data: Appointment[];
@@ -56,9 +58,8 @@ interface Appointments {
 //   );
 // };
 
-const AppointmentListTable: React.FC = () => {
+export default function AppointmentListTable() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [selected, setSelected] = useState<number[]>([]);
   const [pages, setPages] = useState<Appointments["meta"]>({
     page: 1,
     count: 0,
@@ -91,30 +92,23 @@ const AppointmentListTable: React.FC = () => {
     fetchAppointments();
   }, [page]);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+
+  const toggleRow = (id: number) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
     });
   };
 
-  const toggleSelectAll = (): void => {
-    if (
-      pages.count > 0 &&
-      appointments.every((i) => selected.includes(i.id))
-    ) {
-      setSelected([]);
-    } else {
-      setSelected(appointments.map((i) => i.id));
-    }
-  };
+  const isAllSelected = appointments.length > 0 && appointments.every(a => selected.has(a.id));
 
-  const toggleRow = (id: number): void => {
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
+  const toggleSelectAll = () => {
+    setSelected(prev => {
+      if (isAllSelected) return new Set();
+      return new Set(appointments.map(a => a.id));
+    });
   };
 
   if (isLoading) {
@@ -213,49 +207,24 @@ const AppointmentListTable: React.FC = () => {
                         <input
                           type="checkbox"
                           className="sr-only"
-                          checked={
-                             appointments.length > 0 &&
-                               appointments.every((i) =>
-                                 selected.includes(i.id)
-                            )
-                          }
+                          checked={isAllSelected}
                           onChange={toggleSelectAll}
                         />
                         <span
                           className={`flex h-4 w-4 items-center justify-center rounded-sm border-[1.25px] ${
-                            appointments.length > 0 &&
-                              appointments.every((i) =>
-                                selected.includes(i.id)
-                            )
+                            isAllSelected
                               ? "border-brand-500 bg-brand-500"
                               : "bg-transparent border-gray-300 dark:border-gray-700"
                           }`}
                         >
                           <span
                             className={
-                              appointments.length > 0 &&
-                                appointments.every((i) =>
-                                  selected.includes(i.id)
-                              )
+                              isAllSelected
                                 ? ""
                                 : "opacity-0"
                             }
                           >
-                            <svg
-                              width="12"
-                              height="12"
-                              viewBox="0 0 12 12"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M10 3L4.5 8.5L2 6"
-                                stroke="white"
-                                strokeWidth="1.6666"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
+                            <SvgIcon name="check" width={12} />
                           </span>
                         </span>
                       </span>
@@ -439,36 +408,22 @@ const AppointmentListTable: React.FC = () => {
                         <input
                           type="checkbox"
                           className="sr-only"
-                          checked={selected.includes(appointment.id)}
+                          checked={selected.has(appointment.id)}
                           onChange={() => toggleRow(appointment.id)}
                         />
                         <span
                           className={`flex h-4 w-4 items-center justify-center rounded-sm border-[1.25px] ${
-                            selected.includes(appointment.id)
+                            selected.has(appointment.id)
                               ? "border-brand-500 bg-brand-500"
                               : "bg-transparent border-gray-300 dark:border-gray-700"
                           }`}
                         >
                           <span
                             className={
-                              selected.includes(appointment.id) ? "" : "opacity-0"
+                              selected.has(appointment.id) ? "" : "opacity-0"
                             }
                           >
-                            <svg
-                              width="12"
-                              height="12"
-                              viewBox="0 0 12 12"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M10 3L4.5 8.5L2 6"
-                                stroke="white"
-                                strokeWidth="1.6666"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
+                            <SvgIcon name="check" width={12} />
                           </span>
                         </span>
                       </span>
@@ -504,19 +459,7 @@ const AppointmentListTable: React.FC = () => {
                   </p>
                 </td>
                 <td className="p-4 whitespace-nowrap">
-                  <span
-                    className={`text-theme-xs rounded-full px-2 py-0.5 font-medium ${
-                      appointment.state === "completed"
-                        ? "bg-success-50 dark:bg-success-500/15 text-success-700 dark:text-success-500"
-                        : appointment.state === "processing" 
-                        ? "bg-warning-50 text-warning-600 dark:bg-warning-500/15 dark:text-warning-500"
-                        : appointment.state === "cancelled"
-                        ? "bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500"
-                        : "bg-gray-100 text-gray-600 dark:bg-gray-500/15 dark:text-gray-400"
-                    }`}
-                  >
-                    {appointment.state}
-                  </span>
+                  <StatusBadge state={appointment.state} />
                 </td>
                 <td className="p-4 whitespace-nowrap">
                   <div className="relative flex justify-center dropdown">
@@ -578,5 +521,3 @@ const AppointmentListTable: React.FC = () => {
     </div>
   );
 };
-
-export default AppointmentListTable;
