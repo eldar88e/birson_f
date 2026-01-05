@@ -1,7 +1,94 @@
+import { useEffect, useState } from "react";
+import { useParams } from "react-router";
 import Button from "../ui/button/Button";
-import AppointmentTable from "./AppointmentTable.tsx";
+import CreateInvoiceTable from "../ecommerce/create-invoice/CreateInvoiceTable";
+import { apiClient } from "../../api/client";
+import type { Appointment } from "../../entities/appointments/model";
+import type { User } from "../../entities/user/model";
+import type { Car } from "../../entities/car/model";
+import { formatDate } from "../../shared/lib/formatDate";
+import { StatusBadge } from "../../shared/ui/StatusBadge";
+import { useNavigate } from "react-router";
 
 export default function AppointmentMain() {
+  const navigate = useNavigate();
+  const { appointmentId } = useParams<{ appointmentId: string }>();
+  const [appointment, setAppointment] = useState<Appointment | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchAppointment = async () => {
+      if (!appointmentId) return;
+
+      setIsLoading(true);
+      setError("");
+      try {
+        const data = await apiClient.get<{ order: Appointment }>(
+          `/orders/${appointmentId}`,
+          true
+        );
+        setAppointment(data.order);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Не удалось загрузить запись";
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAppointment();
+  }, [appointmentId]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-brand-500"></div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Загрузка записи...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+      </div>
+    );
+  }
+
+  if (!appointment) {
+    return (
+      <div className="text-center text-gray-500 py-8 dark:text-gray-400">
+        Запись не найдена
+      </div>
+    );
+  }
+
+  const getClientDisplayName = (client: string | User): string => {
+    if (typeof client === "string") {
+      return client;
+    }
+    // If client is an object (User), use full_name or construct from name parts
+    if (client.full_name) {
+      return client.full_name;
+    }
+    const parts = [client.first_name, client.middle_name, client.last_name].filter(Boolean);
+    return parts.join(" ") || client.email || `ID: ${client.id}`;
+  };
+
+  // Helper function to get car display name
+  const getCarDisplayName = (car: string | Car): string => {
+    if (typeof car === "string") {
+      return car;
+    }
+    // If car is an object (Car), construct display name from brand, model, license_plate
+    const parts = [car.brand, car.model, car.license_plate].filter(Boolean);
+    return parts.join(" ") || `ID: ${car.id}`;
+  };
+
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] w-full">
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
@@ -9,33 +96,37 @@ export default function AppointmentMain() {
           Запись
         </h3>
 
-        <h4 className="text-base font-medium text-gray-700 dark:text-gray-400">
-          ID : #348
-        </h4>
+        <div className="flex items-center gap-3">
+          <StatusBadge state={appointment.state} />
+          <h4 className="text-base font-medium text-gray-700 dark:text-gray-400">
+            ID : #{appointment.id}
+          </h4>
+        </div>
       </div>
 
       <div className="p-5 xl:p-8">
         <div className="flex flex-col gap-6 mb-9 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <span className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
-              From
+              Клиент
             </span>
 
             <h5 className="mb-2 text-base font-semibold text-gray-800 dark:text-white/90">
-              Pimjo LLC
+              {getClientDisplayName(appointment.client) || "Не указан"}
             </h5>
 
-            <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-              1280, Clair Street, <br />
-              Massachusetts, New York - 02543
-            </p>
+            {appointment.comment && (
+              <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+                {appointment.comment}
+              </p>
+            )}
 
             <span className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Issued On:
+              Создано:
             </span>
 
             <span className="block text-sm text-gray-500 dark:text-gray-400">
-              11 March, 2027
+              {formatDate(appointment.created_at)}
             </span>
           </div>
 
@@ -43,66 +134,28 @@ export default function AppointmentMain() {
 
           <div className="sm:text-right">
             <span className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
-              To
+              Автомобиль
             </span>
 
             <h5 className="mb-2 text-base font-semibold text-gray-800 dark:text-white/90">
-              Albert Word
+              {getCarDisplayName(appointment.car) || "Не указан"}
             </h5>
 
-            <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-              355, Shobe Lane <br />
-              Colorado, Fort Collins - 80543
-            </p>
-
             <span className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Due On:
+              Дата записи:
             </span>
 
             <span className="block text-sm text-gray-500 dark:text-gray-400">
-              16 March, 2027
+              {appointment.appointment_at ? formatDate(appointment.appointment_at) : "Не указана"}
             </span>
           </div>
         </div>
 
-        {/* <!-- Invoice Table Start --> */}
-        <AppointmentTable />
-        {/* <!-- Invoice Table End --> */}
+        {/* Order Items Table */}
+        <CreateInvoiceTable orderId={appointment.id} />
 
-        <div className="pb-6 my-6 text-right border-b border-gray-100 dark:border-gray-800">
-          <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-            Sub Total amount: $3,098
-          </p>
-          <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">
-            Vat (10%): $312
-          </p>
-
-          <p className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Total : $3,410
-          </p>
-        </div>
-
-        <div className="flex items-center justify-end gap-3">
-          <Button variant="outline">Proceed to payment</Button>
-
-          <Button>
-            <svg
-              className="fill-current"
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M6.99578 4.08398C6.58156 4.08398 6.24578 4.41977 6.24578 4.83398V6.36733H13.7542V5.62451C13.7542 5.42154 13.672 5.22724 13.5262 5.08598L12.7107 4.29545C12.5707 4.15983 12.3835 4.08398 12.1887 4.08398H6.99578ZM15.2542 6.36902V5.62451C15.2542 5.01561 15.0074 4.43271 14.5702 4.00891L13.7547 3.21839C13.3349 2.81151 12.7733 2.58398 12.1887 2.58398H6.99578C5.75314 2.58398 4.74578 3.59134 4.74578 4.83398V6.36902C3.54391 6.41522 2.58374 7.40415 2.58374 8.61733V11.3827C2.58374 12.5959 3.54382 13.5848 4.74561 13.631V15.1665C4.74561 16.4091 5.75297 17.4165 6.99561 17.4165H13.0041C14.2467 17.4165 15.2541 16.4091 15.2541 15.1665V13.6311C16.456 13.585 17.4163 12.596 17.4163 11.3827V8.61733C17.4163 7.40414 16.4561 6.41521 15.2542 6.36902ZM4.74561 11.6217V12.1276C4.37292 12.084 4.08374 11.7671 4.08374 11.3827V8.61733C4.08374 8.20312 4.41953 7.86733 4.83374 7.86733H15.1663C15.5805 7.86733 15.9163 8.20312 15.9163 8.61733V11.3827C15.9163 11.7673 15.6269 12.0842 15.2541 12.1277V11.6217C15.2541 11.2075 14.9183 10.8717 14.5041 10.8717H5.49561C5.08139 10.8717 4.74561 11.2075 4.74561 11.6217ZM6.24561 12.3717V15.1665C6.24561 15.5807 6.58139 15.9165 6.99561 15.9165H13.0041C13.4183 15.9165 13.7541 15.5807 13.7541 15.1665V12.3717H6.24561Z"
-                fill=""
-              />
-            </svg>
-            Print
-          </Button>
+        <div className="flex items-center justify-end gap-3 mt-6">
+          <Button onClick={() => navigate(`/appointments/${appointment.id}/edit`)}>Редактировать</Button>
         </div>
       </div>
     </div>

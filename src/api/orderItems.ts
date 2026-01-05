@@ -6,7 +6,7 @@ export interface OrderItem {
   service_id: number;
   performer_type: "User" | "Contactor";
   performer_id: number;
-  state: "initial" | "processing" | "completed" | "cancelled";
+  state: "initial" | "diagnostic" | "agreement" | "processing" | "control" | "completed" | "cancelled";
   materials_price: number;
   materials_comment: string;
   delivery_price: number;
@@ -20,12 +20,16 @@ export type CreateOrderItemData = Omit<OrderItem, "id">;
 
 class OrderItemService {
   async createOrderItem(orderId: number, itemData: CreateOrderItemData): Promise<OrderItem> {
+    // API expects order with id and order_items_attributes
     const response = await apiClient.post<{ order_item: OrderItem }>(
       `/orders/${orderId}/order_items`,
-      { order_item: itemData },
+      { 
+        order_item: itemData
+      },
       true
     );
-    return response.order_item;
+
+    return (response as any).order_item || (response as any).order?.order_items?.[0] || (response as any);
   }
 
   async getOrderItems(orderId: number): Promise<OrderItem[]> {
@@ -42,4 +46,3 @@ class OrderItemService {
 }
 
 export const orderItemService = new OrderItemService();
-

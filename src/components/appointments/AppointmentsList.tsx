@@ -1,11 +1,15 @@
 import React, {useEffect, useState} from "react";
 import TableDropdown from "../common/TableDropdown";
 import type { Appointment } from "../../entities/appointments/model";
+import type { User } from "../../entities/user/model";
+import type { Car } from "../../entities/car/model";
 import { apiClient } from "../../api/client";
 import Pages from "../../shared/ui/Pages.tsx";
 import SvgIcon from "../../shared/ui/SvgIcon";
 import { StatusBadge } from "../../shared/ui/StatusBadge";
 import { formatDate } from "../../shared/lib/formatDate";
+import { useNavigate } from "react-router";
+import { ROUTES } from "../../shared/config/routes";
 
 interface Appointments {
   data: Appointment[];
@@ -59,6 +63,7 @@ interface Appointments {
 // };
 
 export default function AppointmentListTable() {
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [pages, setPages] = useState<Appointments["meta"]>({
     page: 1,
@@ -111,6 +116,29 @@ export default function AppointmentListTable() {
       if (isAllSelected) return new Set();
       return new Set(appointments.map(a => a.id));
     });
+  };
+
+  // Helper function to get client display name
+  const getClientDisplayName = (client: string | User): string => {
+    if (typeof client === "string") {
+      return client;
+    }
+    // If client is an object (User), use full_name or construct from name parts
+    if (client.full_name) {
+      return client.full_name;
+    }
+    const parts = [client.first_name, client.middle_name, client.last_name].filter(Boolean);
+    return parts.join(" ") || client.email || `ID: ${client.id}`;
+  };
+
+  // Helper function to get car display name
+  const getCarDisplayName = (car: string | Car): string => {
+    if (typeof car === "string") {
+      return car;
+    }
+    // If car is an object (Car), construct display name from brand, model, license_plate
+    const parts = [car.brand, car.model, car.license_plate].filter(Boolean);
+    return parts.join(" ") || `ID: ${car.id}`;
   };
 
   return (
@@ -440,12 +468,12 @@ export default function AppointmentListTable() {
                     </td>
                     <td className="p-4 whitespace-nowrap">
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-400">
-                        {appointment.client}
+                        {getClientDisplayName(appointment.client)}
                       </span>
                     </td>
                     <td className="p-4 whitespace-nowrap">
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-400">
-                        {appointment.car}
+                        {getCarDisplayName(appointment.car)}
                       </span>
                     </td>
                     <td className="p-4 whitespace-nowrap">
@@ -490,7 +518,10 @@ export default function AppointmentListTable() {
                           }
                           dropdownContent={
                             <>
-                              <button className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
+                              <button 
+                                onClick={() => navigate(`${ROUTES.APPOINTMENTS.INDEX}/${appointment.id}`)}
+                                className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                              >
                                 View More
                               </button>
                               <button className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">

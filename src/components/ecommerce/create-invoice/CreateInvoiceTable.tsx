@@ -7,6 +7,7 @@ import { useNotification } from "../../../context/NotificationContext";
 import { Modal } from "../../../components/ui/modal";
 import { useModal } from "../../../hooks/useModal";
 import SvgIcon from "../../../shared/ui/SvgIcon";
+import { StatusBadge } from "../../../shared/ui/StatusBadge";
 
 interface CreateInvoiceTableProps {
   orderId?: number;
@@ -44,13 +45,30 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
     onItemsChange?.(items);
   }, [items, onItemsChange]);
 
+  // Helper function to normalize OrderItem data (convert string numbers to actual numbers)
+  const normalizeOrderItem = (item: any): OrderItem => {
+    return {
+      ...item,
+      id: typeof item.id === "string" ? parseInt(item.id, 10) : item.id,
+      order_id: typeof item.order_id === "string" ? parseInt(item.order_id, 10) : item.order_id,
+      service_id: typeof item.service_id === "string" ? parseInt(item.service_id, 10) : item.service_id,
+      performer_id: typeof item.performer_id === "string" ? parseInt(item.performer_id, 10) : item.performer_id,
+      price: typeof item.price === "string" ? parseFloat(item.price) : Number(item.price) || 0,
+      materials_price: typeof item.materials_price === "string" ? parseFloat(item.materials_price) : Number(item.materials_price) || 0,
+      delivery_price: typeof item.delivery_price === "string" ? parseFloat(item.delivery_price) : Number(item.delivery_price) || 0,
+      paid: typeof item.paid === "string" ? item.paid === "true" : Boolean(item.paid),
+    };
+  };
+
   const loadOrderItems = async () => {
     if (!orderId) return;
 
     setIsLoading(true);
     try {
       const loadedItems = await orderItemService.getOrderItems(orderId);
-      setItems(loadedItems);
+      // Normalize all items to ensure numeric fields are numbers
+      const normalizedItems = loadedItems.map(normalizeOrderItem);
+      setItems(normalizedItems);
     } catch (error) {
       showNotification({
         variant: "error",
@@ -159,7 +177,9 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
           ...formData,
         });
 
-        setItems((prev) => [...prev, newItem]);
+        // Normalize the new item before adding to state
+        const normalizedItem = normalizeOrderItem(newItem);
+        setItems((prev) => [...prev, normalizedItem]);
         showNotification({
           variant: "success",
           title: "Позиция добавлена",
@@ -185,20 +205,10 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
     }
   };
 
-  const subtotal: number = items.reduce((sum, item) => sum + item.price, 0);
-  const materialsTotal: number = items.reduce((sum, item) => sum + item.materials_price, 0);
-  const deliveryTotal: number = items.reduce((sum, item) => sum + item.delivery_price, 0);
+  const subtotal: number = items.reduce((sum, item) => sum + Number(item.price || 0), 0);
+  const materialsTotal: number = items.reduce((sum, item) => sum + Number(item.materials_price || 0), 0);
+  const deliveryTotal: number = items.reduce((sum, item) => sum + Number(item.delivery_price || 0), 0);
   const total: number = subtotal + materialsTotal + deliveryTotal;
-
-  const getStateLabel = (state: OrderItem["state"]): string => {
-    const labels = {
-      initial: "В ожидании",
-      processing: "В процессе",
-      completed: "Завершен",
-      cancelled: "Отменен",
-    };
-    return labels[state];
-  };
 
   return (
     <div className="space-y-6">
@@ -270,16 +280,16 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
                       {item.performer_type} #{item.performer_id}
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                      {getStateLabel(item.state)}
+                      <StatusBadge state={item.state} />
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                      {item.price.toFixed(2)} ₽
+                      {Number(item.price || 0).toFixed(2)} ₽
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                      {item.materials_price > 0 ? `${item.materials_price.toFixed(2)} ₽` : "-"}
+                      {Number(item.materials_price || 0) > 0 ? `${Number(item.materials_price || 0).toFixed(2)} ₽` : "-"}
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                      {item.delivery_price > 0 ? `${item.delivery_price.toFixed(2)} ₽` : "-"}
+                      {Number(item.delivery_price || 0) > 0 ? `${Number(item.delivery_price || 0).toFixed(2)} ₽` : "-"}
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
                       {item.paid ? (
@@ -355,11 +365,11 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
-        className="max-w-3xl p-6 lg:p-8"
+        className="max-w-3xl p-4 sm:p-6 lg:p-8 sm:m-4 sm:rounded-3xl"
       >
         <div onClick={(e) => e.stopPropagation()}>
           <h4 className="font-semibold text-gray-800 mb-6 text-title-sm dark:text-white/90">
-            Добавить позицию в заказ
+            Добавить позицию в запись
           </h4>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
