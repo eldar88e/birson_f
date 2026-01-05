@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useEffect, useState} from "react";
 import TableDropdown from "../common/TableDropdown";
 import type { Appointment } from "../../entities/appointments/model";
 import { apiClient } from "../../api/client";
@@ -17,95 +17,58 @@ interface Appointments {
   };
 }
 
-type UISortKey = "customer" | "created_at" | "appointment_at";
-
-interface SortState {
-  sortBy: UISortKey;
-  sortDirection: "asc" | "desc";
-}
-
-const sortKeyMap: Record<UISortKey, keyof Appointment> = {
-  customer: "client",
-  created_at: "created_at",
-  appointment_at: "appointment_at"
-};
-
-const FilterDropdown: React.FC<{
-  showFilter: boolean;
-  setShowFilter: (show: boolean) => void;
-}> = ({ showFilter, setShowFilter }) => {
-  const ref = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setShowFilter(false);
-      }
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, [setShowFilter]);
-
+function FilterDropdown() {
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative">
       <button
         className="shadow-theme-xs flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 sm:w-auto sm:min-w-[100px] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-        onClick={() => setShowFilter(!showFilter)}
         type="button"
       >
         <SvgIcon name="filter" />
         Фильтр
       </button>
-      {showFilter && (
-        <div className="absolute right-0 z-10 mt-2 w-56 rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-          <div className="mb-5">
-            <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
-              Category
-            </label>
-            <input
-              type="text"
-              className="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-              placeholder="Search category..."
-            />
-          </div>
-          <div className="mb-5">
-            <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
-              Customer
-            </label>
-            <input
-              type="text"
-              className="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-              placeholder="Search customer..."
-            />
-          </div>
-          <button className="bg-brand-500 hover:bg-brand-600 h-10 w-full rounded-lg px-3 py-2 text-sm font-medium text-white">
-            Apply
-          </button>
+      <div className="absolute right-0 z-10 mt-2 w-56 rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+        <div className="mb-5">
+          <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+            Category
+          </label>
+          <input
+            type="text"
+            className="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+            placeholder="Search category..."
+          />
         </div>
-      )}
+        <div className="mb-5">
+          <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
+            Customer
+          </label>
+          <input
+            type="text"
+            className="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+            placeholder="Search customer..."
+          />
+        </div>
+        <button className="bg-brand-500 hover:bg-brand-600 h-10 w-full rounded-lg px-3 py-2 text-sm font-medium text-white">
+          Apply
+        </button>
+      </div>
     </div>
   );
 };
 
 const AppointmentListTable: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [meta, setMeta] = useState<Appointments["meta"]>({
-    page: 1,
-    count: 40,
-    limit: 20,
-    from: 1,
-    in: 20,
-    last: 2
-  });
   const [selected, setSelected] = useState<number[]>([]);
-  const [sort, setSort] = useState<SortState>({
-    sortBy: "customer",
-    sortDirection: "asc",
+  const [pages, setPages] = useState<Appointments["meta"]>({
+    page: 1,
+    count: 0,
+    limit: 0,
+    from: 0,
+    in: 0,
+    last: 0
   });
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [filterStatus, setFilterStatus] = useState<"All" | "initial" | "processing" | "completed" | "cancelled">("All");
+  const [page, setPage] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
-  const [showFilter, setShowFilter] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -113,10 +76,10 @@ const AppointmentListTable: React.FC = () => {
     const fetchAppointments = async () => {
       setIsLoading(true);
       try {
-        const data = await apiClient.get<Appointments>("/orders", true);
+        const data = await apiClient.get<Appointments>(`/orders?page=${page}`, true);
         setAppointments(data.data);
-        setMeta(data.meta);
-        setCurrentPage(data.meta.page);
+        setPages(data.meta);
+        setPage(data.meta.page);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Failed to load appointments";
         setError(errorMessage);
@@ -126,10 +89,8 @@ const AppointmentListTable: React.FC = () => {
     };
 
     fetchAppointments();
-  }, []);
+  }, [page]);
 
-  const itemsPerPage: number = meta.limit;
-  const totalPages: number = Math.ceil(meta.count / meta.limit);
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ru-RU', {
@@ -139,47 +100,14 @@ const AppointmentListTable: React.FC = () => {
     });
   };
 
-  const filteredAppointments: Appointment[] = useMemo(() => {
-    return filterStatus === "All"
-      ? appointments
-      : appointments.filter((appointment) => appointment.state === filterStatus);
-  }, [appointments, filterStatus]);
-
-  const searchedAppointments: Appointment[] = React.useMemo(() => {
-    if (!search.trim()) return filteredAppointments;
-
-    return filteredAppointments.filter(
-      (appointment) =>
-        appointment.id === Number(search)
-    );
-  }, [filteredAppointments, search]);
-
-  const sortedAppointments = useMemo(() => {
-    const key = sortKeyMap[sort.sortBy];
-
-    return [...searchedAppointments].sort((a, b) => {
-      const valA = a[key];
-      const valB = b[key];
-
-      if (valA < valB) return sort.sortDirection === "asc" ? -1 : 1;
-      if (valA > valB) return sort.sortDirection === "asc" ? 1 : -1;
-      return 0;
-    });
-  }, [searchedAppointments, sort]);
-
-  const paginatedAppointments: Appointment[] = sortedAppointments.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
   const toggleSelectAll = (): void => {
     if (
-      paginatedAppointments.length > 0 &&
-      paginatedAppointments.every((i) => selected.includes(i.id))
+      pages.count > 0 &&
+      appointments.every((i) => selected.includes(i.id))
     ) {
       setSelected([]);
     } else {
-      setSelected(paginatedAppointments.map((i) => i.id));
+      setSelected(appointments.map((i) => i.id));
     }
   };
 
@@ -187,21 +115,6 @@ const AppointmentListTable: React.FC = () => {
     setSelected((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
-  };
-
-  const sortBy = (
-    field: "customer" | "created_at" | "appointment_at"
-  ): void => {
-    setSort((prev) => ({
-      sortBy: field,
-      sortDirection:
-        prev.sortBy === field && prev.sortDirection === "asc" ? "desc" : "asc",
-    }));
-    setCurrentPage(1);
-  };
-
-  const handleGoToPage = (page: number) => {
-    if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
   if (isLoading) {
@@ -242,12 +155,8 @@ const AppointmentListTable: React.FC = () => {
         <div className="flex gap-3.5">
           <div className="hidden h-11 items-center gap-0.5 rounded-lg bg-gray-100 p-0.5 lg:inline-flex dark:bg-gray-900">
             <button
-              onClick={() => {
-                setFilterStatus("All");
-                setCurrentPage(1);
-              }}
               className={`text-theme-sm h-10 rounded-md px-3 py-2 font-medium hover:text-gray-900 dark:hover:text-white ${
-                filterStatus === "All"
+                true
                   ? "shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800"
                   : "text-gray-500 dark:text-gray-400"
               }`}
@@ -255,12 +164,8 @@ const AppointmentListTable: React.FC = () => {
               Все
             </button>
             <button
-              onClick={() => {
-                setFilterStatus("initial");
-                setCurrentPage(1);
-              }}
               className={`text-theme-sm h-10 rounded-md px-3 py-2 font-medium hover:text-gray-900 dark:hover:text-white ${
-                filterStatus === "initial"
+                false
                   ? "shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800"
                   : "text-gray-500 dark:text-gray-400"
               }`}
@@ -268,12 +173,8 @@ const AppointmentListTable: React.FC = () => {
               Ожидают
             </button>
             <button
-              onClick={() => {
-                setFilterStatus("processing");
-                setCurrentPage(1);
-              }}
               className={`text-theme-sm h-10 rounded-md px-3 py-2 font-medium hover:text-gray-900 dark:hover:text-white ${
-                filterStatus === "processing"
+                false
                   ? "shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800"
                   : "text-gray-500 dark:text-gray-400"
               }`}
@@ -296,10 +197,7 @@ const AppointmentListTable: React.FC = () => {
                 }
               />
             </div>
-            <FilterDropdown
-              showFilter={showFilter}
-              setShowFilter={setShowFilter}
-            />
+            {/* <FilterDropdown /> */}
           </div>
         </div>
       </div>
@@ -316,18 +214,18 @@ const AppointmentListTable: React.FC = () => {
                           type="checkbox"
                           className="sr-only"
                           checked={
-                            paginatedAppointments.length > 0 &&
-                            paginatedAppointments.every((i) =>
-                              selected.includes(i.id)
+                             appointments.length > 0 &&
+                               appointments.every((i) =>
+                                 selected.includes(i.id)
                             )
                           }
                           onChange={toggleSelectAll}
                         />
                         <span
                           className={`flex h-4 w-4 items-center justify-center rounded-sm border-[1.25px] ${
-                            paginatedAppointments.length > 0 &&
-                            paginatedAppointments.every((i) =>
-                              selected.includes(i.id)
+                            appointments.length > 0 &&
+                              appointments.every((i) =>
+                                selected.includes(i.id)
                             )
                               ? "border-brand-500 bg-brand-500"
                               : "bg-transparent border-gray-300 dark:border-gray-700"
@@ -335,9 +233,9 @@ const AppointmentListTable: React.FC = () => {
                         >
                           <span
                             className={
-                              paginatedAppointments.length > 0 &&
-                              paginatedAppointments.every((i) =>
-                                selected.includes(i.id)
+                              appointments.length > 0 &&
+                                appointments.every((i) =>
+                                  selected.includes(i.id)
                               )
                                 ? ""
                                 : "opacity-0"
@@ -370,7 +268,7 @@ const AppointmentListTable: React.FC = () => {
               </th>
               <th
                 className="cursor-pointer p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400"
-                onClick={() => sortBy("customer")}
+                // onClick={() => sortBy("customer")}
               >
                 <div className="flex items-center gap-3">
                   <p className="text-theme-xs font-medium text-gray-700 dark:text-gray-400">
@@ -378,12 +276,12 @@ const AppointmentListTable: React.FC = () => {
                   </p>
                   <span className="flex flex-col gap-0.5">
                     <svg
-                      className={
-                        sort.sortBy === "customer" &&
-                        sort.sortDirection === "asc"
-                          ? "text-gray-500"
-                          : "text-gray-300"
-                      }
+                      // className={
+                      //   sort.sortBy === "customer" &&
+                      //   sort.sortDirection === "asc"
+                      //     ? "text-gray-500"
+                      //     : "text-gray-300"
+                      // }
                       width="8"
                       height="5"
                       viewBox="0 0 8 5"
@@ -396,12 +294,12 @@ const AppointmentListTable: React.FC = () => {
                       />
                     </svg>
                     <svg
-                      className={
-                        sort.sortBy === "customer" &&
-                        sort.sortDirection === "desc"
-                          ? "text-gray-500"
-                          : "text-gray-300"
-                      }
+                      // className={
+                      //   sort.sortBy === "customer" &&
+                      //   sort.sortDirection === "desc"
+                      //     ? "text-gray-500"
+                      //     : "text-gray-300"
+                      // }
                       width="8"
                       height="5"
                       viewBox="0 0 8 5"
@@ -421,7 +319,7 @@ const AppointmentListTable: React.FC = () => {
               </th>
               <th
                 className="cursor-pointer p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400"
-                onClick={() => sortBy("created_at")}
+                // onClick={() => sortBy("created_at")}
               >
                 <div className="flex items-center gap-3">
                   <p className="text-theme-xs font-medium text-gray-700 dark:text-gray-400">
@@ -429,12 +327,12 @@ const AppointmentListTable: React.FC = () => {
                   </p>
                   <span className="flex flex-col gap-0.5">
                     <svg
-                      className={
-                        sort.sortBy === "created_at" &&
-                        sort.sortDirection === "asc"
-                          ? "text-gray-500"
-                          : "text-gray-300"
-                      }
+                      // className={
+                      //   sort.sortBy === "created_at" &&
+                      //   sort.sortDirection === "asc"
+                      //     ? "text-gray-500"
+                      //     : "text-gray-300"
+                      // }
                       width="8"
                       height="5"
                       viewBox="0 0 8 5"
@@ -447,12 +345,12 @@ const AppointmentListTable: React.FC = () => {
                       />
                     </svg>
                     <svg
-                      className={
-                        sort.sortBy === "created_at" &&
-                        sort.sortDirection === "desc"
-                          ? "text-gray-500"
-                          : "text-gray-300"
-                      }
+                      // className={
+                      //   sort.sortBy === "created_at" &&
+                      //   sort.sortDirection === "desc"
+                      //     ? "text-gray-500"
+                      //     : "text-gray-300"
+                      // }
                       width="8"
                       height="5"
                       viewBox="0 0 8 5"
@@ -477,12 +375,12 @@ const AppointmentListTable: React.FC = () => {
                   </p>
                   <span className="flex flex-col gap-0.5">
                     <svg
-                      className={
-                        sort.sortBy === "appointment_at" &&
-                        sort.sortDirection === "asc"
-                          ? "text-gray-500"
-                          : "text-gray-300"
-                      }
+                      // className={
+                      //   sort.sortBy === "appointment_at" &&
+                      //   sort.sortDirection === "asc"
+                      //     ? "text-gray-500"
+                      //     : "text-gray-300"
+                      // }
                       width="8"
                       height="5"
                       viewBox="0 0 8 5"
@@ -495,12 +393,12 @@ const AppointmentListTable: React.FC = () => {
                       />
                     </svg>
                     <svg
-                      className={
-                        sort.sortBy === "appointment_at" &&
-                        sort.sortDirection === "desc"
-                          ? "text-gray-500"
-                          : "text-gray-300"
-                      }
+                      // className={
+                      //   sort.sortBy === "appointment_at" &&
+                      //   sort.sortDirection === "desc"
+                      //     ? "text-gray-500"
+                      //     : "text-gray-300"
+                      // }
                       width="8"
                       height="5"
                       viewBox="0 0 8 5"
@@ -664,17 +562,17 @@ const AppointmentListTable: React.FC = () => {
         <div className="pb-3 sm:pb-0">
           <span className="block text-sm font-medium text-gray-500 dark:text-gray-400">
             Showing{" "}
-            <b>{meta.from}</b>{" "}
+            <b>{pages.from}</b>{" "}
             to{" "}
-            <b>{meta.in}</b>{" "}
+            <b>{pages.in}</b>{" "}
             of{" "}
-            <b>{meta.count}</b>
+            <b>{pages.count}</b>
           </span>
         </div>
         <Pages
-          page={currentPage}
-          lastPages={totalPages}
-          onChange={handleGoToPage}
+          page={page}
+          lastPages={pages.last}
+          onChange={setPage}
         />
       </div>
     </div>
