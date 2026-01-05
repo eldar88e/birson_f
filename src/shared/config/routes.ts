@@ -13,11 +13,6 @@ export const ROUTES = {
     ADD_APPOINTMENT: "/appointments/add",
   },
 
-  PRODUCTS: {
-    INDEX: "/products",
-    ADD_PRODUCT: "/products/add",
-  },
-
   USERS: {
     INDEX: "/users",
     ADD_USER: "/users/add",
