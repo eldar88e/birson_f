@@ -4,7 +4,9 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import UserAutocomplete from "../../components/form/UserAutocomplete";
+import CarAutocomplete from "../../components/form/CarAutocomplete";
 import type { User } from "../../entities/user/model";
+import type { Car } from "../../entities/car/model";
 import InvoicePreviewModal from "../../components/ecommerce/create-invoice/InvoicePreviewModal";
 import CreateInvoiceTable from "../../components/ecommerce/create-invoice/CreateInvoiceTable";
 import SvgIcon from "../../shared/ui/SvgIcon.tsx";
@@ -26,6 +28,7 @@ type AppointmentFormData = {
 
 export default function CreateAppointment() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedCar, setSelectedCar] = useState<Car | null>(null);
 
   const navigate = useNavigate();
   const { showNotification } = useNotification();
@@ -44,6 +47,18 @@ export default function CreateAppointment() {
     setSelectedUser(user);
     const client_id = user ? user.id : null;
     handleChange("client_id", client_id);
+    
+    // Сбросить выбранный автомобиль при смене клиента
+    if (!user || selectedCar?.owner_id !== user.id) {
+      setSelectedCar(null);
+      handleChange("car_id", 0);
+    }
+  };
+
+  const handleCarChange = (car: Car | null) => {
+    setSelectedCar(car);
+    const car_id = car ? car.id : 0;
+    handleChange("car_id", car_id);
   };
 
   const handleChange = (
@@ -61,6 +76,15 @@ export default function CreateAppointment() {
         variant: "error",
         title: "Ошибка валидации",
         description: "Необходимо выбрать клиента",
+      });
+      return;
+    }
+
+    if (!formData.car_id || formData.car_id === 0) {
+      showNotification({
+        variant: "error",
+        title: "Ошибка валидации",
+        description: "Необходимо выбрать автомобиль",
       });
       return;
     }
@@ -134,19 +158,14 @@ export default function CreateAppointment() {
                   value={selectedUser}
                   onChange={handleUserChange}
                 />
-              </div>{" "}
+              </div>
               <div>
-                <Label>Авто</Label>
-                <Input
-                  type="number"
-                  placeholder="Введите ID автомобиля"
-                  value={formData.car_id === 0 ? "" : formData.car_id}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    const numValue = value === "" ? 0 : Number(value);
-                    handleChange("car_id", isNaN(numValue) ? 0 : numValue);
-                  }}
-                  required
+                <CarAutocomplete
+                  label="Авто"
+                  placeholder="Нажмите для выбора автомобиля"
+                  value={selectedCar}
+                  onChange={handleCarChange}
+                  ownerId={selectedUser?.id}
                 />
               </div>
               <div>
@@ -204,7 +223,7 @@ export default function CreateAppointment() {
               disabled={isSubmitting}
             >
               <SvgIcon name="save" />
-              {isSubmitting ? "Создание..." : "Создать пользователя"}
+              {isSubmitting ? "Создание..." : "Создать запись"}
             </Button>
           </div>
         </div>

@@ -17,7 +17,7 @@ interface Appointments {
   };
 }
 
-type UISortKey = "customer" | "created_at" | "processing_at";
+type UISortKey = "customer" | "created_at" | "appointment_at";
 
 interface SortState {
   sortBy: UISortKey;
@@ -27,7 +27,7 @@ interface SortState {
 const sortKeyMap: Record<UISortKey, keyof Appointment> = {
   customer: "client",
   created_at: "created_at",
-  processing_at: "processing_at"
+  appointment_at: "appointment_at"
 };
 
 const FilterDropdown: React.FC<{
@@ -190,7 +190,7 @@ const AppointmentListTable: React.FC = () => {
   };
 
   const sortBy = (
-    field: "customer" | "created_at" | "processing_at"
+    field: "customer" | "created_at" | "appointment_at"
   ): void => {
     setSort((prev) => ({
       sortBy: field,
@@ -469,16 +469,16 @@ const AppointmentListTable: React.FC = () => {
               </th>
               <th
                 className="cursor-pointer p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400"
-                onClick={() => sortBy("processing_at")}
+                onClick={() => sortBy("appointment_at")}
               >
                 <div className="flex items-center gap-3">
                   <p className="text-theme-xs font-medium text-gray-700 dark:text-gray-400">
-                    В обработке
+                    Дата записи
                   </p>
                   <span className="flex flex-col gap-0.5">
                     <svg
                       className={
-                        sort.sortBy === "processing_at" &&
+                        sort.sortBy === "appointment_at" &&
                         sort.sortDirection === "asc"
                           ? "text-gray-500"
                           : "text-gray-300"
@@ -496,7 +496,7 @@ const AppointmentListTable: React.FC = () => {
                     </svg>
                     <svg
                       className={
-                        sort.sortBy === "processing_at" &&
+                        sort.sortBy === "appointment_at" &&
                         sort.sortDirection === "desc"
                           ? "text-gray-500"
                           : "text-gray-300"
@@ -597,7 +597,7 @@ const AppointmentListTable: React.FC = () => {
                 </td>
                 <td className="p-4 whitespace-nowrap">
                   <p className="text-sm text-gray-700 dark:text-gray-400">
-                    {formatDate(appointment.created_at)}
+                    {formatDate(appointment.appointment_at)}
                   </p>
                 </td>
                 <td className="p-4 whitespace-nowrap">
@@ -666,7 +666,7 @@ const AppointmentListTable: React.FC = () => {
             Showing{" "}
             <b>{meta.from}</b>{" "}
             to{" "}
-            <b>{meta.from + meta.in - 1}</b>{" "}
+            <b>{meta.in}</b>{" "}
             of{" "}
             <b>{meta.count}</b>
           </span>
