@@ -33,13 +33,10 @@ const navItems: NavItem[] = [
     ],
   },
   {
-    name: "Бизнес",
+    name: "Услуги",
     icon: <CartIcon />,
     new: true,
-    subItems: [
-      { name: "Услуги", path: ROUTES.PRODUCTS.INDEX },
-      { name: "Записи", path: ROUTES.APPOINTMENTS.INDEX },
-    ],
+    path: ROUTES.APPOINTMENTS.INDEX,
   },
   { icon: <CalenderIcon />,
     name: "Календарь",

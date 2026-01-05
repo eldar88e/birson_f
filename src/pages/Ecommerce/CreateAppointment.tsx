@@ -16,6 +16,7 @@ import { Appointment } from "../../entities/appointments/model";
 import {ROUTES} from "../../shared/config/routes.ts";
 import {useNavigate} from "react-router";
 import Button from "../../components/ui/button/Button";
+import type { OrderItem } from "../../api/orderItems";
 
 type AppointmentFormData = {
   client_id: number | null;
@@ -29,6 +30,7 @@ type AppointmentFormData = {
 export default function CreateAppointment() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedCar, setSelectedCar] = useState<Car | null>(null);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
 
   const navigate = useNavigate();
   const { showNotification } = useNotification();
@@ -92,7 +94,7 @@ export default function CreateAppointment() {
     setIsSubmitting(true);
 
     try {
-      const orderData: Appointment = {
+      const { id, ...orderDataWithoutId } = {
         ...formData,
         client_id: formData.client_id,
         car_id: formData.car_id,
@@ -109,9 +111,17 @@ export default function CreateAppointment() {
         updated_at: "",
       };
 
+      // Подготовка позиций для отправки (убираем временные id и order_id)
+      const itemsToSend = orderItems.map(({ id, order_id, ...item }) => item);
+
       const response = await apiClient.post<{ order: Appointment }>(
         "/orders",
-        { order: orderData },
+        { 
+          order: {
+            ...orderDataWithoutId,
+            order_items_attributes: itemsToSend,
+          },
+        },
         true
       );
 
@@ -211,7 +221,7 @@ export default function CreateAppointment() {
           </form>
         </div>
         <div className="border-b border-gray-200 p-4 sm:p-8 dark:border-gray-800">
-          <CreateInvoiceTable />
+          <CreateInvoiceTable onItemsChange={setOrderItems} />
         </div>
         <div className="p-4 sm:p-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
