@@ -10,6 +10,7 @@ import { StatusBadge } from "../../shared/ui/StatusBadge";
 import { formatDate } from "../../shared/lib/formatDate";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../shared/config/routes";
+import { FilterTabs } from "../../shared/ui/FilterTabs";
 
 interface Appointments {
   data: Appointment[];
@@ -22,6 +23,14 @@ interface Appointments {
     last: number;
   };
 }
+
+const APPOINTMENT_FILTERS = [
+  { value: "", label: "Все" },
+  { value: "initial", label: "Ожидают" },
+  { value: "processing", label: "В процессе" },
+  { value: "completed", label: "Завершен" },
+  { value: "cancelled", label: "Отменен" },
+]
 
 // function FilterDropdown() {
 //   return (
@@ -153,38 +162,8 @@ export default function AppointmentListTable() {
           </p>
         </div>
         <div className="flex gap-3.5">
-          <div className="hidden h-11 items-center gap-0.5 rounded-lg bg-gray-100 p-0.5 lg:inline-flex dark:bg-gray-900">
-            <button
-              className={`text-theme-sm h-10 rounded-md px-3 py-2 font-medium hover:text-gray-900 dark:hover:text-white ${
-                filter === ""
-                  ? "shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800"
-                  : "text-gray-500 dark:text-gray-400"
-              }`}
-              onClick={() => setFilter("")}
-            >
-              Все
-            </button>
-            <button
-              className={`text-theme-sm h-10 rounded-md px-3 py-2 font-medium hover:text-gray-900 dark:hover:text-white ${
-                filter === "pending"
-                  ? "shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800"
-                  : "text-gray-500 dark:text-gray-400"
-              }`}
-              onClick={() => setFilter("pending")}
-            >
-              Ожидают
-            </button>
-            <button
-              className={`text-theme-sm h-10 rounded-md px-3 py-2 font-medium hover:text-gray-900 dark:hover:text-white ${
-                filter === "processing"
-                  ? "shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800"
-                  : "text-gray-500 dark:text-gray-400"
-              }`}
-              onClick={() => setFilter("processing")}
-            >
-              В процессе
-            </button>
-          </div>
+          <FilterTabs value={filter} onChange={setFilter} options={APPOINTMENT_FILTERS} />
+
           <div className="hidden flex-col gap-3 sm:flex sm:flex-row sm:items-center">
             <div className="relative">
               <span className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-500 dark:text-gray-400">
