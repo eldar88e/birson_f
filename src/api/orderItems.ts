@@ -1,4 +1,6 @@
 import { apiClient } from "./client";
+import { User } from "../entities/user/model";
+import { Contactor } from "../entities/contactor/model";
 
 export interface OrderItem {
   id?: number;
@@ -15,6 +17,8 @@ export interface OrderItem {
   price: number;
   paid: boolean;
   comment: string;
+  performer?: User | Contactor;
+  service?: string;
 }
 
 export type CreateOrderItemData = Omit<OrderItem, "id">;

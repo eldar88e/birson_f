@@ -212,7 +212,7 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
     <div className="space-y-6">
       <div className="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800">
         <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
-          <h3 className="text-lg font-medium text-gray-800 dark:text-white">Позиции заказа</h3>
+          <h3 className="text-lg font-medium text-gray-800 dark:text-white">Позиции записи</h3>
           <Button onClick={handleOpenModal} variant="primary">
             <SvgIcon name="plus" width={16} />
             Добавить позицию
@@ -223,10 +223,10 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
             <thead className="bg-gray-50 dark:bg-gray-900">
               <tr className="border-b border-gray-100 whitespace-nowrap dark:border-gray-800">
                 <th className="px-5 py-4 text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
-                  №
+                  ID
                 </th>
                 <th className="px-5 py-4 text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">
-                  ID услуги
+                  Сервис
                 </th>
                 <th className="px-5 py-4 text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">
                   Исполнитель
@@ -236,6 +236,9 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
                 </th>
                 <th className="px-5 py-4 text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
                   Цена
+                </th>
+                <th className="px-5 py-4 text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
+                  Зарплата
                 </th>
                 <th className="px-5 py-4 text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
                   Материалы
@@ -254,13 +257,13 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
             <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-white/[0.03]">
               {isLoading && items.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-5 py-4 text-center text-gray-400">
+                  <td colSpan={10} className="px-5 py-4 text-center text-gray-400">
                     Загрузка позиций...
                   </td>
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-5 py-4 text-center text-gray-400">
+                  <td colSpan={10} className="px-5 py-4 text-center text-gray-400">
                     Позиции не добавлены
                   </td>
                 </tr>
@@ -268,19 +271,35 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
                 items.map((item, idx) => (
                   <tr key={item.id || idx}>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                      {idx + 1}
+                      {item.id}
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                      {item.service_id}
+                      {item.service}
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                      {item.performer_type} #{item.performer_id}
+                      {item.performer ? (
+                        <a href={"full_name" in item.performer ? `/users/${item.service_id}` : "#"}>
+                          <div>
+                            {"name" in item.performer 
+                              ? item.performer.name 
+                              : item.performer.full_name}
+                          </div>
+                          {item.performer.phone && (
+                            <div>{item.performer.phone}</div>
+                          )}
+                        </a>
+                      ) : (
+                        <div>{item.performer_type} #{item.performer_id}</div>
+                      )}
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
                       <StatusBadge state={item.state} />
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
                       {Number(item.price || 0).toFixed(2)} ₽
+                    </td>
+                    <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
+                      {Number(item.performer_fee || 0) > 0 ? `${Number(item.performer_fee || 0).toFixed(2)} ₽` : "-"}
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
                       {Number(item.materials_price || 0) > 0 ? `${Number(item.materials_price || 0).toFixed(2)} ₽` : "-"}
