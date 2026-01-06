@@ -11,6 +11,7 @@ import { formatDate } from "../../shared/lib/formatDate";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../shared/config/routes";
 import { FilterTabs } from "../../shared/ui/FilterTabs";
+import Loader from "../../shared/ui/Loader";
 
 interface Appointments {
   data: Appointment[];
@@ -184,14 +185,7 @@ export default function AppointmentListTable() {
         </div>
       </div>
 
-      { isLoading && (
-        <div className="flex items-center justify-center h-64">
-          <div className="flex flex-col items-center gap-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-brand-500"></div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Загрузка записей...</p>
-          </div>
-        </div>
-      )}
+      { isLoading && <Loader text="Загрузка записей..." />}
 
       { error && (
         <div className="p-4 text-red-600 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400">
