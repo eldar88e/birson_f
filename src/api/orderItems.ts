@@ -11,6 +11,7 @@ export interface OrderItem {
   materials_comment: string;
   delivery_price: number;
   delivery_comment: string;
+  performer_fee: number,
   price: number;
   paid: boolean;
   comment: string;

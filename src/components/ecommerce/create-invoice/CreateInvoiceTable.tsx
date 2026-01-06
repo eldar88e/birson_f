@@ -29,6 +29,7 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
     materials_comment: "",
     delivery_price: 0,
     delivery_comment: "",
+    performer_fee: 0,
     price: 0,
     paid: false,
     comment: "",
@@ -53,6 +54,7 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
       price: typeof item.price === "string" ? parseFloat(item.price) : Number(item.price) || 0,
       materials_price: typeof item.materials_price === "string" ? parseFloat(item.materials_price) : Number(item.materials_price) || 0,
       delivery_price: typeof item.delivery_price === "string" ? parseFloat(item.delivery_price) : Number(item.delivery_price) || 0,
+      performer_fee: typeof item.performer_fee === "string" ? parseFloat(item.performer_fee) : Number(item.performer_fee) || 0,
       paid: typeof item.paid === "string" ? item.paid === "true" : Boolean(item.paid),
     };
   };
@@ -115,7 +117,7 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
         return { ...prev, [name]: isNaN(numValue) ? 0 : numValue };
       }
 
-      const numberFields: (keyof typeof prev)[] = ["service_id", "performer_id", "materials_price", "delivery_price", "price"];
+      const numberFields: (keyof typeof prev)[] = ["service_id", "performer_id", "materials_price", "delivery_price", "performer_fee", "price"];
       if (numberFields.includes(name as keyof typeof prev)) {
         const numValue = value === "" ? 0 : Number(value);
         return { ...prev, [name]: (isNaN(numValue) ? 0 : numValue) as any };
@@ -147,6 +149,7 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
       materials_comment: "",
       delivery_price: 0,
       delivery_comment: "",
+      performer_fee: 0,
       price: 0,
       paid: false,
       comment: "",
@@ -202,7 +205,8 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
   const subtotal: number = items.reduce((sum, item) => sum + Number(item.price || 0), 0);
   const materialsTotal: number = items.reduce((sum, item) => sum + Number(item.materials_price || 0), 0);
   const deliveryTotal: number = items.reduce((sum, item) => sum + Number(item.delivery_price || 0), 0);
-  const total: number = subtotal + materialsTotal + deliveryTotal;
+  const performerFeeTotal: number = items.reduce((sum, item) => sum + Number(item.performer_fee || 0), 0);
+  const total: number = subtotal + materialsTotal + deliveryTotal + performerFeeTotal;
 
   return (
     <div className="space-y-6">
@@ -345,6 +349,12 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
               </span>
             </li>
             <li className="flex items-center justify-between">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Зарплата</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-400">
+                {performerFeeTotal.toFixed(2)} ₽
+              </span>
+            </li>
+            <li className="flex items-center justify-between">
               <span className="font-medium text-gray-700 dark:text-gray-400">Итого</span>
               <span className="text-lg font-semibold text-gray-800 dark:text-white/90">
                 {total.toFixed(2)} ₽
@@ -431,6 +441,19 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
                   onChange={handleInputChange}
                   placeholder="0.00"
                   required
+                  min="0"
+                  step={0.01}
+                />
+              </div>
+
+              <div>
+                <Label>Вознаграждение исполнителя</Label>
+                <Input
+                  type="number"
+                  name="performer_fee"
+                  value={formData.performer_fee || ""}
+                  onChange={handleInputChange}
+                  placeholder="0.00"
                   min="0"
                   step={0.01}
                 />
