@@ -8,6 +8,7 @@ import { Modal } from "../../../components/ui/modal";
 import { useModal } from "../../../hooks/useModal";
 import SvgIcon from "../../../shared/ui/SvgIcon";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
+import PerformerAutocomplete from "../../../components/form/PerformerAutocomplete";
 
 interface CreateInvoiceTableProps {
   orderId?: number;
@@ -34,14 +35,10 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
   });
 
   useEffect(() => {
-    if (orderId) {
-      loadOrderItems();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (orderId) loadOrderItems();
   }, [orderId]);
 
   useEffect(() => {
-    // Уведомляем родителя об изменении позиций
     onItemsChange?.(items);
   }, [items, onItemsChange]);
 
@@ -66,7 +63,6 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
     setIsLoading(true);
     try {
       const loadedItems = await orderItemService.getOrderItems(orderId);
-      // Normalize all items to ensure numeric fields are numbers
       const normalizedItems = loadedItems.map(normalizeOrderItem);
       setItems(normalizedItems);
     } catch (error) {
@@ -82,12 +78,10 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
 
   const handleDelete = async (itemId: number): Promise<void> => {
     if (!orderId) {
-      // Локальное удаление (если order еще не создан)
       setItems((prev) => prev.filter((item) => item.id !== itemId));
       return;
     }
 
-    // Удаление через API (если order уже создан)
     try {
       await orderItemService.deleteOrderItem(orderId, itemId);
       setItems((prev) => prev.filter((item) => item.id !== itemId));
@@ -121,20 +115,22 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
         return { ...prev, [name]: isNaN(numValue) ? 0 : numValue };
       }
 
-      // Для select с числовыми значениями
       const numberFields: (keyof typeof prev)[] = ["service_id", "performer_id", "materials_price", "delivery_price", "price"];
       if (numberFields.includes(name as keyof typeof prev)) {
         const numValue = value === "" ? 0 : Number(value);
         return { ...prev, [name]: (isNaN(numValue) ? 0 : numValue) as any };
       }
 
-      // Для select с enum значениями
       if (name === "state") {
         return { ...prev, state: value as OrderItem["state"] };
       }
 
       if (name === "performer_type") {
-        return { ...prev, performer_type: value as OrderItem["performer_type"] };
+        return { 
+          ...prev, 
+          performer_type: value as OrderItem["performer_type"],
+          performer_id: 0
+        };
       }
 
       return { ...prev, [name]: value as any };
@@ -177,7 +173,6 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
           ...formData,
         });
 
-        // Normalize the new item before adding to state
         const normalizedItem = normalizeOrderItem(newItem);
         setItems((prev) => [...prev, normalizedItem]);
         showNotification({
@@ -194,9 +189,8 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
         });
       }
     } else {
-      // Локальное добавление (если order еще не создан)
       const newItem: OrderItem = {
-        id: Date.now(), // Временный ID
+        id: Date.now(),
         order_id: 0,
         ...formData,
       };
@@ -212,7 +206,6 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
 
   return (
     <div className="space-y-6">
-      {/* Items Table */}
       <div className="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800">
         <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
           <h3 className="text-lg font-medium text-gray-800 dark:text-white">Позиции заказа</h3>
@@ -361,7 +354,6 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
         </div>
       </div>
 
-      {/* Add Item Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
@@ -401,14 +393,17 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
               </div>
 
               <div>
-                <Label>ID исполнителя</Label>
-                <Input
-                  type="number"
-                  name="performer_id"
-                  value={formData.performer_id === 0 ? "" : formData.performer_id}
-                  onChange={handleInputChange}
-                  placeholder="Введите ID исполнителя"
-                  min="0"
+                <PerformerAutocomplete
+                  label="Исполнитель"
+                  placeholder={formData.performer_type === "User" ? "Введите имя или номер телефона пользователя" : "Введите имя или номер телефона контрагента"}
+                  value={formData.performer_id === 0 ? null : formData.performer_id}
+                  performerType={formData.performer_type}
+                  onChange={(performerId, _performer) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      performer_id: performerId || 0,
+                    }));
+                  }}
                 />
               </div>
 
