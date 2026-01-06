@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { userService, type CreateUserData } from "../../api/users";
 import { contactorService, type CreateContactorData } from "../../api/contactors";
 import type { User } from "../../entities/user/model";
+import { USER_FILTERS } from "../../entities/user/model";
 import type { Contactor } from "../../entities/contactor/model";
 import Label from "./Label";
 import { useClickOutside } from "../../hooks/useClickOutside";
@@ -54,7 +55,7 @@ export default function PerformerAutocomplete({
     last_name: "",
     phone: "",
     email: "",
-    role: "user",
+    role: "staff",
   });
 
   const [contactorFormData, setContactorFormData] = useState<CreateContactorData>({
@@ -261,7 +262,7 @@ export default function PerformerAutocomplete({
         last_name: queryParts.slice(1).join(" ") || "",
         phone: /^[\d\s\+\-\(\)]+$/.test(searchQuery) ? searchQuery : "",
         email: "",
-        role: userFormData.role as "user" | "admin" | "manager" | "staff",
+        role: "staff", // Always set to "staff" when adding user as performer
       });
     } else {
       setContactorFormData({
@@ -330,7 +331,7 @@ export default function PerformerAutocomplete({
         last_name: "",
         phone: "",
         email: "",
-        role: userFormData.role as "user" | "admin" | "manager" | "staff",
+        role: "staff", // Always reset to "staff" when adding user as performer
       });
     } catch (error) {
       showNotification({
@@ -591,10 +592,11 @@ export default function PerformerAutocomplete({
                   }
                   className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
                 >
-                  <option value="user">Сотрудник</option>
-                  <option value="admin">Админ</option>
-                  <option value="manager">Менеджер</option>
-                  <option value="staff">Персонал</option>
+                  {USER_FILTERS.map((filter: { value: string; label: string }) => (
+                    <option key={filter.value} value={filter.value}>
+                      {filter.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 

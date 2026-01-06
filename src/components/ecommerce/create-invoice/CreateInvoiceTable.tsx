@@ -9,6 +9,7 @@ import { useModal } from "../../../hooks/useModal";
 import SvgIcon from "../../../shared/ui/SvgIcon";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
 import PerformerAutocomplete from "../../../components/form/PerformerAutocomplete";
+import ServiceAutocomplete from "../../../components/form/ServiceAutocomplete";
 
 interface CreateInvoiceTableProps {
   orderId?: number;
@@ -164,7 +165,7 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
       showNotification({
         variant: "error",
         title: "Ошибка валидации",
-        description: "Заполните обязательные поля: ID услуги и цена",
+        description: "Заполните обязательные поля: Услуга и цена",
       });
       return;
     }
@@ -395,15 +396,16 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <Label>ID услуги *</Label>
-                <Input
-                  type="number"
-                  name="service_id"
-                  value={formData.service_id === 0 ? "" : formData.service_id}
-                  onChange={handleInputChange}
-                  placeholder="Введите ID услуги"
-                  required
-                  min="1"
+                <ServiceAutocomplete
+                  label="Услуга *"
+                  placeholder="Введите название услуги"
+                  value={formData.service_id === 0 ? null : formData.service_id}
+                  onChange={(serviceId, _service) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      service_id: serviceId || 0,
+                    }));
+                  }}
                 />
               </div>
 

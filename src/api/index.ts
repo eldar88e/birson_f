@@ -6,4 +6,5 @@ export { userService } from "./users";
 export { carService } from "./cars";
 export { orderItemService } from "./orderItems";
 export { contactorService } from "./contactors";
+export { serviceService } from "./services";
 export type { OrderItem, CreateOrderItemData } from "./orderItems";

@@ -6,6 +6,7 @@ import SvgIcon from "../../shared/ui/SvgIcon";
 import { Link } from "react-router";
 import { ROUTES } from "../../shared/config/routes";
 import type { User } from "../../entities/user/model";
+import { USER_FILTERS } from "../../entities/user/model";
 import AvatarText from "../../shared/ui/AvatarText";
 import { FilterTabs } from "../../shared/ui/FilterTabs";
 import Loader from "../../shared/ui/Loader";
@@ -37,14 +38,6 @@ export default function UserList() {
   const [page, setPage] = useState(pages.page);
   const [filter, setFilter] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
-
-  const USER_FILTERS = [
-    { value: "", label: "Все" },
-    { value: "3", label: "Админ" },
-    { value: "2", label: "Менеджер" },
-    { value: "1", label: "Сотрудник" },
-    { value: "0", label: "Клиент" },
-  ]
 
   useEffect(() => {
     const fetchUsers = async () => {

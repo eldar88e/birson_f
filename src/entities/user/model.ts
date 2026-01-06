@@ -33,3 +33,11 @@ export interface User {
   created_at: string;
   password?: string;
 }
+
+export const USER_FILTERS = [
+  { value: "", label: "Все" },
+  { value: "3", label: "Админ" },
+  { value: "2", label: "Менеджер" },
+  { value: "1", label: "Сотрудник" },
+  { value: "0", label: "Клиент" },
+]
