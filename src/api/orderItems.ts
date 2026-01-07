@@ -25,12 +25,9 @@ export type CreateOrderItemData = Omit<OrderItem, "id">;
 
 class OrderItemService {
   async createOrderItem(orderId: number, itemData: CreateOrderItemData): Promise<OrderItem> {
-    // API expects order with id and order_items_attributes
     const response = await apiClient.post<{ order_item: OrderItem }>(
       `/orders/${orderId}/order_items`,
-      { 
-        order_item: itemData
-      },
+      { order_item: itemData },
       true
     );
 

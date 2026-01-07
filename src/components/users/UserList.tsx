@@ -10,6 +10,8 @@ import { USER_FILTERS } from "../../entities/user/model";
 import AvatarText from "../../shared/ui/AvatarText";
 import { FilterTabs } from "../../shared/ui/FilterTabs";
 import Loader from "../../shared/ui/Loader";
+import { useConfirmDelete } from "../../hooks/useConfirmDelete";
+import { ConfirmDeleteModal } from "../../shared/ui/ConfirmDeleteModal";
 
 interface Users {
   data: User[];
@@ -27,6 +29,7 @@ export default function UserList() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [userToDelete, setUserToDelete] = useState<number | null>(null);
   const [pages, setPages] = useState<Users["meta"]>({
     page: 1,
     count: 0,
@@ -69,6 +72,16 @@ export default function UserList() {
     };
     return roleMap[role?.toLowerCase() || "user"] || roleMap.user;
   };
+
+  const deleteModal = useConfirmDelete({
+    onDelete: () =>
+      apiClient.delete(`/users/${userToDelete}`, true),
+    onSuccess: () =>
+      setUsers((prev) =>
+        prev.filter((a) => a.id !== userToDelete)
+      ),
+    successMessage: "Пользователь удален",
+  });
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
@@ -277,11 +290,24 @@ export default function UserList() {
                               >
                                 Подробнее
                               </Link>
-                              <button className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
+                              <button 
+                                onClick={() => {
+                                  setUserToDelete(user.id);
+                                  deleteModal.open();
+                                  }}
+                                className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                              >
                                 Удалить
                               </button>
                             </>
                           }
+                        />
+                        <ConfirmDeleteModal
+                          isOpen={deleteModal.isOpen}
+                          isLoading={deleteModal.isLoading}
+                          onClose={deleteModal.close}
+                          onConfirm={deleteModal.confirm}
+                          itemName={`Пользователь #${userToDelete}`}
                         />
                       </div>
                     </td>

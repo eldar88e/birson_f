@@ -11,6 +11,9 @@ import { StatusBadge } from "../../../shared/ui/StatusBadge";
 import PerformerAutocomplete from "../../../components/form/PerformerAutocomplete";
 import ServiceAutocomplete from "../../../components/form/ServiceAutocomplete";
 import { APPOINTMENT_ITEM_STATES } from "../../../entities/appointmentItem/model";
+import { useConfirmDelete } from "../../../hooks/useConfirmDelete";
+import { apiClient } from "../../../api/client";
+import { ConfirmDeleteModal } from "../../../shared/ui/ConfirmDeleteModal";
 
 interface CreateInvoiceTableProps {
   orderId?: number;
@@ -22,6 +25,7 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
   const { isOpen: isModalOpen, openModal, closeModal } = useModal();
   const [items, setItems] = useState<OrderItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [formData, setFormData] = useState<Omit<OrderItem, "id" | "order_id">>({
     service_id: 0,
     performer_type: "User" as OrderItem["performer_type"],
@@ -80,28 +84,16 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
     }
   };
 
-  const handleDelete = async (itemId: number): Promise<void> => {
-    if (!orderId) {
-      setItems((prev) => prev.filter((item) => item.id !== itemId));
-      return;
-    }
-
-    try {
-      await orderItemService.deleteOrderItem(orderId, itemId);
-      setItems((prev) => prev.filter((item) => item.id !== itemId));
-      showNotification({
-        variant: "success",
-        title: "Позиция удалена",
-        description: "Позиция успешно удалена из заказа",
-      });
-    } catch (error) {
-      showNotification({
-        variant: "error",
-        title: "Ошибка удаления",
-        description: error instanceof Error ? error.message : "Не удалось удалить позицию",
-      });
-    }
-  };
+  const deleteModal = useConfirmDelete({
+    onDelete: () =>
+      apiClient.delete(`/orders/${orderId}/order_items/${itemToDelete}`, true),
+    onSuccess: () =>
+      setItems((prev) =>
+        prev.filter((a) => a.id !== itemToDelete)
+      ),
+    successMessage: "Позиция в записи удалена",
+    errorMessage: "Не удалось удалить позицию в записи",
+  });
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -225,7 +217,7 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
             <thead className="bg-gray-50 dark:bg-gray-900">
               <tr className="border-b border-gray-100 whitespace-nowrap dark:border-gray-800">
                 <th className="px-5 py-4 text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
-                  ID
+                  №
                 </th>
                 <th className="px-5 py-4 text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">
                   Сервис
@@ -273,7 +265,7 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
                 items.map((item, idx) => (
                   <tr key={item.id || idx}>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                      {item.id}
+                      {idx + 1}
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
                       {item.service}
@@ -318,22 +310,39 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
                       <div className="flex items-center justify-center">
-                        <svg
-                          className="hover:fill-error-500 dark:hover:fill-error-500 cursor-pointer fill-gray-700 dark:fill-gray-400"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 20 20"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                          onClick={() => item.id && handleDelete(item.id)}
-                        >
-                          <path
-                            fillRule="evenodd"
-                            clipRule="evenodd"
-                            d="M6.54142 3.7915C6.54142 2.54886 7.54878 1.5415 8.79142 1.5415H11.2081C12.4507 1.5415 13.4581 2.54886 13.4581 3.7915V4.0415H15.6252H16.666C17.0802 4.0415 17.416 4.37729 17.416 4.7915C17.416 5.20572 17.0802 5.5415 16.666 5.5415H16.3752V8.24638V13.2464V16.2082C16.3752 17.4508 15.3678 18.4582 14.1252 18.4582H5.87516C4.63252 18.4582 3.62516 17.4508 3.62516 16.2082V13.2464V8.24638V5.5415H3.3335C2.91928 5.5415 2.5835 5.20572 2.5835 4.7915C2.5835 4.37729 2.91928 4.0415 3.3335 4.0415H4.37516H6.54142V3.7915ZM14.8752 13.2464V8.24638V5.5415H13.4581H12.7081H7.29142H6.54142H5.12516V8.24638V13.2464V16.2082C5.12516 16.6224 5.46095 16.9582 5.87516 16.9582H14.1252C14.5394 16.9582 14.8752 16.6224 14.8752 16.2082V13.2464ZM8.04142 4.0415H11.9581V3.7915C11.9581 3.37729 11.6223 3.0415 11.2081 3.0415H8.79142C8.37721 3.0415 8.04142 3.37729 8.04142 3.7915V4.0415ZM8.3335 7.99984C8.74771 7.99984 9.0835 8.33562 9.0835 8.74984V13.7498C9.0835 14.1641 8.74771 14.4998 8.3335 14.4998C7.91928 14.4998 7.5835 14.1641 7.5835 13.7498V8.74984C7.5835 8.33562 7.91928 7.99984 8.3335 7.99984ZM12.4168 8.74984C12.4168 8.33562 12.081 7.99984 11.6668 7.99984C11.2526 7.99984 10.9168 8.33562 10.9168 8.74984V13.7498C10.9168 14.1641 11.2526 14.4998 11.6668 14.4998C12.081 14.4998 12.4168 14.1641 12.4168 13.7498V8.74984Z"
-                            fill=""
-                          />
-                        </svg>
+                        {item.id && (
+                          <button 
+                            onClick={() => {
+                              setItemToDelete(item.id ?? null);
+                              deleteModal.open();
+                              }}
+                            className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                          >
+                            <svg
+                              className="hover:fill-error-500 dark:hover:fill-error-500 cursor-pointer fill-gray-700 dark:fill-gray-400"
+                              width="20"
+                              height="20"
+                              viewBox="0 0 20 20"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                              // onClick={() => item.id && handleDelete(item.id)}
+                            >
+                              <path
+                                fillRule="evenodd"
+                                clipRule="evenodd"
+                                d="M6.54142 3.7915C6.54142 2.54886 7.54878 1.5415 8.79142 1.5415H11.2081C12.4507 1.5415 13.4581 2.54886 13.4581 3.7915V4.0415H15.6252H16.666C17.0802 4.0415 17.416 4.37729 17.416 4.7915C17.416 5.20572 17.0802 5.5415 16.666 5.5415H16.3752V8.24638V13.2464V16.2082C16.3752 17.4508 15.3678 18.4582 14.1252 18.4582H5.87516C4.63252 18.4582 3.62516 17.4508 3.62516 16.2082V13.2464V8.24638V5.5415H3.3335C2.91928 5.5415 2.5835 5.20572 2.5835 4.7915C2.5835 4.37729 2.91928 4.0415 3.3335 4.0415H4.37516H6.54142V3.7915ZM14.8752 13.2464V8.24638V5.5415H13.4581H12.7081H7.29142H6.54142H5.12516V8.24638V13.2464V16.2082C5.12516 16.6224 5.46095 16.9582 5.87516 16.9582H14.1252C14.5394 16.9582 14.8752 16.6224 14.8752 16.2082V13.2464ZM8.04142 4.0415H11.9581V3.7915C11.9581 3.37729 11.6223 3.0415 11.2081 3.0415H8.79142C8.37721 3.0415 8.04142 3.37729 8.04142 3.7915V4.0415ZM8.3335 7.99984C8.74771 7.99984 9.0835 8.33562 9.0835 8.74984V13.7498C9.0835 14.1641 8.74771 14.4998 8.3335 14.4998C7.91928 14.4998 7.5835 14.1641 7.5835 13.7498V8.74984C7.5835 8.33562 7.91928 7.99984 8.3335 7.99984ZM12.4168 8.74984C12.4168 8.33562 12.081 7.99984 11.6668 7.99984C11.2526 7.99984 10.9168 8.33562 10.9168 8.74984V13.7498C10.9168 14.1641 11.2526 14.4998 11.6668 14.4998C12.081 14.4998 12.4168 14.1641 12.4168 13.7498V8.74984Z"
+                                fill=""
+                              />
+                            </svg>
+                          </button>
+                        )}
+                        <ConfirmDeleteModal
+                          isOpen={deleteModal.isOpen}
+                          isLoading={deleteModal.isLoading}
+                          onClose={deleteModal.close}
+                          onConfirm={deleteModal.confirm}
+                          itemName={`Позиция в записи №${idx + 1}`}
+                        />
                       </div>
                     </td>
                   </tr>

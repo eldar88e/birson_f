@@ -15,7 +15,7 @@ class ContactorService {
 
   async searchContactors(query: string): Promise<Contactor[]> {
     const response = await apiClient.get<ContactorsResponse>(
-      `/contactors?q%5Bname_cont_any%5D=${encodeURIComponent(query)}`,
+      `/contactors?q%5Bname_or_phone_cont_any%5D=${encodeURIComponent(query)}`,
       true
     );
     return response.data;

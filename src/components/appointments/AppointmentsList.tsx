@@ -12,9 +12,8 @@ import { useNavigate } from "react-router";
 import { ROUTES } from "../../shared/config/routes";
 import { FilterTabs } from "../../shared/ui/FilterTabs";
 import Loader from "../../shared/ui/Loader";
-import { useNotification } from "../../context/NotificationContext";
 import { ConfirmDeleteModal } from "../../shared/ui/ConfirmDeleteModal";
-import { useModal } from "../../hooks/useModal";
+import { useConfirmDelete } from "../../hooks/useConfirmDelete";
 
 interface Appointments {
   data: Appointment[];
@@ -52,10 +51,7 @@ export default function AppointmentListTable() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<string>("");
-  const { showNotification } = useNotification();
-  const { isOpen: isDeleteModalOpen, openModal: openDeleteModal, closeModal: closeDeleteModal } = useModal();
   const [appointmentToDelete, setAppointmentToDelete] = useState<number | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -113,37 +109,15 @@ export default function AppointmentListTable() {
     return parts.join(" ") || `ID: ${car.id}`;
   };
 
-  const handleDeleteClick = (id: number) => {
-    setAppointmentToDelete(id);
-    openDeleteModal();
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!appointmentToDelete) return;
-
-    setIsDeleting(true);
-    try {
-      await apiClient.delete<Appointments>(`/orders/${appointmentToDelete}`, true);
-      setAppointments(appointments.filter(a => a.id !== appointmentToDelete));
-      showNotification({
-        variant: "success",
-        title: "Запись удалена",
-        description: "Запись успешно удалена",
-      });
-      closeDeleteModal();
-      setAppointmentToDelete(null);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to delete appointment";
-      setError(errorMessage);
-      showNotification({
-        variant: "error",
-        title: "Ошибка удаления",
-        description: "Не удалось удалить запись",
-      });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+  const deleteModal = useConfirmDelete({
+    onDelete: () =>
+      apiClient.delete(`/orders/${appointmentToDelete}`, true),
+    onSuccess: () =>
+      setAppointments((prev) =>
+        prev.filter((a) => a.id !== appointmentToDelete)
+      ),
+    successMessage: "Запись удалена",
+  });
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
@@ -400,8 +374,11 @@ export default function AppointmentListTable() {
                               >
                                 Подробнее
                               </button>
-                              <button
-                                onClick={() => handleDeleteClick(appointment.id)}
+                              <button 
+                                onClick={() => {
+                                  setAppointmentToDelete(appointment.id);
+                                  deleteModal.open();
+                                  }}
                                 className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
                               >
                                 Удалить
@@ -437,13 +414,11 @@ export default function AppointmentListTable() {
       )}
 
       <ConfirmDeleteModal
-        isOpen={isDeleteModalOpen}
-        onClose={closeDeleteModal}
-        onConfirm={handleConfirmDelete}
-        title="Подтверждение удаления"
-        message="Вы уверены, что хотите удалить эту запись? Это действие нельзя отменить."
-        itemName={appointmentToDelete ? `Запись #${appointmentToDelete}` : undefined}
-        isLoading={isDeleting}
+        isOpen={deleteModal.isOpen}
+        isLoading={deleteModal.isLoading}
+        onClose={deleteModal.close}
+        onConfirm={deleteModal.confirm}
+        itemName={`Запись #${appointmentToDelete}`}
       />
     </div>
   );
