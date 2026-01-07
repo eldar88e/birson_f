@@ -1,6 +1,7 @@
 interface FilterTabsProps {
   value: string;
   onChange: (value: string) => void;
+  onPageChange: (page: number) => void;
   options: readonly {
     value: string;
     label: string;
@@ -10,6 +11,7 @@ interface FilterTabsProps {
 export function FilterTabs({
   value,
   onChange,
+  onPageChange,
   options,
 }: FilterTabsProps) {
   return (
@@ -18,7 +20,10 @@ export function FilterTabs({
         return (
           <button
             key={option.value}
-            onClick={() => onChange(option.value)}
+            onClick={() => {
+              onChange(option.value);
+              onPageChange(1);
+            }}
             className={`text-theme-sm h-10 rounded-md px-3 py-2 font-medium hover:text-gray-900 dark:hover:text-white ${
               value === option.value
                 ? "shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800"

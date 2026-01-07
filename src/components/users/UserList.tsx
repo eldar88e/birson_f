@@ -95,7 +95,7 @@ export default function UserList() {
         </Link>
         <div className="flex gap-3.5">
           <div className="hidden h-11 items-center gap-0.5 rounded-lg bg-gray-100 p-0.5 lg:inline-flex dark:bg-gray-900">
-            <FilterTabs value={filter} onChange={setFilter} options={USER_FILTERS} />
+            <FilterTabs value={filter} onChange={setFilter} options={USER_FILTERS} onPageChange={setPage} />
           </div>
           <div className="hidden flex-col gap-3 sm:flex sm:flex-row sm:items-center">
             <div className="relative">

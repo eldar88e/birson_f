@@ -131,7 +131,7 @@ export default function AppointmentListTable() {
           </p>
         </div>
         <div className="flex gap-3.5">
-          <FilterTabs value={filter} onChange={setFilter} options={APPOINTMENT_FILTERS} />
+          <FilterTabs value={filter} onChange={setFilter} options={APPOINTMENT_FILTERS} onPageChange={setPage} />
 
           <div className="hidden flex-col gap-3 sm:flex sm:flex-row sm:items-center">
             <div className="relative">
