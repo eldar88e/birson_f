@@ -1,3 +1,18 @@
 {
-  "hello": "Hello"
+  "hello": "Hello",
+  "mainmenu": {
+    "dashboard": "Dashboard",
+    "services": "Services",
+    "users": "Users",
+    "calendar": "Calendar",
+    "settings": "Settings",
+    "cars": "Cars",
+    "pages": "Pages",
+    "kanban": "Kanban"
+  },
+  "sections": {
+    "menu": "Menu",
+    "settings": "Settings",
+    "admin": "Admin"
+  }
 }

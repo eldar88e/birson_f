@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { ROUTES } from "../shared/config/routes";
 import SvgIcon from "../shared/ui/SvgIcon";
+import { useTranslation } from "react-i18next";
 
 // Assume these icons are imported from an icon library
 import {
@@ -28,40 +29,32 @@ type NavItem = {
 const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
-    name: "Дашборд",
-    subItems: [
-      { name: "Аналитика", path: ROUTES.ROOT },
-    ],
+    name: "dashboard",
+    path: ROUTES.ROOT
   },
   {
-    name: "Услуги",
+    name: "services",
     icon: <CartIcon />,
     new: true,
     path: ROUTES.APPOINTMENTS.INDEX,
   },
-  { icon: <CalenderIcon />,
-    name: "Календарь",
-    path: ROUTES.CALENDAR,
-  },
   {
     icon: <UserCircleIcon />,
-    name: "Пользователи",
+    name: "users",
     path: ROUTES.USERS.INDEX,
   },
-  {
-    icon: <CartIcon />,
-    name: "Автомобили",
-    new: true,
-    path: ROUTES.CARS.INDEX,
+  { icon: <CalenderIcon />,
+    name: "calendar",
+    path: ROUTES.CALENDAR,
   },
 ];
 
 const othersItems: NavItem[] = [
   {
-    name: "Примеры страниц",
+    name: "pages",
     icon: <PageIcon />,
     subItems: [
-      { name: "Kanban", path: ROUTES.KANBAN, pro: true },
+      { name: "kanban", path: ROUTES.KANBAN, pro: true },
     ],
   },
 ];
@@ -69,8 +62,10 @@ const othersItems: NavItem[] = [
 const supportItems: NavItem[] = [
   {
     icon: <SettingsIcon />,
-    name: "Основные настройки",
-    path: "#",
+    name: "settings",
+    subItems: [
+    { name: "cars", path: ROUTES.CARS.INDEX, new: true },
+    ],
   },
 ];
 
@@ -78,6 +73,7 @@ const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered, setIsMobileOpen } =
     useSidebar();
   const location = useLocation();
+  const { t } = useTranslation();
   // Auto-close sidebar on mobile after route change
   useEffect(() => {
     if (isMobileOpen) {
@@ -189,7 +185,7 @@ const AppSidebar: React.FC = () => {
               </span>
 
               {(isExpanded || isHovered || isMobileOpen) && (
-                <span className="menu-item-text">{nav.name}</span>
+                <span className="menu-item-text">{t(`mainmenu.${nav.name}`)}</span>
               )}
               {nav.new && (isExpanded || isHovered || isMobileOpen) && (
                 <span
@@ -232,7 +228,7 @@ const AppSidebar: React.FC = () => {
                   {nav.icon}
                 </span>
                 {(isExpanded || isHovered || isMobileOpen) && (
-                  <span className="menu-item-text">{nav.name}</span>
+                  <span className="menu-item-text">{t(`mainmenu.${nav.name}`)}</span>
                 )}
               </Link>
             )
@@ -252,7 +248,7 @@ const AppSidebar: React.FC = () => {
             >
               <ul className="mt-2 space-y-1 ml-9">
                 {nav.subItems.map((subItem) => (
-                  <li key={subItem.name}>
+                  <li key={t(`mainmenu.${subItem.name}`)}>
                     <Link
                       to={subItem.path}
                       className={`menu-dropdown-item ${
@@ -261,7 +257,7 @@ const AppSidebar: React.FC = () => {
                           : "menu-dropdown-item-inactive"
                       }`}
                     >
-                      {subItem.name}
+                      {t(`mainmenu.${subItem.name}`)}
                       <span className="flex items-center gap-1 ml-auto">
                         {subItem.new && (
                           <span
@@ -337,7 +333,7 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Меню"
+                  t("sections.menu")
                 ) : (
                   <HorizontaLDots className="size-6" />
                 )}
@@ -353,7 +349,7 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Настройки"
+                  t("sections.settings")
                 ) : (
                   <HorizontaLDots className="size-6" />
                 )}
@@ -369,7 +365,7 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Админ"
+                  t("sections.admin")
                 ) : (
                   <HorizontaLDots className="size-6" />
                 )}
