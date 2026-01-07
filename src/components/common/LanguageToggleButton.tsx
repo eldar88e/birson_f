@@ -3,8 +3,10 @@ import { useState, useRef } from "react";
 import { useClickOutside } from "../../hooks/useClickOutside";
 
 const languages = [
-  { code: "ru", name: "Русский", flag: "🇷🇺" },
+  { code: "ar", name: "العربية", flag: "🇸🇦" },
   { code: "en", name: "English", flag: "🇬🇧" },
+  { code: "ru", name: "Русский", flag: "🇷🇺" },
+  { code: "tr", name: "Türkçe", flag: "🇹🇷" },
 ];
 
 export const LanguageToggleButton: React.FC = () => {

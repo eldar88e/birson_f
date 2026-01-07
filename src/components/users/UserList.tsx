@@ -235,10 +235,10 @@ export default function UserList() {
                     {t("phone")}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
-                    Роль
+                    {t("role")}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
-                    Действия
+                    {t("actions")}
                   </th>
                 </tr>
               </thead>

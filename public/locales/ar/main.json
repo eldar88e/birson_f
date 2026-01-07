@@ -1,0 +1,19 @@
+{
+  "hello": "مرحبا",
+  "mainmenu": {
+    "dashboard": "لوحة التحكم",
+    "services": "الخدمات",
+    "users": "المستخدمين",
+    "calendar": "التقويم",
+    "pages": "الصفحات",
+    "kanban": "الكانبان",
+    "settings": "الإعدادات",
+    "cars": "السيارات"
+  },
+  "sections": {
+    "menu": "القائمة",
+    "settings": "الإعدادات",
+    "admin": "المدير"
+  },
+  "actions": "الإجراءات"
+}

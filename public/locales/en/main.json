@@ -5,14 +5,15 @@
     "services": "Services",
     "users": "Users",
     "calendar": "Calendar",
-    "settings": "Settings",
-    "cars": "Cars",
     "pages": "Pages",
-    "kanban": "Kanban"
+    "kanban": "Kanban",
+    "settings": "Settings",
+    "cars": "Cars"
   },
   "sections": {
     "menu": "Menu",
     "settings": "Settings",
     "admin": "Admin"
-  }
+  },
+  "actions": "Actions"
 }

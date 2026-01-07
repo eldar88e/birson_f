@@ -1,18 +1,19 @@
 {
   "hello": "Привет",
   "mainmenu": {
-    "dashboard": "Главная",
+    "dashboard": "Дашборд",
     "services": "Услуги",
     "users": "Пользователи",
     "calendar": "Календарь",
-    "settings": "Настройки",
-    "cars": "Автомобили",
     "pages": "Страницы",
-    "kanban": "Канбан"
+    "kanban": "Kanban",
+    "settings": "Настройки",
+    "cars": "Автомобили"
   },
   "sections": {
     "menu": "Меню",
     "settings": "Настройки",
-    "admin": "Админ"
-  }
+    "admin": "Администратор"
+  },
+  "actions": "Действия"
 }

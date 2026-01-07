@@ -1,0 +1,19 @@
+{
+  "hello": "Merhaba",
+  "mainmenu": {
+    "dashboard": "Anasayfa",
+    "services": "Hizmetler",
+    "users": "Kullanıcılar",
+    "calendar": "Takvim",
+    "pages": "Sayfalar",
+    "kanban": "Kanban",
+    "settings": "Ayarlar",
+    "cars": "Arabalar"
+  },
+  "sections": {
+    "menu": "Menü",
+    "settings": "Ayarlar",
+    "admin": "Yönetici"
+  },
+  "actions": "İşlemler"
+}
