@@ -43,9 +43,8 @@ export default function ServiceAutocomplete({
   });
   const [servicesLoaded, setServicesLoaded] = useState(false);
 
-  // Load all services only when input is clicked/focused
   const loadServices = async () => {
-    if (servicesLoaded) return; // Don't reload if already loaded
+    if (servicesLoaded) return;
     
     setIsLoading(true);
     try {
@@ -64,7 +63,6 @@ export default function ServiceAutocomplete({
     }
   };
 
-  // Load selected service when value changes
   useEffect(() => {
     const loadSelectedService = async () => {
       if (value && value > 0 && services.length > 0) {
@@ -84,9 +82,7 @@ export default function ServiceAutocomplete({
     loadSelectedService();
   }, [value, services]);
 
-  // Filter services based on search query (client-side)
   useEffect(() => {
-    // Skip filtering if we just added a new service
     if (skipFilterRef.current) {
       skipFilterRef.current = false;
       return;
@@ -178,30 +174,20 @@ export default function ServiceAutocomplete({
         description: "Новая услуга успешно добавлена",
       });
 
-      // Add new service to the list
       const updatedServices = [...services, newService];
       setServices(updatedServices);
-      
-      // Show all services in dropdown (old + new) after adding new service
       setFilteredServices(updatedServices);
-      
-      // Skip filtering when we update searchQuery, so dropdown shows all services
+
       skipFilterRef.current = true;
-      
-      // Update selected service and search query
+
       setSelectedService(newService);
       setSearchQuery(newService.title);
 
       isServiceSelectedRef.current = true;
       onChange?.(newService.id, newService);
       closeModal();
-      // Close dropdown after adding new service
       setIsOpen(false);
-
-      // Reset form
-      setServiceFormData({
-        title: "",
-      });
+      setServiceFormData({ title: "" });
     } catch (error) {
       showNotification({
         variant: "error",
@@ -246,8 +232,8 @@ export default function ServiceAutocomplete({
       {isOpen && (
         <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
           {isLoading ? (
-            <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
-              Загрузка...
+            <div className="px-4 py-2 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-500"></div>
             </div>
           ) : filteredServices.length === 0 ? (
             <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
@@ -268,21 +254,20 @@ export default function ServiceAutocomplete({
                   <div className="font-medium">{service.title}</div>
                 </div>
               ))}
-              <div className="border-t border-gray-200 dark:border-gray-700">
-                <button
-                  type="button"
-                  onClick={openModal}
-                  className="w-full px-4 py-2 text-left text-sm text-brand-600 hover:bg-gray-50 dark:text-brand-400 dark:hover:bg-gray-700"
-                >
-                  + Добавить новую услугу
-                </button>
-              </div>
             </>
           )}
+          <div className="border-t border-gray-200 dark:border-gray-700">
+            <button
+              type="button"
+              onClick={openModal}
+              className="w-full px-4 py-2 text-left text-sm text-brand-600 hover:bg-gray-50 dark:text-brand-400 dark:hover:bg-gray-700"
+            >
+              + Добавить новую услугу
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Modal for creating new service */}
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
@@ -320,4 +305,3 @@ export default function ServiceAutocomplete({
     </div>
   );
 }
-

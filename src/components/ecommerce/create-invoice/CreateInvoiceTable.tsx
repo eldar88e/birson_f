@@ -10,6 +10,7 @@ import SvgIcon from "../../../shared/ui/SvgIcon";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
 import PerformerAutocomplete from "../../../components/form/PerformerAutocomplete";
 import ServiceAutocomplete from "../../../components/form/ServiceAutocomplete";
+import { APPOINTMENT_ITEM_STATES } from "../../../entities/appointmentItem/model";
 
 interface CreateInvoiceTableProps {
   orderId?: number;
@@ -417,7 +418,6 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
                   onChange={handleInputChange}
                   className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
                 >
-                  <option value="">Выберите тип</option>
                   <option value="User">Пользователь</option>
                   <option value="Contactor">Контактор</option>
                 </select>
@@ -446,10 +446,11 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
                   onChange={handleInputChange}
                   className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
                 >
-                  <option value="initial">В ожидании</option>
-                  <option value="processing">В процессе</option>
-                  <option value="completed">Завершен</option>
-                  <option value="cancelled">Отменен</option>
+                  {APPOINTMENT_ITEM_STATES.map((state) => (
+                    <option key={state.value} value={state.value}>
+                      {state.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 

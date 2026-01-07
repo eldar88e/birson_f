@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { userService, type CreateUserData } from "../../api/users";
 import { contactorService, type CreateContactorData } from "../../api/contactors";
 import type { User } from "../../entities/user/model";
-import { USER_FILTERS } from "../../entities/user/model";
 import type { Contactor } from "../../entities/contactor/model";
 import Label from "./Label";
 import { useClickOutside } from "../../hooks/useClickOutside";
@@ -11,6 +10,8 @@ import { useModal } from "../../hooks/useModal";
 import { useNotification } from "../../context/NotificationContext";
 import Input from "./input/InputField";
 import SvgIcon from "../../shared/ui/SvgIcon";
+
+const DEFAULT_PERFORMER_ROLE = "staff";
 
 type Performer = User | Contactor;
 
@@ -31,6 +32,7 @@ export default function PerformerAutocomplete({
   onChange,
   className = "",
 }: PerformerAutocompleteProps) {
+  const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [performers, setPerformers] = useState<Performer[]>([]);
   const [selectedPerformer, setSelectedPerformer] = useState<Performer | null>(null);
@@ -39,11 +41,8 @@ export default function PerformerAutocomplete({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const isPerformerSelectedRef = useRef(false);
   const { isOpen: isModalOpen, openModal, closeModal } = useModal();
   const { showNotification } = useNotification();
-  
-  // Form data for creating new user
   const [userFormData, setUserFormData] = useState<{
     first_name: string;
     last_name: string;
@@ -55,7 +54,7 @@ export default function PerformerAutocomplete({
     last_name: "",
     phone: "",
     email: "",
-    role: "staff",
+    role: DEFAULT_PERFORMER_ROLE,
   });
 
   const [contactorFormData, setContactorFormData] = useState<CreateContactorData>({
@@ -85,15 +84,15 @@ export default function PerformerAutocomplete({
             const performer = searchResults.find(u => u.id === value);
             if (performer) {
               setSelectedPerformer(performer);
-              isPerformerSelectedRef.current = true;
-              setSearchQuery(performer.full_name || performer.phone || "");
+              setInputValue(performer.full_name || performer.phone || "");
+              setSearchQuery("");
             } else {
               const users = await userService.getUsers();
               const foundPerformer = users.find(u => u.id === value && u.role === "user");
               if (foundPerformer) {
                 setSelectedPerformer(foundPerformer);
-                isPerformerSelectedRef.current = true;
-                setSearchQuery(foundPerformer.full_name || foundPerformer.phone || "");
+                setInputValue(foundPerformer.full_name || foundPerformer.phone || "");
+                setSearchQuery("");
               }
             }
           } else {
@@ -101,8 +100,8 @@ export default function PerformerAutocomplete({
             const foundContactor = contactors.find(c => c.id === value);
             if (foundContactor) {
               setSelectedPerformer(foundContactor);
-              isPerformerSelectedRef.current = true;
-              setSearchQuery(foundContactor.name || "");
+              setInputValue(foundContactor.name || "");
+              setSearchQuery("");
             }
           }
         } catch {
@@ -110,6 +109,7 @@ export default function PerformerAutocomplete({
         }
       } else {
         setSelectedPerformer(null);
+        setInputValue("");
         setSearchQuery("");
       }
     };
@@ -149,39 +149,35 @@ export default function PerformerAutocomplete({
     setIsOpen(false);
     if (selectedPerformer) {
       setSelectedPerformer(null);
+      setInputValue("");
       setSearchQuery("");
     }
   }, [performerType]);
 
   useEffect(() => {
-    if (isPerformerSelectedRef.current) {
-      isPerformerSelectedRef.current = false;
-      return;
-    }
-
     if (searchQuery.length < 2) {
       setPerformers([]);
       setIsOpen(false);
       setIsLoading(false);
       return;
     }
-
+  
     const debounceTimer = setTimeout(() => {
       searchPerformers(searchQuery);
     }, 300);
-
-    return () => {
-      clearTimeout(debounceTimer);
-      setIsLoading(false);
-    };
+  
+    return () => clearTimeout(debounceTimer);
   }, [searchQuery, searchPerformers]);
 
   useClickOutside(wrapperRef, () => setIsOpen(false));
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setSearchQuery(newValue);
-    if (!newValue) {
+    const value = e.target.value;
+
+    setInputValue(value);
+    setSearchQuery(value);
+
+    if (!value) {
       setSelectedPerformer(null);
       onChange?.(null, null);
     }
@@ -195,15 +191,16 @@ export default function PerformerAutocomplete({
   };
 
   const handleSelectPerformer = (performer: Performer) => {
-    isPerformerSelectedRef.current = true;
     setSelectedPerformer(performer);
-    if (performerType === "User") {
-      const user = performer as User;
-      setSearchQuery(user.full_name || user.phone || "");
-    } else {
-      const contactor = performer as Contactor;
-      setSearchQuery(contactor.name || "");
-    }
+
+    const displayName =
+      performerType === "User"
+        ? (performer as User).full_name || (performer as User).phone
+        : (performer as Contactor).name;
+
+    setInputValue(displayName);
+    setSearchQuery("");
+
     onChange?.(performer.id, performer);
     setIsOpen(false);
     setHighlightedIndex(-1);
@@ -247,6 +244,7 @@ export default function PerformerAutocomplete({
   };
 
   const handleClearInput = () => {
+    setInputValue("");
     setSearchQuery("");
     setSelectedPerformer(null);
     onChange?.(null, null);
@@ -262,7 +260,7 @@ export default function PerformerAutocomplete({
         last_name: queryParts.slice(1).join(" ") || "",
         phone: /^[\d\s\+\-\(\)]+$/.test(searchQuery) ? searchQuery : "",
         email: "",
-        role: "staff", // Always set to "staff" when adding user as performer
+        role: DEFAULT_PERFORMER_ROLE,
       });
     } else {
       setContactorFormData({
@@ -288,11 +286,11 @@ export default function PerformerAutocomplete({
 
   const handleCreateUser = async () => {
 
-    if (!userFormData.first_name || !userFormData.phone || !userFormData.email) {
+    if (!userFormData.first_name || !userFormData.phone) {
       showNotification({
         variant: "error",
         title: "Ошибка валидации",
-        description: "Заполните обязательные поля: Имя, Телефон, Email",
+        description: "Заполните обязательные поля: Имя, Телефон",
       });
       return;
     }
@@ -303,7 +301,7 @@ export default function PerformerAutocomplete({
         last_name: userFormData.last_name || "",
         phone: userFormData.phone,
         email: userFormData.email,
-        role: userFormData.role as "user" | "admin" | "manager" | "staff",
+        role: userFormData.role as User["role"],
         active: true,
         source: "manual",
         password: "",
@@ -319,10 +317,10 @@ export default function PerformerAutocomplete({
       });
 
       const displayName = newUser.full_name || newUser.phone;
-      
-      isPerformerSelectedRef.current = true;
+
       onChange?.(newUser.id, newUser);
-      setSearchQuery(displayName);
+      setInputValue(displayName);
+      setSearchQuery("");
       closeModal();
       setIsOpen(false);
 
@@ -331,7 +329,7 @@ export default function PerformerAutocomplete({
         last_name: "",
         phone: "",
         email: "",
-        role: "staff", // Always reset to "staff" when adding user as performer
+        role: DEFAULT_PERFORMER_ROLE,
       });
     } catch (error) {
       showNotification({
@@ -343,7 +341,6 @@ export default function PerformerAutocomplete({
   };
 
   const handleCreateContactor = async () => {
-
     if (!contactorFormData.name) {
       showNotification({
         variant: "error",
@@ -365,9 +362,9 @@ export default function PerformerAutocomplete({
         description: "Новый контрагент успешно добавлен",
       });
 
-      isPerformerSelectedRef.current = true;
       onChange?.(newContactor.id, newContactor);
-      setSearchQuery(newContactor.name);
+      setInputValue(newContactor.name);
+      setSearchQuery("");
       closeModal();
       setIsOpen(false);
 
@@ -404,7 +401,7 @@ export default function PerformerAutocomplete({
         <input
           ref={inputRef}
           type="text"
-          value={searchQuery}
+          value={inputValue}
           onChange={handleInputChange}
           onFocus={handleFocus}
           onKeyDown={handleKeyDown}
@@ -529,7 +526,7 @@ export default function PerformerAutocomplete({
         >
           <div onClick={(e) => e.stopPropagation()}>
             <h4 className="font-semibold text-gray-800 mb-6 text-title-sm dark:text-white/90">
-              Добавить пользователя
+              Добавить сотрудника
             </h4>
             <div className="space-y-4">
               <div>
@@ -583,23 +580,6 @@ export default function PerformerAutocomplete({
                 />
               </div>
 
-              <div>
-                <Label>Роль</Label>
-                <select
-                  value={userFormData.role}
-                  onChange={(e) =>
-                    setUserFormData((prev) => ({ ...prev, role: e.target.value }))
-                  }
-                  className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-                >
-                  {USER_FILTERS.map((filter: { value: string; label: string }) => (
-                    <option key={filter.value} value={filter.value}>
-                      {filter.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               <div className="flex items-center justify-end gap-3 mt-6">
                 <button
                   type="button"
@@ -621,7 +601,6 @@ export default function PerformerAutocomplete({
         </Modal>
       )}
 
-      {/* Modal for creating Contactor */}
       {performerType === "Contactor" && (
         <Modal
           isOpen={isModalOpen}
@@ -656,9 +635,8 @@ export default function PerformerAutocomplete({
                     }
                     className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
                   >
-                    <option value="">Выберите тип</option>
-                    <option value="legal">Юридическое лицо</option>
                     <option value="individual">Физическое лицо</option>
+                    <option value="legal">Юридическое лицо</option>
                   </select>
                 </div>
 
@@ -845,4 +823,3 @@ export default function PerformerAutocomplete({
     </div>
   );
 }
-
