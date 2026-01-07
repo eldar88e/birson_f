@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { useSidebar } from "../context/SidebarContext";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
+import { LanguageToggleButton } from "../components/common/LanguageToggleButton";
 // import NotificationDropdown from "../components/header/NotificationDropdown";
 import UserDropdown from "../components/header/UserDropdown";
 import SvgIcon from "../shared/ui/SvgIcon";
@@ -155,6 +156,8 @@ const AppHeader: React.FC = () => {
           <div className="flex items-center gap-2 2xsm:gap-3">
             {/* <!-- Dark Mode Toggler --> */}
             <ThemeToggleButton />
+            {/* <!-- Language Toggler --> */}
+            <LanguageToggleButton />
             {/* <!-- Dark Mode Toggler --> */}
             {/*<NotificationDropdown />*/}
             {/* <!-- Notification Menu Area --> */}

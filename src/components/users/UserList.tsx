@@ -12,6 +12,7 @@ import { FilterTabs } from "../../shared/ui/FilterTabs";
 import Loader from "../../shared/ui/Loader";
 import { useConfirmDelete } from "../../hooks/useConfirmDelete";
 import { ConfirmDeleteModal } from "../../shared/ui/ConfirmDeleteModal";
+import { useTranslation } from "react-i18next";
 
 interface Users {
   data: User[];
@@ -26,6 +27,7 @@ interface Users {
 }
 
 export default function UserList() {
+  const { t } = useTranslation("user");
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -230,7 +232,7 @@ export default function UserList() {
                     </div>
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
-                    Телефон
+                    {t("phone")}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
                     Роль

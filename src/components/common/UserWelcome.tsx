@@ -2,10 +2,11 @@ import { authService } from "../../api/auth";
 import type { User } from "../../entities/user/model";
 import {useState} from "react";
 import AvatarText from "../../shared/ui/AvatarText.tsx";
+import { useTranslation } from "react-i18next";
 
 export default function UserWelcome() {
   const [user] = useState<User | null>(() => authService.getCurrentUser());
-
+  const { t } = useTranslation();
   if (!user) return null;
 
   return (
@@ -14,7 +15,7 @@ export default function UserWelcome() {
         <AvatarText name={user.full_name} size={16} classText="text-2xl" />
         <div>
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white/90">
-            Добро пожаловать, {user.full_name}!
+            {t("hello")}, {user.first_name}!
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {user.email} • {user.role}
