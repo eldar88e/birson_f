@@ -1,12 +1,12 @@
 import { apiClient } from "./client";
 import { User } from "../entities/user/model";
-import { Contactor } from "../entities/contactor/model";
+import { Contractor } from "../entities/contractor/model";
 
 export interface OrderItem {
   id?: number;
   order_id: number;
   service_id: number;
-  performer_type: "User" | "Contactor";
+  performer_type: "User" | "Contractor";
   performer_id: number;
   state: "initial" | "diagnostic" | "agreement" | "processing" | "control" | "completed" | "cancelled";
   materials_price: number;
@@ -17,7 +17,7 @@ export interface OrderItem {
   price: number;
   paid: boolean;
   comment: string;
-  performer?: User | Contactor;
+  performer?: User | Contractor;
   service?: string;
 }
 

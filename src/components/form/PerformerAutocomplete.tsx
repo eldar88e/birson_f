@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { userService, type CreateUserData } from "../../api/users";
-import { contactorService, type CreateContactorData } from "../../api/contactors";
+import { contractorService, type CreateContractorData } from "../../api/contractors";
 import type { User } from "../../entities/user/model";
-import type { Contactor } from "../../entities/contactor/model";
+import type { Contractor } from "../../entities/contractor/model";
 import Label from "./Label";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import { Modal } from "../ui/modal";
@@ -13,13 +13,13 @@ import SvgIcon from "../../shared/ui/SvgIcon";
 
 const DEFAULT_PERFORMER_ROLE = "staff";
 
-type Performer = User | Contactor;
+type Performer = User | Contractor;
 
 interface PerformerAutocompleteProps {
   label?: string;
   placeholder?: string;
   value?: number | null;
-  performerType: "User" | "Contactor";
+  performerType: "User" | "Contractor";
   onChange?: (performerId: number | null, performer?: Performer | null) => void;
   className?: string;
 }
@@ -57,7 +57,7 @@ export default function PerformerAutocomplete({
     role: DEFAULT_PERFORMER_ROLE,
   });
 
-  const [contactorFormData, setContactorFormData] = useState<CreateContactorData>({
+  const [contractorFormData, setContractorFormData] = useState<CreateContractorData>({
     name: "",
     entity_type: "",
     email: "",
@@ -96,11 +96,11 @@ export default function PerformerAutocomplete({
               }
             }
           } else {
-            const contactors = await contactorService.getContactors();
-            const foundContactor = contactors.find(c => c.id === value);
-            if (foundContactor) {
-              setSelectedPerformer(foundContactor);
-              setInputValue(foundContactor.name || "");
+            const contractors = await contractorService.getContractors();
+            const foundContractor = contractors.find(c => c.id === value);
+            if (foundContractor) {
+              setSelectedPerformer(foundContractor);
+              setInputValue(foundContractor.name || "");
               setSearchQuery("");
             }
           }
@@ -132,7 +132,7 @@ export default function PerformerAutocomplete({
         setPerformers(results);
         setIsOpen(true);
       } else {
-        const results = await contactorService.searchContactors(query);
+        const results = await contractorService.searchContractors(query);
         setPerformers(results);
         setIsOpen(true);
       }
@@ -196,7 +196,7 @@ export default function PerformerAutocomplete({
     const displayName =
       performerType === "User"
         ? (performer as User).full_name || (performer as User).phone
-        : (performer as Contactor).name;
+        : (performer as Contractor).name;
 
     setInputValue(displayName);
     setSearchQuery("");
@@ -238,8 +238,8 @@ export default function PerformerAutocomplete({
       const user = performer as User;
       return user.full_name || user.phone || `ID: ${user.id}`;
     } else {
-      const contactor = performer as Contactor;
-      return contactor.name || `ID: ${contactor.id}`;
+      const contractor = performer as Contractor;
+      return contractor.name || `ID: ${contractor.id}`;
     }
   };
 
@@ -263,7 +263,7 @@ export default function PerformerAutocomplete({
         role: DEFAULT_PERFORMER_ROLE,
       });
     } else {
-      setContactorFormData({
+      setContractorFormData({
         name: searchQuery || "",
         entity_type: "",
         email: "",
@@ -340,8 +340,8 @@ export default function PerformerAutocomplete({
     }
   };
 
-  const handleCreateContactor = async () => {
-    if (!contactorFormData.name) {
+  const handleCreateContractor = async () => {
+    if (!contractorFormData.name) {
       showNotification({
         variant: "error",
         title: "Ошибка валидации",
@@ -351,10 +351,10 @@ export default function PerformerAutocomplete({
     }
 
     try {
-      const response = await contactorService.createContactor(contactorFormData);
+      const response = await contractorService.createContractor(contractorFormData);
       
-      // Handle response - API returns { contactor: {...} }
-      const newContactor = (response as any).contactor || response;
+      // Handle response - API returns { contractor: {...} }
+      const newContractor = (response as any).contractor || response;
 
       showNotification({
         variant: "success",
@@ -362,13 +362,13 @@ export default function PerformerAutocomplete({
         description: "Новый контрагент успешно добавлен",
       });
 
-      onChange?.(newContactor.id, newContactor);
-      setInputValue(newContactor.name);
+      onChange?.(newContractor.id, newContractor);
+      setInputValue(newContractor.name);
       setSearchQuery("");
       closeModal();
       setIsOpen(false);
 
-      setContactorFormData({
+      setContractorFormData({
         name: "",
         entity_type: "",
         email: "",
@@ -486,9 +486,9 @@ export default function PerformerAutocomplete({
                           Email: {(performer as User).email}
                         </div>
                       )}
-                      {performerType === "Contactor" && (performer as Contactor).entity_type && (
+                      {performerType === "Contractor" && (performer as Contractor).entity_type && (
                         <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                          Тип: {(performer as Contactor).entity_type}
+                          Тип: {(performer as Contractor).entity_type}
                         </div>
                       )}
                     </div>
@@ -601,7 +601,7 @@ export default function PerformerAutocomplete({
         </Modal>
       )}
 
-      {performerType === "Contactor" && (
+      {performerType === "Contractor" && (
         <Modal
           isOpen={isModalOpen}
           onClose={closeModal}
@@ -618,9 +618,9 @@ export default function PerformerAutocomplete({
                   <Input
                     type="text"
                     placeholder="Введите название"
-                    value={contactorFormData.name}
+                    value={contractorFormData.name}
                     onChange={(e) =>
-                      setContactorFormData((prev) => ({ ...prev, name: e.target.value }))
+                      setContractorFormData((prev) => ({ ...prev, name: e.target.value }))
                     }
                     required
                   />
@@ -629,9 +629,9 @@ export default function PerformerAutocomplete({
                 <div>
                   <Label>Тип организации</Label>
                   <select
-                    value={contactorFormData.entity_type}
+                    value={contractorFormData.entity_type}
                     onChange={(e) =>
-                      setContactorFormData((prev) => ({ ...prev, entity_type: e.target.value }))
+                      setContractorFormData((prev) => ({ ...prev, entity_type: e.target.value }))
                     }
                     className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
                   >
@@ -645,9 +645,9 @@ export default function PerformerAutocomplete({
                   <Input
                     type="email"
                     placeholder="example@mail.com"
-                    value={contactorFormData.email}
+                    value={contractorFormData.email}
                     onChange={(e) =>
-                      setContactorFormData((prev) => ({ ...prev, email: e.target.value }))
+                      setContractorFormData((prev) => ({ ...prev, email: e.target.value }))
                     }
                   />
                 </div>
@@ -657,9 +657,9 @@ export default function PerformerAutocomplete({
                   <Input
                     type="tel"
                     placeholder="+7 (999) 999-99-99"
-                    value={contactorFormData.phone}
+                    value={contractorFormData.phone}
                     onChange={(e) =>
-                      setContactorFormData((prev) => ({ ...prev, phone: e.target.value }))
+                      setContractorFormData((prev) => ({ ...prev, phone: e.target.value }))
                     }
                   />
                 </div>
@@ -669,9 +669,9 @@ export default function PerformerAutocomplete({
                   <Input
                     type="text"
                     placeholder="Введите ИНН"
-                    value={contactorFormData.inn}
+                    value={contractorFormData.inn}
                     onChange={(e) =>
-                      setContactorFormData((prev) => ({ ...prev, inn: e.target.value }))
+                      setContractorFormData((prev) => ({ ...prev, inn: e.target.value }))
                     }
                   />
                 </div>
@@ -681,9 +681,9 @@ export default function PerformerAutocomplete({
                   <Input
                     type="text"
                     placeholder="Введите КПП"
-                    value={contactorFormData.kpp}
+                    value={contractorFormData.kpp}
                     onChange={(e) =>
-                      setContactorFormData((prev) => ({ ...prev, kpp: e.target.value }))
+                      setContractorFormData((prev) => ({ ...prev, kpp: e.target.value }))
                     }
                   />
                 </div>
@@ -693,9 +693,9 @@ export default function PerformerAutocomplete({
                   <Input
                     type="text"
                     placeholder="Введите юридический адрес"
-                    value={contactorFormData.legal_address}
+                    value={contractorFormData.legal_address}
                     onChange={(e) =>
-                      setContactorFormData((prev) => ({ ...prev, legal_address: e.target.value }))
+                      setContractorFormData((prev) => ({ ...prev, legal_address: e.target.value }))
                     }
                   />
                 </div>
@@ -705,9 +705,9 @@ export default function PerformerAutocomplete({
                   <Input
                     type="text"
                     placeholder="Введите контактное лицо"
-                    value={contactorFormData.contact_person}
+                    value={contractorFormData.contact_person}
                     onChange={(e) =>
-                      setContactorFormData((prev) => ({ ...prev, contact_person: e.target.value }))
+                      setContractorFormData((prev) => ({ ...prev, contact_person: e.target.value }))
                     }
                   />
                 </div>
@@ -717,9 +717,9 @@ export default function PerformerAutocomplete({
                   <Input
                     type="text"
                     placeholder="Введите название банка"
-                    value={contactorFormData.bank_name}
+                    value={contractorFormData.bank_name}
                     onChange={(e) =>
-                      setContactorFormData((prev) => ({ ...prev, bank_name: e.target.value }))
+                      setContractorFormData((prev) => ({ ...prev, bank_name: e.target.value }))
                     }
                   />
                 </div>
@@ -729,9 +729,9 @@ export default function PerformerAutocomplete({
                   <Input
                     type="text"
                     placeholder="Введите БИК"
-                    value={contactorFormData.bik}
+                    value={contractorFormData.bik}
                     onChange={(e) =>
-                      setContactorFormData((prev) => ({ ...prev, bik: e.target.value }))
+                      setContractorFormData((prev) => ({ ...prev, bik: e.target.value }))
                     }
                   />
                 </div>
@@ -741,9 +741,9 @@ export default function PerformerAutocomplete({
                   <Input
                     type="text"
                     placeholder="Введите расчетный счет"
-                    value={contactorFormData.checking_account}
+                    value={contractorFormData.checking_account}
                     onChange={(e) =>
-                      setContactorFormData((prev) => ({ ...prev, checking_account: e.target.value }))
+                      setContractorFormData((prev) => ({ ...prev, checking_account: e.target.value }))
                     }
                   />
                 </div>
@@ -753,9 +753,9 @@ export default function PerformerAutocomplete({
                   <Input
                     type="text"
                     placeholder="Введите корреспондентский счет"
-                    value={contactorFormData.correspondent_account}
+                    value={contractorFormData.correspondent_account}
                     onChange={(e) =>
-                      setContactorFormData((prev) => ({ ...prev, correspondent_account: e.target.value }))
+                      setContractorFormData((prev) => ({ ...prev, correspondent_account: e.target.value }))
                     }
                   />
                 </div>
@@ -765,9 +765,9 @@ export default function PerformerAutocomplete({
                   <Input
                     type="text"
                     placeholder="Введите профиль услуг"
-                    value={contactorFormData.service_profile}
+                    value={contractorFormData.service_profile}
                     onChange={(e) =>
-                      setContactorFormData((prev) => ({ ...prev, service_profile: e.target.value }))
+                      setContractorFormData((prev) => ({ ...prev, service_profile: e.target.value }))
                     }
                   />
                 </div>
@@ -777,9 +777,9 @@ export default function PerformerAutocomplete({
                   <div className="flex items-center h-11">
                     <input
                       type="checkbox"
-                      checked={contactorFormData.active}
+                      checked={contractorFormData.active}
                       onChange={(e) =>
-                        setContactorFormData((prev) => ({ ...prev, active: e.target.checked }))
+                        setContractorFormData((prev) => ({ ...prev, active: e.target.checked }))
                       }
                       className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700"
                     />
@@ -792,9 +792,9 @@ export default function PerformerAutocomplete({
                   <textarea
                     className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-24 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
                     placeholder="Введите комментарий..."
-                    value={contactorFormData.comment}
+                    value={contractorFormData.comment}
                     onChange={(e) =>
-                      setContactorFormData((prev) => ({ ...prev, comment: e.target.value }))
+                      setContractorFormData((prev) => ({ ...prev, comment: e.target.value }))
                     }
                   />
                 </div>
@@ -810,7 +810,7 @@ export default function PerformerAutocomplete({
                 </button>
                 <button
                   type="button"
-                  onClick={handleCreateContactor}
+                  onClick={handleCreateContractor}
                   className="inline-flex items-center justify-center gap-2 rounded-lg transition px-5 py-3.5 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600"
                 >
                   Создать

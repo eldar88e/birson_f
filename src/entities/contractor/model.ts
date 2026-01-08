@@ -1,4 +1,4 @@
-export interface Contactor {
+export interface Contractor {
   id: number;
   name: string;
   entity_type: string;

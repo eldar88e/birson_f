@@ -1,5 +1,5 @@
 import type { User } from "../user/model";
-import type { Contactor } from "../contactor/model";
+import type { Contractor } from "../contractor/model";
 
 export type AppointmentItemState = "initial" | "diagnostic" | "agreement" | "processing" | "control" | "completed" | "cancelled";
 
@@ -18,7 +18,7 @@ export interface AppointmentItem {
   order_id: number;
   service_id: number;
   service: string;
-  performer: User | Contactor;
+  performer: User | Contractor;
   price: number;
   paid: boolean;
   state: AppointmentItemState
