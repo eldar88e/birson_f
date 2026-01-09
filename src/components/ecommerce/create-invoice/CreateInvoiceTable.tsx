@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Input from "../../../components/form/input/InputField";
 import Label from "../../../components/form/Label";
 import Button from "../../../components/ui/button/Button";
-import { orderItemService, type OrderItem } from "../../../api/orderItems";
+import { orderItemService, type OrderItem, type OrderItemPerformer, type OrderItemPerformerAttribute } from "../../../api/orderItems";
 import { useNotification } from "../../../context/NotificationContext";
 import { Modal } from "../../../components/ui/modal";
 import { useModal } from "../../../hooks/useModal";
@@ -26,16 +26,14 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
   const [items, setItems] = useState<OrderItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
-  const [formData, setFormData] = useState<Omit<OrderItem, "id" | "order_id">>({
+  const [performers, setPerformers] = useState<OrderItemPerformer[]>([]);
+  const [formData, setFormData] = useState<Omit<OrderItem, "id" | "order_id" | "performers">>({
     service_id: 0,
-    performer_type: "User" as OrderItem["performer_type"],
-    performer_id: 0,
     state: "initial",
     materials_price: 0,
     materials_comment: "",
     delivery_price: 0,
     delivery_comment: "",
-    performer_fee: 0,
     price: 0,
     paid: false,
     comment: "",
@@ -51,18 +49,17 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
 
   // Helper function to normalize OrderItem data (convert string numbers to actual numbers)
   const normalizeOrderItem = (item: any): OrderItem => {
-    return {
+    const normalized: OrderItem = {
       ...item,
       id: typeof item.id === "string" ? parseInt(item.id, 10) : item.id,
       order_id: typeof item.order_id === "string" ? parseInt(item.order_id, 10) : item.order_id,
       service_id: typeof item.service_id === "string" ? parseInt(item.service_id, 10) : item.service_id,
-      performer_id: typeof item.performer_id === "string" ? parseInt(item.performer_id, 10) : item.performer_id,
       price: typeof item.price === "string" ? parseFloat(item.price) : Number(item.price) || 0,
       materials_price: typeof item.materials_price === "string" ? parseFloat(item.materials_price) : Number(item.materials_price) || 0,
       delivery_price: typeof item.delivery_price === "string" ? parseFloat(item.delivery_price) : Number(item.delivery_price) || 0,
-      performer_fee: typeof item.performer_fee === "string" ? parseFloat(item.performer_fee) : Number(item.performer_fee) || 0,
       paid: typeof item.paid === "string" ? item.paid === "true" : Boolean(item.paid),
     };
+    return normalized;
   };
 
   const loadOrderItems = async () => {
@@ -111,7 +108,7 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
         return { ...prev, [name]: isNaN(numValue) ? 0 : numValue };
       }
 
-      const numberFields: (keyof typeof prev)[] = ["service_id", "performer_id", "materials_price", "delivery_price", "performer_fee", "price"];
+      const numberFields: (keyof typeof prev)[] = ["service_id", "materials_price", "delivery_price", "price"];
       if (numberFields.includes(name as keyof typeof prev)) {
         const numValue = value === "" ? 0 : Number(value);
         return { ...prev, [name]: (isNaN(numValue) ? 0 : numValue) as any };
@@ -121,14 +118,6 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
         return { ...prev, state: value as OrderItem["state"] };
       }
 
-      if (name === "performer_type") {
-        return { 
-          ...prev, 
-          performer_type: value as OrderItem["performer_type"],
-          performer_id: 0
-        };
-      }
-
       return { ...prev, [name]: value as any };
     });
   };
@@ -136,19 +125,38 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
   const handleOpenModal = () => {
     setFormData({
       service_id: 0,
-      performer_type: "User" as OrderItem["performer_type"],
-      performer_id: 0,
       state: "initial",
       materials_price: 0,
       materials_comment: "",
       delivery_price: 0,
       delivery_comment: "",
-      performer_fee: 0,
       price: 0,
       paid: false,
       comment: "",
     });
+    setPerformers([]);
     openModal();
+  };
+
+  const addPerformer = () => {
+    setPerformers((prev) => [
+      ...prev,
+      {
+        performer_id: 0,
+        performer_type: "User",
+        performer_fee: 0,
+      },
+    ]);
+  };
+
+  const removePerformer = (index: number) => {
+    setPerformers((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updatePerformer = (index: number, updates: Partial<OrderItemPerformer>) => {
+    setPerformers((prev) =>
+      prev.map((p, i) => (i === index ? { ...p, ...updates } : p))
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
@@ -163,11 +171,32 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
       return;
     }
 
+    // Validate performers
+    const validPerformers = performers.filter((p) => p.performer_id > 0);
+    if (validPerformers.length === 0) {
+      showNotification({
+        variant: "error",
+        title: "Ошибка валидации",
+        description: "Добавьте хотя бы одного исполнителя",
+      });
+      return;
+    }
+
+    // Convert performers to order_item_performers_attributes format
+    const order_item_performers_attributes: OrderItemPerformerAttribute[] = validPerformers.map((p) => ({
+      id: p.id,
+      performer_id: p.performer_id,
+      performer_type: p.performer_type,
+      performer_fee: p.performer_fee,
+      _destroy: p._destroy,
+    }));
+
     if (orderId) {
       try {
         const newItem = await orderItemService.createOrderItem(orderId, {
           order_id: orderId,
           ...formData,
+          order_item_performers_attributes,
         });
 
         const normalizedItem = normalizeOrderItem(newItem);
@@ -189,7 +218,7 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
       const newItem: OrderItem = {
         id: Date.now(),
         order_id: 0,
-        ...formData,
+        ...formData
       };
       setItems((prev) => [...prev, newItem]);
       closeModal();
@@ -199,7 +228,14 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
   const subtotal: number = items.reduce((sum, item) => sum + Number(item.price || 0), 0);
   const materialsTotal: number = items.reduce((sum, item) => sum + Number(item.materials_price || 0), 0);
   const deliveryTotal: number = items.reduce((sum, item) => sum + Number(item.delivery_price || 0), 0);
-  const performerFeeTotal: number = items.reduce((sum, item) => sum + Number(item.performer_fee || 0), 0);
+  const performerFeeTotal: number = items.reduce((sum, item) => {
+    if (item.order_item_performers && item.order_item_performers.length > 0) {
+      return sum + item.order_item_performers.reduce((pSum, p) => pSum + Number(p.performer_fee || 0), 0);
+    }
+    // Legacy support
+    const legacyFee = (item as any).performer_fee;
+    return sum + Number(legacyFee ?? 0);
+  }, 0);
   const total: number = subtotal + materialsTotal + deliveryTotal + performerFeeTotal;
 
   return (
@@ -271,19 +307,22 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
                       {item.service}
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                      {item.performer ? (
-                        <a href={"full_name" in item.performer ? `/users/${item.service_id}` : "#"}>
-                          <div>
-                            {"name" in item.performer 
-                              ? item.performer.name 
-                              : item.performer.full_name}
-                          </div>
-                          {item.performer.phone && (
-                            <div>{item.performer.phone}</div>
-                          )}
-                        </a>
+                      {item.order_item_performers && item.order_item_performers.length > 0 ? (
+                        <div className="space-y-1">
+                          {item.order_item_performers.map((performer, pIdx) => (
+                            <div key={pIdx}>
+                              {performer.performer_type === "User" ? (
+                                <a href={`/users/${performer.performer_id}`}>
+                                  Сотрудник: {performer.performer_name}
+                                </a>
+                              ) : (
+                                <div>Подрядчик: {performer.performer_name}</div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       ) : (
-                        <div>{item.performer_type} #{item.performer_id}</div>
+                        <div className="text-gray-400">Нет исполнителей</div>
                       )}
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
@@ -293,7 +332,19 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
                       {Number(item.price || 0).toFixed(2)} ₽
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                      {Number(item.performer_fee || 0) > 0 ? `${Number(item.performer_fee || 0).toFixed(2)} ₽` : "-"}
+                      {item.order_item_performers && item.order_item_performers.length > 0 ? (
+                        <div className="space-y-1">
+                          {item.order_item_performers.map((performer: OrderItemPerformer, pIdx: number) => (
+                            <div key={pIdx}>
+                              {Number(performer.performer_fee || 0) > 0 
+                                ? `${Number(performer.performer_fee || 0).toFixed(2)} ₽` 
+                                : "-"}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-gray-400">-</div>
+                      )}
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
                       {Number(item.materials_price || 0) > 0 ? `${Number(item.materials_price || 0).toFixed(2)} ₽` : "-"}
@@ -417,34 +468,6 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
               </div>
 
               <div>
-                <Label>Тип исполнителя</Label>
-                <select
-                  name="performer_type"
-                  value={formData.performer_type}
-                  onChange={handleInputChange}
-                  className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-                >
-                  <option value="User">Пользователь</option>
-                  <option value="Contractor">Контактор</option>
-                </select>
-              </div>
-
-              <div>
-                <PerformerAutocomplete
-                  label="Исполнитель"
-                  placeholder={formData.performer_type === "User" ? "Введите имя или номер телефона пользователя" : "Введите имя или номер телефона контрагента"}
-                  value={formData.performer_id === 0 ? null : formData.performer_id}
-                  performerType={formData.performer_type}
-                  onChange={(performerId, _performer) => {
-                    setFormData((prev) => ({
-                      ...prev,
-                      performer_id: performerId || 0,
-                    }));
-                  }}
-                />
-              </div>
-
-              <div>
                 <Label>Статус</Label>
                 <select
                   name="state"
@@ -473,19 +496,99 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
                   step={0.01}
                 />
               </div>
+            </div>
 
-              <div>
-                <Label>Вознаграждение исполнителя</Label>
-                <Input
-                  type="number"
-                  name="performer_fee"
-                  value={formData.performer_fee || ""}
-                  onChange={handleInputChange}
-                  placeholder="0.00"
-                  min="0"
-                  step={0.01}
-                />
+            {/* Performers Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label>Исполнители *</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addPerformer}
+                  className="text-sm"
+                >
+                  <SvgIcon name="plus" width={16} />
+                  Добавить исполнителя
+                </Button>
               </div>
+              
+              {performers.length === 0 ? (
+                <div className="text-sm text-gray-500 dark:text-gray-400 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  Исполнители не добавлены. Нажмите "Добавить исполнителя" для добавления.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {performers.map((performer, index) => (
+                    <div
+                      key={index}
+                      className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <Label>Исполнитель {index + 1}</Label>
+                        <button
+                          type="button"
+                          onClick={() => removePerformer(index)}
+                          className="text-error-500 hover:text-error-600 text-sm"
+                        >
+                          <SvgIcon name="trash" width={16} />
+                        </button>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div>
+                          <Label>Тип исполнителя</Label>
+                          <select
+                            value={performer.performer_type}
+                            onChange={(e) =>
+                              updatePerformer(index, {
+                                performer_type: e.target.value as "User" | "Contractor",
+                                performer_id: 0,
+                              })
+                            }
+                            className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                          >
+                            <option value="User">Сотрудник</option>
+                            <option value="Contractor">Подрядчик</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <PerformerAutocomplete
+                            label="Исполнитель"
+                            placeholder={performer.performer_type === "User" ? "Введите имя или номер телефона пользователя" : "Введите имя или номер телефона контрагента"}
+                            value={performer.performer_id === 0 ? null : performer.performer_id}
+                            performerType={performer.performer_type}
+                            onChange={(performerId, _performer) => {
+                              updatePerformer(index, { performer_id: performerId || 0 });
+                            }}
+                          />
+                        </div>
+
+                        <div>
+                          <Label>Вознаграждение</Label>
+                          <Input
+                            type="number"
+                            value={performer.performer_fee || ""}
+                            onChange={(e) => {
+                              const numValue = e.target.value === "" ? 0 : Number(e.target.value);
+                              updatePerformer(index, {
+                                performer_fee: isNaN(numValue) ? 0 : numValue,
+                              });
+                            }}
+                            placeholder="0.00"
+                            min="0"
+                            step={0.01}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 
               <div>
                 <Label>Оплачено</Label>

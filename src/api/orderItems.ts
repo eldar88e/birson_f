@@ -1,33 +1,57 @@
 import { apiClient } from "./client";
-import { User } from "../entities/user/model";
-import { Contractor } from "../entities/contractor/model";
+
+export interface OrderItemPerformer {
+  id?: number;
+  performer_id: number;
+  performer_type: "User" | "Contractor";
+  performer_fee: number;
+  performer_name?: string;
+  _destroy?: boolean;
+}
 
 export interface OrderItem {
   id?: number;
   order_id: number;
   service_id: number;
-  performer_type: "User" | "Contractor";
-  performer_id: number;
   state: "initial" | "diagnostic" | "agreement" | "processing" | "control" | "completed" | "cancelled";
   materials_price: number;
   materials_comment: string;
   delivery_price: number;
   delivery_comment: string;
-  performer_fee: number,
   price: number;
   paid: boolean;
   comment: string;
-  performer?: User | Contractor;
+  order_item_performers?: OrderItemPerformer[];
   service?: string;
 }
 
-export type CreateOrderItemData = Omit<OrderItem, "id">;
+export interface OrderItemPerformerAttribute {
+  id?: number;
+  performer_id: number;
+  performer_type: "User" | "Contractor";
+  performer_fee: number;
+  _destroy?: boolean;
+}
+
+export type CreateOrderItemData = Omit<OrderItem, "id" | "performers"> & {
+  order_item_performers_attributes?: OrderItemPerformerAttribute[];
+};
 
 class OrderItemService {
   async createOrderItem(orderId: number, itemData: CreateOrderItemData): Promise<OrderItem> {
+    // Prepare the data for API - extract performers and convert to order_item_performers_attributes
+    const { order_item_performers_attributes, ...orderItemData } = itemData;
+    
+    const payload: any = {
+      order_item: {
+        ...orderItemData,
+        order_item_performers_attributes: order_item_performers_attributes || [],
+      },
+    };
+
     const response = await apiClient.post<{ order_item: OrderItem }>(
       `/orders/${orderId}/order_items`,
-      { order_item: itemData },
+      payload,
       true
     );
 
