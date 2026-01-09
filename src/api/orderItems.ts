@@ -39,7 +39,6 @@ export type CreateOrderItemData = Omit<OrderItem, "id" | "performers"> & {
 
 class OrderItemService {
   async createOrderItem(orderId: number, itemData: CreateOrderItemData): Promise<OrderItem> {
-    // Prepare the data for API - extract performers and convert to order_item_performers_attributes
     const { order_item_performers_attributes, ...orderItemData } = itemData;
     
     const payload: any = {
@@ -64,6 +63,25 @@ class OrderItemService {
       true
     );
     return response.data;
+  }
+
+  async updateOrderItem(orderId: number, itemId: number, itemData: CreateOrderItemData): Promise<OrderItem> {
+    const { order_item_performers_attributes, ...orderItemData } = itemData;
+    
+    const payload: any = {
+      order_item: {
+        ...orderItemData,
+        order_item_performers_attributes: order_item_performers_attributes || [],
+      },
+    };
+
+    const response = await apiClient.put<{ order_item: OrderItem }>(
+      `/orders/${orderId}/order_items/${itemId}`,
+      payload,
+      true
+    );
+
+    return (response as any).order_item || (response as any);
   }
 
   async deleteOrderItem(orderId: number, itemId: number): Promise<void> {

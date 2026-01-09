@@ -26,6 +26,7 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
   const [items, setItems] = useState<OrderItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
+  const [editingItemId, setEditingItemId] = useState<number | null>(null);
   const [performers, setPerformers] = useState<OrderItemPerformer[]>([]);
   const [formData, setFormData] = useState<Omit<OrderItem, "id" | "order_id" | "performers">>({
     service_id: 0,
@@ -123,6 +124,7 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
   };
 
   const handleOpenModal = () => {
+    setEditingItemId(null);
     setFormData({
       service_id: 0,
       state: "initial",
@@ -135,6 +137,34 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
       comment: "",
     });
     setPerformers([]);
+    openModal();
+  };
+
+  const handleEditItem = (item: OrderItem) => {
+    setEditingItemId(item.id ?? null);
+    setFormData({
+      service_id: item.service_id,
+      state: item.state,
+      materials_price: item.materials_price,
+      materials_comment: item.materials_comment,
+      delivery_price: item.delivery_price,
+      delivery_comment: item.delivery_comment,
+      price: item.price,
+      paid: item.paid,
+      comment: item.comment,
+    });
+    // Load performers for editing
+    if (item.order_item_performers && item.order_item_performers.length > 0) {
+      setPerformers(item.order_item_performers.map(p => ({
+        id: p.id,
+        performer_id: p.performer_id,
+        performer_type: p.performer_type,
+        performer_fee: p.performer_fee,
+        performer_name: p.performer_name,
+      })));
+    } else {
+      setPerformers([]);
+    }
     openModal();
   };
 
@@ -193,25 +223,45 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
 
     if (orderId) {
       try {
-        const newItem = await orderItemService.createOrderItem(orderId, {
-          order_id: orderId,
-          ...formData,
-          order_item_performers_attributes,
-        });
+        if (editingItemId) {
+          // Update existing item
+          const updatedItem = await orderItemService.updateOrderItem(orderId, editingItemId, {
+            order_id: orderId,
+            ...formData,
+            order_item_performers_attributes,
+          });
 
-        const normalizedItem = normalizeOrderItem(newItem);
-        setItems((prev) => [...prev, normalizedItem]);
-        showNotification({
-          variant: "success",
-          title: "Позиция добавлена",
-          description: "Позиция успешно добавлена в заказ",
-        });
+          const normalizedItem = normalizeOrderItem(updatedItem);
+          setItems((prev) =>
+            prev.map((item) => (item.id === editingItemId ? normalizedItem : item))
+          );
+          showNotification({
+            variant: "success",
+            title: "Позиция обновлена",
+            description: "Позиция успешно обновлена",
+          });
+        } else {
+          // Create new item
+          const newItem = await orderItemService.createOrderItem(orderId, {
+            order_id: orderId,
+            ...formData,
+            order_item_performers_attributes,
+          });
+
+          const normalizedItem = normalizeOrderItem(newItem);
+          setItems((prev) => [...prev, normalizedItem]);
+          showNotification({
+            variant: "success",
+            title: "Позиция добавлена",
+            description: "Позиция успешно добавлена в заказ",
+          });
+        }
         closeModal();
       } catch (error) {
         showNotification({
           variant: "error",
-          title: "Ошибка добавления",
-          description: error instanceof Error ? error.message : "Не удалось добавить позицию",
+          title: editingItemId ? "Ошибка обновления" : "Ошибка добавления",
+          description: error instanceof Error ? error.message : (editingItemId ? "Не удалось обновить позицию" : "Не удалось добавить позицию"),
         });
       }
     } else {
@@ -360,13 +410,24 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
                       )}
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                      <div className="flex items-center justify-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button 
+                          onClick={() => handleEditItem(item)}
+                          className="text-xs flex rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                          title="Редактировать"
+                        >
+                          <svg width="18" height="18" stroke="CurrentColor" fill="CurrentColor" aria-hidden="true" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path>
+                            <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path>
+                          </svg>
+                        </button>
                         <button 
                           onClick={() => {
                             setItemToDelete(item.id ?? null);
                             deleteModal.open();
                             }}
-                          className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                          className="text-xs flex rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                          title="Удалить"
                         >
                           <svg
                             className="hover:fill-error-500 dark:hover:fill-error-500 cursor-pointer fill-gray-700 dark:fill-gray-400"
@@ -444,12 +505,15 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
 
       <Modal
         isOpen={isModalOpen}
-        onClose={closeModal}
+        onClose={() => {
+          closeModal();
+          setEditingItemId(null);
+        }}
         className="max-w-3xl p-4 sm:p-6 lg:p-8 sm:m-4 sm:rounded-3xl"
       >
         <div onClick={(e) => e.stopPropagation()}>
           <h4 className="font-semibold text-gray-800 mb-6 text-title-sm dark:text-white/90">
-            Добавить позицию в запись
+            {editingItemId ? "Редактировать позицию в записи" : "Добавить позицию в запись"}
           </h4>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -669,7 +733,7 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
                 Отмена
               </Button>
               <Button type="submit" variant="primary">
-                Добавить
+                {editingItemId ? "Сохранить" : "Добавить"}
               </Button>
             </div>
           </form>
