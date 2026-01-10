@@ -5,7 +5,6 @@ import CreateInvoiceTable from "../ecommerce/create-invoice/CreateInvoiceTable";
 import { apiClient } from "../../api/client";
 import type { Appointment } from "../../entities/appointments/model";
 import type { User } from "../../entities/user/model";
-import type { Car } from "../../entities/car/model";
 import { formatDate } from "../../shared/lib/formatDate";
 import { StatusBadge } from "../../shared/ui/StatusBadge";
 import { useNavigate } from "react-router";
@@ -79,16 +78,6 @@ export default function AppointmentMain() {
     return parts.join(" ") || client.email || `ID: ${client.id}`;
   };
 
-  // Helper function to get car display name
-  const getCarDisplayName = (car: string | Car): string => {
-    if (typeof car === "string") {
-      return car;
-    }
-    // If car is an object (Car), construct display name from brand, model, license_plate
-    const parts = [car.brand, car.model, car.license_plate].filter(Boolean);
-    return parts.join(" ") || `ID: ${car.id}`;
-  };
-
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] w-full">
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
@@ -133,14 +122,6 @@ export default function AppointmentMain() {
           <div className="h-px w-full bg-gray-200 dark:bg-gray-800 sm:h-[158px] sm:w-px"></div>
 
           <div className="sm:text-right">
-            <span className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
-              Автомобиль
-            </span>
-
-            <h5 className="mb-2 text-base font-semibold text-gray-800 dark:text-white/90">
-              {getCarDisplayName(appointment.car) || "Не указан"}
-            </h5>
-
             <span className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
               Дата записи:
             </span>
@@ -152,7 +133,7 @@ export default function AppointmentMain() {
         </div>
 
         {/* Order Items Table */}
-        <CreateInvoiceTable orderId={appointment.id} />
+        <CreateInvoiceTable orderId={appointment.id} clientId={appointment.client_id} />
 
         <div className="flex items-center justify-end gap-3 mt-6">
           <Button onClick={() => navigate(`/appointments/${appointment.id}/edit`)}>Редактировать</Button>

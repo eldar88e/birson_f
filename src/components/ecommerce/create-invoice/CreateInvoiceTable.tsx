@@ -10,17 +10,21 @@ import SvgIcon from "../../../shared/ui/SvgIcon";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
 import PerformerAutocomplete from "../../../components/form/PerformerAutocomplete";
 import ServiceAutocomplete from "../../../components/form/ServiceAutocomplete";
+import CarAutocomplete from "../../../components/form/CarAutocomplete";
 import { APPOINTMENT_ITEM_STATES } from "../../../entities/appointmentItem/model";
+import type { Car } from "../../../entities/car/model";
+import { carService } from "../../../api/cars";
 import { useConfirmDelete } from "../../../hooks/useConfirmDelete";
 import { apiClient } from "../../../api/client";
 import { ConfirmDeleteModal } from "../../../shared/ui/ConfirmDeleteModal";
 
 interface CreateInvoiceTableProps {
   orderId?: number;
+  clientId?: number;
   onItemsChange?: (items: OrderItem[]) => void;
 }
 
-const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItemsChange }) => {
+const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, clientId, onItemsChange }) => {
   const { showNotification } = useNotification();
   const { isOpen: isModalOpen, openModal, closeModal } = useModal();
   const [items, setItems] = useState<OrderItem[]>([]);
@@ -28,8 +32,10 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
   const [performers, setPerformers] = useState<OrderItemPerformer[]>([]);
-  const [formData, setFormData] = useState<Omit<OrderItem, "id" | "order_id" | "performers">>({
+  const [selectedCar, setSelectedCar] = useState<Car | null>(null);
+  const [formData, setFormData] = useState<Omit<OrderItem, "id" | "order_id" | "order_item_performers">>({
     service_id: 0,
+    car_id: 0,
     state: "initial",
     materials_price: 0,
     materials_comment: "",
@@ -55,6 +61,7 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
       id: typeof item.id === "string" ? parseInt(item.id, 10) : item.id,
       order_id: typeof item.order_id === "string" ? parseInt(item.order_id, 10) : item.order_id,
       service_id: typeof item.service_id === "string" ? parseInt(item.service_id, 10) : item.service_id,
+      car_id: typeof item.car_id === "string" ? parseInt(item.car_id, 10) : (item.car_id || 0),
       price: typeof item.price === "string" ? parseFloat(item.price) : Number(item.price) || 0,
       materials_price: typeof item.materials_price === "string" ? parseFloat(item.materials_price) : Number(item.materials_price) || 0,
       delivery_price: typeof item.delivery_price === "string" ? parseFloat(item.delivery_price) : Number(item.delivery_price) || 0,
@@ -125,8 +132,10 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
 
   const handleOpenModal = () => {
     setEditingItemId(null);
+    setSelectedCar(null);
     setFormData({
       service_id: 0,
+      car_id: 0,
       state: "initial",
       materials_price: 0,
       materials_comment: "",
@@ -140,10 +149,11 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
     openModal();
   };
 
-  const handleEditItem = (item: OrderItem) => {
+  const handleEditItem = async (item: OrderItem) => {
     setEditingItemId(item.id ?? null);
     setFormData({
       service_id: item.service_id,
+      car_id: item.car_id || 0,
       state: item.state,
       materials_price: item.materials_price,
       materials_comment: item.materials_comment,
@@ -153,6 +163,20 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
       paid: item.paid,
       comment: item.comment,
     });
+    
+    // Load car if car_id exists
+    if (item.car_id && clientId) {
+      try {
+        const cars = await carService.getCarsByOwner(clientId);
+        const car = cars.find(c => c.id === item.car_id);
+        setSelectedCar(car || null);
+      } catch {
+        setSelectedCar(null);
+      }
+    } else {
+      setSelectedCar(null);
+    }
+    
     // Load performers for editing
     if (item.order_item_performers && item.order_item_performers.length > 0) {
       setPerformers(item.order_item_performers.map(p => ({
@@ -528,6 +552,22 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, onItem
                       service_id: serviceId || 0,
                     }));
                   }}
+                />
+              </div>
+
+              <div>
+                <CarAutocomplete
+                  label="Автомобиль"
+                  placeholder="Нажмите для выбора автомобиля"
+                  value={selectedCar}
+                  onChange={(car) => {
+                    setSelectedCar(car);
+                    setFormData((prev) => ({
+                      ...prev,
+                      car_id: car ? car.id : 0,
+                    }));
+                  }}
+                  ownerId={clientId}
                 />
               </div>
 

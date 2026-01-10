@@ -48,7 +48,7 @@ export default function CarAutocomplete({
     license_plate: "",
     vin: "",
     year: new Date().getFullYear(),
-    owner_id: ownerId || 0,
+    owner_id: ownerId,
     comment: "",
   });
 
@@ -74,18 +74,10 @@ export default function CarAutocomplete({
   }, [ownerId]);
 
   const handleFocus = () => {
-    if (!ownerId) {
-      showNotification({
-        variant: "warning",
-        title: "Выберите клиента",
-        description: "Сначала необходимо выбрать клиента",
-      });
-      inputRef.current?.blur();
-      return;
-    }
-
     if (!isOpen) {
-      loadCars();
+      if (ownerId != null && ownerId > 0) {
+        loadCars();
+      }
       setIsOpen(true);
     }
   };
@@ -129,7 +121,7 @@ export default function CarAutocomplete({
   };
 
   const handleOpenAddCarModal = () => {
-    if (!ownerId) {
+    if (ownerId == null || ownerId === 0) {
       showNotification({
         variant: "warning",
         title: "Выберите клиента",
@@ -238,9 +230,8 @@ export default function CarAutocomplete({
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
           onClick={handleInputClick}
-          placeholder={ownerId ? placeholder : "Сначала выберите клиента"}
-          disabled={!ownerId}
-          className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-800"
+          placeholder={placeholder}
+          className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
         />
         {isLoading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -294,65 +285,73 @@ export default function CarAutocomplete({
         )}
       </div>
 
-      {isOpen && ownerId && (
+      {isOpen && (
         <div className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-700">
-          {isLoading ? (
-            <div className="p-4 text-center">
-              <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-brand-500 border-r-transparent"></div>
-              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Загрузка...</p>
+          {!ownerId || ownerId === 0 ? (
+            <div className="pt-4 px-4 pb-4 text-center">
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                Выберите клиента для загрузки автомобилей
+              </div>
             </div>
-          ) : cars.length > 0 ? (
+          ) : (
             <>
-              <div className="max-h-60 overflow-auto">
-                {cars.map((car, index) => (
-                  <div
-                    key={car.id}
-                    onClick={() => handleSelectCar(car)}
-                    onMouseEnter={() => setHighlightedIndex(index)}
-                    className={`px-4 py-3 cursor-pointer border-b border-gray-100 dark:border-gray-800 ${
-                      index === highlightedIndex
-                        ? "bg-gray-100 dark:bg-gray-800"
-                        : "hover:bg-gray-50 dark:hover:bg-gray-800"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-800 dark:text-white">
-                          {getCarDisplayName(car)}
+              {isLoading ? (
+                <div className="p-4 text-center">
+                  <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-brand-500 border-r-transparent"></div>
+                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Загрузка...</p>
+                </div>
+              ) : cars.length > 0 ? (
+                <div className="max-h-60 overflow-auto">
+                  {cars.map((car, index) => (
+                    <div
+                      key={car.id}
+                      onClick={() => handleSelectCar(car)}
+                      onMouseEnter={() => setHighlightedIndex(index)}
+                      className={`px-4 py-3 cursor-pointer border-b border-gray-100 dark:border-gray-800 ${
+                        index === highlightedIndex
+                          ? "bg-gray-100 dark:bg-gray-800"
+                          : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-gray-800 dark:text-white">
+                            {getCarDisplayName(car)}
+                          </div>
+                          {car.vin && (
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                              VIN: {car.vin}
+                            </div>
+                          )}
+                          {car.year && (
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              Год: {car.year}
+                            </div>
+                          )}
                         </div>
-                        {car.vin && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                            VIN: {car.vin}
-                          </div>
-                        )}
-                        {car.year && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            Год: {car.year}
-                          </div>
-                        )}
                       </div>
                     </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="pt-4 px-4 text-center">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    Автомобили не найдены
                   </div>
-                ))}
+                </div>
+              )}
+              <div className="p-4 text-center border-t border-gray-200 dark:border-gray-700">
+                <button
+                  type="button"
+                  onClick={handleButtonClick}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600"
+                >
+                  <SvgIcon name="plus" width={16} />
+                  Добавить автомобиль
+                </button>
               </div>
             </>
-          ) : (
-            <div className="pt-4 px-4 text-center">
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Автомобили не найдены
-              </div>
-            </div>
           )}
-          <div className="p-4 text-center">
-            <button
-              type="button"
-              onClick={handleButtonClick}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600"
-            >
-              <SvgIcon name="plus" width={16} />
-              Добавить автомобиль
-            </button>
-          </div>
         </div>
       )}
 

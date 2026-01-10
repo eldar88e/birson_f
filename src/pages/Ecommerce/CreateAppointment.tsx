@@ -4,9 +4,7 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import UserAutocomplete from "../../components/form/UserAutocomplete";
-import CarAutocomplete from "../../components/form/CarAutocomplete";
 import type { User } from "../../entities/user/model";
-import type { Car } from "../../entities/car/model";
 import InvoicePreviewModal from "../../components/ecommerce/create-invoice/InvoicePreviewModal";
 import CreateInvoiceTable from "../../components/ecommerce/create-invoice/CreateInvoiceTable";
 import SvgIcon from "../../shared/ui/SvgIcon.tsx";
@@ -20,8 +18,6 @@ import type { OrderItem } from "../../api/orderItems";
 
 type AppointmentFormData = {
   client_id: number | null;
-  car_id: number;
-  car: string;
   state: Appointment["state"];
   comment: string;
   appointment_at: string;
@@ -29,7 +25,6 @@ type AppointmentFormData = {
 
 export default function CreateAppointment() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [selectedCar, setSelectedCar] = useState<Car | null>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
 
   const navigate = useNavigate();
@@ -38,8 +33,6 @@ export default function CreateAppointment() {
 
   const [formData, setFormData] = useState<AppointmentFormData>({
     client_id: null,
-    car_id: 0,
-    car: "",
     state: "initial",
     comment: "",
     appointment_at: ""
@@ -49,18 +42,6 @@ export default function CreateAppointment() {
     setSelectedUser(user);
     const client_id = user ? user.id : null;
     handleChange("client_id", client_id);
-    
-    // Сбросить выбранный автомобиль при смене клиента
-    if (!user || selectedCar?.owner_id !== user.id) {
-      setSelectedCar(null);
-      handleChange("car_id", 0);
-    }
-  };
-
-  const handleCarChange = (car: Car | null) => {
-    setSelectedCar(car);
-    const car_id = car ? car.id : 0;
-    handleChange("car_id", car_id);
   };
 
   const handleChange = (
@@ -82,11 +63,12 @@ export default function CreateAppointment() {
       return;
     }
 
-    if (!formData.car_id || formData.car_id === 0) {
+    // Проверка что хотя бы один order_item имеет car_id
+    if (orderItems.length === 0 || !orderItems.some(item => item.car_id && item.car_id > 0)) {
       showNotification({
         variant: "error",
         title: "Ошибка валидации",
-        description: "Необходимо выбрать автомобиль",
+        description: "Необходимо выбрать автомобиль хотя бы для одной позиции",
       });
       return;
     }
@@ -94,10 +76,9 @@ export default function CreateAppointment() {
     setIsSubmitting(true);
 
     try {
-      const { id, ...orderDataWithoutId } = {
+      const { id, car_id, ...orderDataWithoutId } = {
         ...formData,
         client_id: formData.client_id,
-        car_id: formData.car_id,
         id: 0,
         client: "",
         car: "",
@@ -169,15 +150,6 @@ export default function CreateAppointment() {
                 />
               </div>
               <div>
-                <CarAutocomplete
-                  label="Авто"
-                  placeholder="Нажмите для выбора автомобиля"
-                  value={selectedCar}
-                  onChange={handleCarChange}
-                  ownerId={selectedUser?.id}
-                />
-              </div>
-              <div>
                 <Label>Дата записи</Label>
                 <Input
                   type="date"
@@ -220,7 +192,7 @@ export default function CreateAppointment() {
           </form>
         </div>
         <div className="border-b border-gray-200 p-4 sm:p-8 dark:border-gray-800">
-          <CreateInvoiceTable onItemsChange={setOrderItems} />
+          <CreateInvoiceTable clientId={selectedUser?.id} onItemsChange={setOrderItems} />
         </div>
         <div className="p-4 sm:p-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">

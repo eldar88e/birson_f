@@ -2,7 +2,6 @@ import React, {useEffect, useState} from "react";
 import TableDropdown from "../common/TableDropdown";
 import type { Appointment } from "../../entities/appointments/model";
 import type { User } from "../../entities/user/model";
-import type { Car } from "../../entities/car/model";
 import { apiClient } from "../../api/client";
 import Pages from "../../shared/ui/Pages.tsx";
 import SvgIcon from "../../shared/ui/SvgIcon";
@@ -98,15 +97,6 @@ export default function AppointmentListTable() {
 
     const parts = [client.first_name, client.middle_name, client.last_name].filter(Boolean);
     return parts.join(" ") || client.email || `ID: ${client.id}`;
-  };
-
-  const getCarDisplayName = (car: string | Car): string => {
-    if (typeof car === "string") {
-      return car;
-    }
-
-    const parts = [car.brand, car.model, car.license_plate].filter(Boolean);
-    return parts.join(" ") || `ID: ${car.id}`;
   };
 
   const deleteModal = useConfirmDelete({
@@ -319,11 +309,6 @@ export default function AppointmentListTable() {
                     <td className="p-4 whitespace-nowrap">
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-400">
                         {getClientDisplayName(appointment.client)}
-                      </span>
-                    </td>
-                    <td className="p-4 whitespace-nowrap">
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-400">
-                        {getCarDisplayName(appointment.car)}
                       </span>
                     </td>
                     <td className="p-4 whitespace-nowrap">

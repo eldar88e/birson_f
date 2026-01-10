@@ -13,6 +13,7 @@ export interface OrderItem {
   id?: number;
   order_id: number;
   service_id: number;
+  car_id?: number;
   state: "initial" | "diagnostic" | "agreement" | "processing" | "control" | "completed" | "cancelled";
   materials_price: number;
   materials_comment: string;
