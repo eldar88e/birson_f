@@ -48,7 +48,7 @@ export default function CarAutocomplete({
     license_plate: "",
     vin: "",
     year: new Date().getFullYear(),
-    owner_id: ownerId,
+    owner_id: ownerId || 0,
     comment: "",
   });
 

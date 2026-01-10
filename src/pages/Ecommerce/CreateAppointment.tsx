@@ -76,12 +76,12 @@ export default function CreateAppointment() {
     setIsSubmitting(true);
 
     try {
-      const { id, car_id, ...orderDataWithoutId } = {
+      const { id, ...orderDataWithoutId } = {
         ...formData,
         client_id: formData.client_id,
         id: 0,
         client: "",
-        car: "",
+  
         price: 0,
         expense: 0,
         paid: false,
