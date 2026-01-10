@@ -1,30 +1,30 @@
 import { useState, useEffect } from "react";
-import Input from "../../../components/form/input/InputField";
-import Label from "../../../components/form/Label";
-import Button from "../../../components/ui/button/Button";
-import { orderItemService, type OrderItem, type OrderItemPerformer, type OrderItemPerformerAttribute } from "../../../api/orderItems";
-import { useNotification } from "../../../context/NotificationContext";
-import { Modal } from "../../../components/ui/modal";
-import { useModal } from "../../../hooks/useModal";
-import SvgIcon from "../../../shared/ui/SvgIcon";
-import { StatusBadge } from "../../../shared/ui/StatusBadge";
-import PerformerAutocomplete from "../../../components/form/PerformerAutocomplete";
-import ServiceAutocomplete from "../../../components/form/ServiceAutocomplete";
-import CarAutocomplete from "../../../components/form/CarAutocomplete";
-import { APPOINTMENT_ITEM_STATES } from "../../../entities/appointmentItem/model";
-import type { Car } from "../../../entities/car/model";
-import { carService } from "../../../api/cars";
-import { useConfirmDelete } from "../../../hooks/useConfirmDelete";
-import { apiClient } from "../../../api/client";
-import { ConfirmDeleteModal } from "../../../shared/ui/ConfirmDeleteModal";
+import Input from "../form/input/InputField";
+import Label from "../form/Label";
+import Button from "../ui/button/Button";
+import { orderItemService, type OrderItem, type OrderItemPerformer, type OrderItemPerformerAttribute } from "../../api/orderItems";
+import { useNotification } from "../../context/NotificationContext";
+import { Modal } from "../ui/modal";
+import { useModal } from "../../hooks/useModal";
+import SvgIcon from "../../shared/ui/SvgIcon";
+import { StatusBadge } from "../../shared/ui/StatusBadge";
+import PerformerAutocomplete from "../form/PerformerAutocomplete";
+import ServiceAutocomplete from "../form/ServiceAutocomplete";
+import CarAutocomplete from "../form/CarAutocomplete";
+import { APPOINTMENT_ITEM_STATES } from "../../entities/appointmentItem/model";
+import type { Car } from "../../entities/car/model";
+import { carService } from "../../api/cars";
+import { useConfirmDelete } from "../../hooks/useConfirmDelete";
+import { apiClient } from "../../api/client";
+import { ConfirmDeleteModal } from "../../shared/ui/ConfirmDeleteModal";
 
-interface CreateInvoiceTableProps {
+interface AppointmentItemProps {
   orderId?: number;
-  clientId?: number;
+  clientId: number;
   onItemsChange?: (items: OrderItem[]) => void;
 }
 
-const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, clientId, onItemsChange }) => {
+export default function AppointmentItem({ orderId, clientId, onItemsChange }: AppointmentItemProps) {
   const { showNotification } = useNotification();
   const { isOpen: isModalOpen, openModal, closeModal } = useModal();
   const [items, setItems] = useState<OrderItem[]>([]);
@@ -782,5 +782,3 @@ const CreateInvoiceTable: React.FC<CreateInvoiceTableProps> = ({ orderId, client
     </div>
   );
 };
-
-export default CreateInvoiceTable;

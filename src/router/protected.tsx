@@ -10,9 +10,9 @@ import UserList from "../pages/Users/UserList";
 import UserProfiles from "../pages/Users/UserProfiles";
 import AddUser from "../pages/Users/AddUser";
 
-import AppointmentList from "../pages/Ecommerce/Appointments";
-import SingleAppointment from "../pages/Ecommerce/SingleAppointment";
-import CreateAppointment from "../pages/Ecommerce/CreateAppointment";
+import AppointmentList from "../pages/Appointments/Appointments";
+import SingleAppointment from "../pages/Appointments/SingleAppointment";
+import CreateAppointment from "../pages/Appointments/CreateAppointment";
 
 import CreateInvoice from "../pages/Kanban";
 import Calendar from "../pages/Calendar";

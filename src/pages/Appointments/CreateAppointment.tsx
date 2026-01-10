@@ -1,20 +1,20 @@
 import { useState } from "react";
-import PageMeta from "../../components/common/PageMeta";
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import Label from "../../components/form/Label";
-import Input from "../../components/form/input/InputField";
-import UserAutocomplete from "../../components/form/UserAutocomplete";
-import type { User } from "../../entities/user/model";
-import InvoicePreviewModal from "../../components/ecommerce/create-invoice/InvoicePreviewModal";
-import CreateInvoiceTable from "../../components/ecommerce/create-invoice/CreateInvoiceTable";
+import PageMeta from "../../components/common/PageMeta.tsx";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb.tsx";
+import Label from "../../components/form/Label.tsx";
+import Input from "../../components/form/input/InputField.tsx";
+import UserAutocomplete from "../../components/form/UserAutocomplete.tsx";
+import type { User } from "../../entities/user/model.ts";
+import AppointmentItemPreview from "../../components/appointments/AppointmentItemPreview.tsx";
+import AppointmentItem from "../../components/appointments/AppointmentItem.tsx";
 import SvgIcon from "../../shared/ui/SvgIcon.tsx";
-import { apiClient } from "../../api/client";
+import { apiClient } from "../../api/client.ts";
 import {useNotification} from "../../context/NotificationContext.tsx";
-import { Appointment } from "../../entities/appointments/model";
+import { Appointment } from "../../entities/appointments/model.ts";
 import {ROUTES} from "../../shared/config/routes.ts";
 import {useNavigate} from "react-router";
-import Button from "../../components/ui/button/Button";
-import type { OrderItem } from "../../api/orderItems";
+import Button from "../../components/ui/button/Button.tsx";
+import type { OrderItem } from "../../api/orderItems.ts";
 
 type AppointmentFormData = {
   client_id: number | null;
@@ -192,11 +192,11 @@ export default function CreateAppointment() {
           </form>
         </div>
         <div className="border-b border-gray-200 p-4 sm:p-8 dark:border-gray-800">
-          <CreateInvoiceTable clientId={selectedUser?.id} onItemsChange={setOrderItems} />
+          <AppointmentItem clientId={selectedUser?.id ?? 0} onItemsChange={setOrderItems} />
         </div>
         <div className="p-4 sm:p-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <InvoicePreviewModal />
+            <AppointmentItemPreview />
             <Button
               type="submit"
               form="create-appointment-form"

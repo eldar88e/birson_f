@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import Button from "../ui/button/Button";
-import CreateInvoiceTable from "../ecommerce/create-invoice/CreateInvoiceTable";
+import AppointmentItem from "./AppointmentItem";
 import { apiClient } from "../../api/client";
 import type { Appointment } from "../../entities/appointments/model";
 import type { User } from "../../entities/user/model";
@@ -133,7 +133,7 @@ export default function AppointmentMain() {
         </div>
 
         {/* Order Items Table */}
-        <CreateInvoiceTable orderId={appointment.id} clientId={appointment.client_id} />
+        <AppointmentItem orderId={appointment.id} clientId={appointment.client_id} />
 
         <div className="flex items-center justify-end gap-3 mt-6">
           <Button onClick={() => navigate(`/appointments/${appointment.id}/edit`)}>Редактировать</Button>
