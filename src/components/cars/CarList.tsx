@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { apiClient } from "../../api/client";
+import { carService } from "../../api/cars";
 import Pages from "../../shared/ui/Pages";
 import SvgIcon from "../../shared/ui/SvgIcon";
 import { Link } from "react-router";
 import { ROUTES } from "../../shared/config/routes";
 import type { Car } from "../../entities/car/model";
-import { useNotification } from "../../context/NotificationContext";
 import type { PaginationMeta } from "../../shared/types/api/pagination";
 import CarModal from "./CarModal";
+import { DeleteAction } from "../../shared/ui/DeleteAction";
 
 interface Cars {
   data: Car[];
@@ -26,7 +26,6 @@ export default function CarListComponent() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const { showNotification } = useNotification();
   const [page, setPage] = useState(pages.page);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -34,7 +33,7 @@ export default function CarListComponent() {
     const fetchCars = async () => {
       setIsLoading(true);
       try {
-        const data = await apiClient.get<Cars>(`${ROUTES.CARS.INDEX}?page=${page}`, true);
+        const data = await carService.getCars(`?page=${page}`);
         setCars(data.data);
         setPages(data.meta);
       } catch (err) {
@@ -47,24 +46,6 @@ export default function CarListComponent() {
 
     fetchCars();
   }, [page]);
-
-  const handleDelete = async (id: number) => {
-    try {
-      await apiClient.delete<Cars>(`${ROUTES.CARS.INDEX}/${id}`, true);
-  
-      showNotification({
-        variant: "success",
-        title: "Автомобиль удален",
-        description: `Автомобиль ${id} удален`,
-      });
-    } catch (e) {
-      showNotification({
-        variant: "error",
-        title: "Ошибка удаления",
-        description: "Не удалось удалить автомобиль",
-      });
-    }
-  };
 
   if (isLoading) {
     return (
@@ -213,12 +194,23 @@ export default function CarListComponent() {
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div className=" flex items-center justify-center">
-                  <button 
-                    onClick={() => handleDelete(car.id)}
-                    className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                  <DeleteAction
+                    id={car.id}
+                    itemName={`Автомобиль #${car.id}`}
+                    onDelete={(id) => carService.deleteCar(id)}
+                    onSuccess={() =>
+                      setCars((prev) => prev.filter((c) => c.id !== car.id))
+                    }
                   >
-                    Удалить
-                  </button>
+                    {(open) => (
+                      <button
+                        onClick={open}
+                        className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                      >
+                        Удалить
+                      </button>
+                    )}
+                  </DeleteAction>
                   </div>
                 </td>
               </tr>
