@@ -12,10 +12,10 @@ interface CarModalProps {
   isModalOpen: boolean;
   onClose: () => void;
   ownerId: number;
-  cars: Car[];
+  onSuccess?: (car: Car) => void;
 }
 
-export default function CarModal({ isModalOpen, onClose, ownerId, cars }: CarModalProps) {
+export default function CarModal({ isModalOpen, onClose, ownerId, onSuccess }: CarModalProps) {
   const { showNotification } = useNotification();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [formData, setFormData] = useState<{
@@ -60,8 +60,6 @@ export default function CarModal({ isModalOpen, onClose, ownerId, cars }: CarMod
       };
 
       const car = await carService.createCar(carData);
-      cars.push(car);
-      console.log(car);
 
       showNotification({
         variant: "success",
@@ -69,6 +67,7 @@ export default function CarModal({ isModalOpen, onClose, ownerId, cars }: CarMod
         description: "Новый автомобиль успешно добавлен",
       });
 
+      onSuccess?.(car);
       onClose();
 
       setFormData({

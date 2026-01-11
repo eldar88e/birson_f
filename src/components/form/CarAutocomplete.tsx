@@ -180,7 +180,14 @@ export default function CarAutocomplete({
         </div>
       )}
 
-      <CarModal isModalOpen={isOpenModal} ownerId={ownerId} cars={cars} onClose={() => setIsOpenModal(false)} />
+      <CarModal 
+        isModalOpen={isOpenModal}
+        ownerId={ownerId}
+        onClose={() => setIsOpenModal(false)}
+        onSuccess={(car) => {
+          cars.push(car);
+        }}
+      />
     </div>
   );
 }
