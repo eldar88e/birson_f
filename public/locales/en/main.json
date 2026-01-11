@@ -2,7 +2,7 @@
   "hello": "Hello",
   "mainmenu": {
     "dashboard": "Dashboard",
-    "services": "Services",
+    "appointments": "Appointments",
     "users": "Users",
     "calendar": "Calendar",
     "pages": "Pages",

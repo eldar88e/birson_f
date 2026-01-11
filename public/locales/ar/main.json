@@ -2,7 +2,7 @@
   "hello": "مرحبا",
   "mainmenu": {
     "dashboard": "لوحة التحكم",
-    "services": "الخدمات",
+    "appointments": "الحجوزات",
     "users": "المستخدمين",
     "calendar": "التقويم",
     "pages": "الصفحات",

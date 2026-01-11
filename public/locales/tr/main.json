@@ -2,7 +2,7 @@
   "hello": "Merhaba",
   "mainmenu": {
     "dashboard": "Anasayfa",
-    "services": "Hizmetler",
+    "appointments": "Randevular",
     "users": "Kullanıcılar",
     "calendar": "Takvim",
     "pages": "Sayfalar",

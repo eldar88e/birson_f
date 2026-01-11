@@ -2,7 +2,7 @@
   "hello": "Привет",
   "mainmenu": {
     "dashboard": "Дашборд",
-    "services": "Услуги",
+    "appointments": "Записи",
     "users": "Пользователи",
     "calendar": "Календарь",
     "pages": "Страницы",

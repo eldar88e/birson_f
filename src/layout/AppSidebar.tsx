@@ -33,8 +33,8 @@ const navItems: NavItem[] = [
     path: ROUTES.ROOT
   },
   {
-    name: "services",
-    icon: <CartIcon />,
+    name: "appointments",
+    icon: <CalenderIcon />,
     new: true,
     path: ROUTES.APPOINTMENTS.INDEX,
   },
