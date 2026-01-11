@@ -6,6 +6,7 @@ interface UseConfirmDeleteOptions {
   onSuccess?: () => void;
   successMessage?: string;
   errorMessage?: string;
+  useApi?: boolean;
 }
 
 export function useConfirmDelete({
@@ -13,6 +14,7 @@ export function useConfirmDelete({
   onSuccess,
   successMessage = "Удалено",
   errorMessage = "Ошибка удаления",
+  useApi = true,
 }: UseConfirmDeleteOptions) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +26,7 @@ export function useConfirmDelete({
   const confirm = async () => {
     setIsLoading(true);
     try {
-      await onDelete();
+      if (useApi) await onDelete();
       showNotification({ variant: "success", title: successMessage });
       onSuccess?.();
       close();

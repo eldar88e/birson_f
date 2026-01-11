@@ -6,7 +6,7 @@ import Input from "../../components/form/input/InputField.tsx";
 import UserAutocomplete from "../../components/form/UserAutocomplete.tsx";
 import type { User } from "../../entities/user/model.ts";
 import AppointmentItemPreview from "../../components/appointments/AppointmentItemPreview.tsx";
-import AppointmentItem from "../../components/appointments/AppointmentItem.tsx";
+import AppointmentItems from "../../components/appointments/AppointmentItems.tsx";
 import SvgIcon from "../../shared/ui/SvgIcon.tsx";
 import { apiClient } from "../../api/client.ts";
 import {useNotification} from "../../context/NotificationContext.tsx";
@@ -14,7 +14,7 @@ import { Appointment } from "../../entities/appointments/model.ts";
 import {ROUTES} from "../../shared/config/routes.ts";
 import {useNavigate} from "react-router";
 import Button from "../../components/ui/button/Button.tsx";
-import type { OrderItem } from "../../api/orderItems.ts";
+import type { AppointmentItem } from "../../api/appointmetItems.ts";
 
 type AppointmentFormData = {
   client_id: number | null;
@@ -25,7 +25,7 @@ type AppointmentFormData = {
 
 export default function CreateAppointment() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const appointmentItems: AppointmentItem[] = [];
 
   const navigate = useNavigate();
   const { showNotification } = useNotification();
@@ -63,8 +63,7 @@ export default function CreateAppointment() {
       return;
     }
 
-    // Проверка что хотя бы один order_item имеет car_id
-    if (orderItems.length === 0 || !orderItems.some(item => item.car_id && item.car_id > 0)) {
+    if (appointmentItems.length === 0 || !appointmentItems.some(item => item.car_id && item.car_id > 0)) {
       showNotification({
         variant: "error",
         title: "Ошибка валидации",
@@ -92,14 +91,17 @@ export default function CreateAppointment() {
         updated_at: "",
       };
 
-      const itemsToSend = orderItems.map(({ id, order_id, ...item }) => item);
+      const itemsToSend = appointmentItems.map(({ id, order_id, ...item }) => item);
 
       const response = await apiClient.post<{ order: Appointment }>(
         "/orders",
         { 
           order: {
             ...orderDataWithoutId,
-            order_items_attributes: itemsToSend,
+            order_items_attributes: {
+              ...itemsToSend,
+              order_item_performers_attributes: [],
+            }
           },
         },
         true
@@ -192,7 +194,14 @@ export default function CreateAppointment() {
           </form>
         </div>
         <div className="border-b border-gray-200 p-4 sm:p-8 dark:border-gray-800">
-          <AppointmentItem clientId={selectedUser?.id ?? 0} onItemsChange={setOrderItems} />
+          {selectedUser ? (
+            <AppointmentItems clientId={selectedUser.id} items={appointmentItems} />
+          )
+        : (
+          <div className="text-center text-gray-500 py-8 dark:text-gray-400">
+            Для добавления услуг необходимо выбрать клиента
+          </div>
+        )}
         </div>
         <div className="p-4 sm:p-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">

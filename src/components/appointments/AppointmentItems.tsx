@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import Button from "../ui/button/Button";
-import { orderItemService, type OrderItem, type OrderItemPerformer, type OrderItemPerformerAttribute } from "../../api/orderItems";
+import { appointmentItemService, type AppointmentItem, type AppointmentItemPerformer, type AppointmentItemPerformerAttribute } from "../../api/appointmetItems";
 import { useNotification } from "../../context/NotificationContext";
 import { Modal } from "../ui/modal";
 import { useModal } from "../../hooks/useModal";
@@ -15,25 +15,23 @@ import { APPOINTMENT_ITEM_STATES } from "../../entities/appointmentItem/model";
 import type { Car } from "../../entities/car/model";
 import { carService } from "../../api/cars";
 import { useConfirmDelete } from "../../hooks/useConfirmDelete";
-import { apiClient } from "../../api/client";
 import { ConfirmDeleteModal } from "../../shared/ui/ConfirmDeleteModal";
 
 interface AppointmentItemProps {
-  orderId?: number;
+  appointmentId?: number;
   clientId: number;
-  onItemsChange?: (items: OrderItem[]) => void;
+  items?: AppointmentItem[];
 }
 
-export default function AppointmentItem({ orderId, clientId, onItemsChange }: AppointmentItemProps) {
+export default function AppointmentItems({ appointmentId, clientId, items }: AppointmentItemProps) {
   const { showNotification } = useNotification();
   const { isOpen: isModalOpen, openModal, closeModal } = useModal();
-  const [items, setItems] = useState<OrderItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [appointmentItems, setAppointmentItems] = useState<AppointmentItem[]>(items || []);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
-  const [performers, setPerformers] = useState<OrderItemPerformer[]>([]);
+  const [performers, setPerformers] = useState<AppointmentItemPerformer[]>([]);
   const [selectedCar, setSelectedCar] = useState<Car | null>(null);
-  const [formData, setFormData] = useState<Omit<OrderItem, "id" | "order_id" | "order_item_performers">>({
+  const [formData, setFormData] = useState<Omit<AppointmentItem, "id" | "order_id" | "order_item_performers">>({
     service_id: 0,
     car_id: 0,
     state: "initial",
@@ -44,19 +42,15 @@ export default function AppointmentItem({ orderId, clientId, onItemsChange }: Ap
     price: 0,
     paid: false,
     comment: "",
+    order_item_performers_attributes: [],
   });
 
   useEffect(() => {
-    if (orderId) loadOrderItems();
-  }, [orderId]);
+    if (appointmentItems) setAppointmentItems(appointmentItems);
+  }, [appointmentItems]);
 
-  useEffect(() => {
-    onItemsChange?.(items);
-  }, [items, onItemsChange]);
-
-  // Helper function to normalize OrderItem data (convert string numbers to actual numbers)
-  const normalizeOrderItem = (item: any): OrderItem => {
-    const normalized: OrderItem = {
+  const normalizeAppointmentItem = (item: any): AppointmentItem => {
+    const normalized: AppointmentItem = {
       ...item,
       id: typeof item.id === "string" ? parseInt(item.id, 10) : item.id,
       order_id: typeof item.order_id === "string" ? parseInt(item.order_id, 10) : item.order_id,
@@ -70,34 +64,16 @@ export default function AppointmentItem({ orderId, clientId, onItemsChange }: Ap
     return normalized;
   };
 
-  const loadOrderItems = async () => {
-    if (!orderId) return;
-
-    setIsLoading(true);
-    try {
-      const loadedItems = await orderItemService.getOrderItems(orderId);
-      const normalizedItems = loadedItems.map(normalizeOrderItem);
-      setItems(normalizedItems);
-    } catch (error) {
-      showNotification({
-        variant: "error",
-        title: "Ошибка загрузки",
-        description: error instanceof Error ? error.message : "Не удалось загрузить позиции",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const deleteModal = useConfirmDelete({
     onDelete: () =>
-      apiClient.delete(`/orders/${orderId}/order_items/${itemToDelete}`, true),
+      appointmentItemService.delete(appointmentId || 0, itemToDelete || 0),
     onSuccess: () =>
-      setItems((prev) =>
+      setAppointmentItems((prev) =>
         prev.filter((a) => a.id !== itemToDelete)
       ),
     successMessage: "Позиция в записи удалена",
     errorMessage: "Не удалось удалить позицию в записи",
+    useApi: !!appointmentId,
   });
 
   const handleInputChange = (
@@ -123,7 +99,7 @@ export default function AppointmentItem({ orderId, clientId, onItemsChange }: Ap
       }
 
       if (name === "state") {
-        return { ...prev, state: value as OrderItem["state"] };
+        return { ...prev, state: value as AppointmentItem["state"] };
       }
 
       return { ...prev, [name]: value as any };
@@ -149,7 +125,7 @@ export default function AppointmentItem({ orderId, clientId, onItemsChange }: Ap
     openModal();
   };
 
-  const handleEditItem = async (item: OrderItem) => {
+  const handleEditItem = async (item: AppointmentItem) => {
     setEditingItemId(item.id ?? null);
     setFormData({
       service_id: item.service_id,
@@ -207,7 +183,7 @@ export default function AppointmentItem({ orderId, clientId, onItemsChange }: Ap
     setPerformers((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const updatePerformer = (index: number, updates: Partial<OrderItemPerformer>) => {
+  const updatePerformer = (index: number, updates: Partial<AppointmentItemPerformer>) => {
     setPerformers((prev) =>
       prev.map((p, i) => (i === index ? { ...p, ...updates } : p))
     );
@@ -236,8 +212,7 @@ export default function AppointmentItem({ orderId, clientId, onItemsChange }: Ap
       return;
     }
 
-    // Convert performers to order_item_performers_attributes format
-    const order_item_performers_attributes: OrderItemPerformerAttribute[] = validPerformers.map((p) => ({
+    const order_item_performers_attributes: AppointmentItemPerformerAttribute[] = validPerformers.map((p) => ({
       id: p.id,
       performer_id: p.performer_id,
       performer_type: p.performer_type,
@@ -245,18 +220,18 @@ export default function AppointmentItem({ orderId, clientId, onItemsChange }: Ap
       _destroy: p._destroy,
     }));
 
-    if (orderId) {
+    if (appointmentId) {
       try {
         if (editingItemId) {
           // Update existing item
-          const updatedItem = await orderItemService.updateOrderItem(orderId, editingItemId, {
-            order_id: orderId,
+          const updatedItem = await appointmentItemService.updateAppointmentItem(appointmentId, editingItemId, {
+            order_id: appointmentId,
             ...formData,
             order_item_performers_attributes,
           });
 
-          const normalizedItem = normalizeOrderItem(updatedItem);
-          setItems((prev) =>
+          const normalizedItem = normalizeAppointmentItem(updatedItem);
+          setAppointmentItems((prev) =>
             prev.map((item) => (item.id === editingItemId ? normalizedItem : item))
           );
           showNotification({
@@ -266,14 +241,14 @@ export default function AppointmentItem({ orderId, clientId, onItemsChange }: Ap
           });
         } else {
           // Create new item
-          const newItem = await orderItemService.createOrderItem(orderId, {
-            order_id: orderId,
+          const newItem = await appointmentItemService.createAppointmentItem(appointmentId, {
+            order_id: appointmentId,
             ...formData,
             order_item_performers_attributes,
           });
 
-          const normalizedItem = normalizeOrderItem(newItem);
-          setItems((prev) => [...prev, normalizedItem]);
+          const normalizedItem = normalizeAppointmentItem(newItem);
+          setAppointmentItems((prev) => [...prev, normalizedItem]);
           showNotification({
             variant: "success",
             title: "Позиция добавлена",
@@ -289,20 +264,20 @@ export default function AppointmentItem({ orderId, clientId, onItemsChange }: Ap
         });
       }
     } else {
-      const newItem: OrderItem = {
+      const newItem: AppointmentItem = {
         id: Date.now(),
         order_id: 0,
         ...formData
       };
-      setItems((prev) => [...prev, newItem]);
+      setAppointmentItems((prev) => [...prev, newItem]);
       closeModal();
     }
   };
 
-  const subtotal: number = items.reduce((sum, item) => sum + Number(item.price || 0), 0);
-  const materialsTotal: number = items.reduce((sum, item) => sum + Number(item.materials_price || 0), 0);
-  const deliveryTotal: number = items.reduce((sum, item) => sum + Number(item.delivery_price || 0), 0);
-  const performerFeeTotal: number = items.reduce((sum, item) => {
+  const subtotal: number = appointmentItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
+  const materialsTotal: number = appointmentItems.reduce((sum, item) => sum + Number(item.materials_price || 0), 0);
+  const deliveryTotal: number = appointmentItems.reduce((sum, item) => sum + Number(item.delivery_price || 0), 0);
+  const performerFeeTotal: number = appointmentItems.reduce((sum, item) => {
     if (item.order_item_performers && item.order_item_performers.length > 0) {
       return sum + item.order_item_performers.reduce((pSum, p) => pSum + Number(p.performer_fee || 0), 0);
     }
@@ -359,20 +334,14 @@ export default function AppointmentItem({ orderId, clientId, onItemsChange }: Ap
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-white/[0.03]">
-              {isLoading && items.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="px-5 py-4 text-center text-gray-400">
-                    Загрузка позиций...
-                  </td>
-                </tr>
-              ) : items.length === 0 ? (
+              {appointmentItems.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="px-5 py-4 text-center text-gray-400">
                     Позиции не добавлены
                   </td>
                 </tr>
               ) : (
-                items.map((item, idx) => (
+                appointmentItems.map((item, idx) => (
                   <tr key={item.id || idx}>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
                       {idx + 1}
@@ -408,7 +377,7 @@ export default function AppointmentItem({ orderId, clientId, onItemsChange }: Ap
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
                       {item.order_item_performers && item.order_item_performers.length > 0 ? (
                         <div className="space-y-1">
-                          {item.order_item_performers.map((performer: OrderItemPerformer, pIdx: number) => (
+                          {item.order_item_performers.map((performer: AppointmentItemPerformer, pIdx: number) => (
                             <div key={pIdx}>
                               {Number(performer.performer_fee || 0) > 0 
                                 ? `${Number(performer.performer_fee || 0).toFixed(2)} ₽` 

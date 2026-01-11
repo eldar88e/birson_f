@@ -1,12 +1,9 @@
-import type { User } from "../user/model";
-import type { Car } from "../car/model";
+import type { AppointmentItem } from "../../api/appointmetItems";
 
 export interface Appointment {
   id: number;
   client_id: number;
-  client: string | User;
-  car: string | Car;
-  car_id: number;
+  client_full_name: string;
   state: "initial" | "processing" | "completed" | "cancelled";
   price: number;
   expense: number;
@@ -18,4 +15,5 @@ export interface Appointment {
   cancelled_at: string;
   created_at: string;
   updated_at: string;
+  order_items?: AppointmentItem[];
 }

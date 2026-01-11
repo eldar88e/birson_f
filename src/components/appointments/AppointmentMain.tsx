@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import Button from "../ui/button/Button";
-import AppointmentItem from "./AppointmentItem";
+import AppointmentItems from "./AppointmentItems";
 import { apiClient } from "../../api/client";
 import type { Appointment } from "../../entities/appointments/model";
-import type { User } from "../../entities/user/model";
 import { formatDate } from "../../shared/lib/formatDate";
 import { StatusBadge } from "../../shared/ui/StatusBadge";
 import { useNavigate } from "react-router";
@@ -66,18 +65,6 @@ export default function AppointmentMain() {
     );
   }
 
-  const getClientDisplayName = (client: string | User): string => {
-    if (typeof client === "string") {
-      return client;
-    }
-    // If client is an object (User), use full_name or construct from name parts
-    if (client.full_name) {
-      return client.full_name;
-    }
-    const parts = [client.first_name, client.middle_name, client.last_name].filter(Boolean);
-    return parts.join(" ") || client.email || `ID: ${client.id}`;
-  };
-
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] w-full">
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
@@ -101,7 +88,7 @@ export default function AppointmentMain() {
             </span>
 
             <h5 className="mb-2 text-base font-semibold text-gray-800 dark:text-white/90">
-              {getClientDisplayName(appointment.client) || "Не указан"}
+              {appointment.client_full_name}
             </h5>
 
             {appointment.comment && (
@@ -133,7 +120,7 @@ export default function AppointmentMain() {
         </div>
 
         {/* Order Items Table */}
-        <AppointmentItem orderId={appointment.id} clientId={appointment.client_id} />
+        <AppointmentItems appointmentId={appointment.id} clientId={appointment.client_id} items={appointment.order_items} />
 
         <div className="flex items-center justify-end gap-3 mt-6">
           <Button onClick={() => navigate(`/appointments/${appointment.id}/edit`)}>Редактировать</Button>

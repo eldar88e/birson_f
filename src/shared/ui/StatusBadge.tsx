@@ -1,7 +1,7 @@
 import type { Appointment } from "../../entities/appointments/model";
-import type { OrderItem } from "../../api/orderItems";
+import type { AppointmentItem } from "../../api/appointmetItems";
 
-type Status = Appointment["state"] | OrderItem["state"];
+type Status = Appointment["state"] | AppointmentItem["state"];
 
 const STATUS_MAP: Record<string, string> = {
   completed: "bg-success-50 dark:bg-success-500/15 text-success-700 dark:text-success-500",

@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from "react";
 import TableDropdown from "../common/TableDropdown";
 import type { Appointment } from "../../entities/appointments/model";
-import type { User } from "../../entities/user/model";
 import { apiClient } from "../../api/client";
 import Pages from "../../shared/ui/Pages.tsx";
 import SvgIcon from "../../shared/ui/SvgIcon";
@@ -89,14 +88,6 @@ export default function AppointmentListTable() {
       if (isAllSelected) return new Set();
       return new Set(appointments.map(a => a.id));
     });
-  };
-
-  const getClientDisplayName = (client: string | User): string => {
-    if (typeof client === "string") return client;
-    if (client.full_name) return client.full_name;
-
-    const parts = [client.first_name, client.middle_name, client.last_name].filter(Boolean);
-    return parts.join(" ") || client.email || `ID: ${client.id}`;
   };
 
   const deleteModal = useConfirmDelete({
@@ -308,7 +299,7 @@ export default function AppointmentListTable() {
                     </td>
                     <td className="p-4 whitespace-nowrap">
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-400">
-                        {getClientDisplayName(appointment.client)}
+                        {appointment.client_full_name}
                       </span>
                     </td>
                     <td className="p-4 whitespace-nowrap">
