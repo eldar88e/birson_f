@@ -2,7 +2,7 @@ import { useState } from "react";
 import PageMeta from "../../components/common/PageMeta.tsx";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb.tsx";
 import Label from "../../components/form/Label.tsx";
-import Input from "../../components/form/input/InputField.tsx";
+import DatePicker from "../../components/form/date-picker.tsx";
 import UserAutocomplete from "../../components/form/UserAutocomplete.tsx";
 import type { User } from "../../entities/user/model.ts";
 // import AppointmentItemPreview from "../../components/appointments/AppointmentItemPreview.tsx";
@@ -25,7 +25,7 @@ type AppointmentFormData = {
 
 export default function CreateAppointment() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const appointmentItems: AppointmentItem[] = [];
+  const [appointmentItems, setAppointmentItems] = useState<AppointmentItem[]>([]);
 
   const navigate = useNavigate();
   const { showNotification } = useNotification();
@@ -75,32 +75,17 @@ export default function CreateAppointment() {
     setIsSubmitting(true);
 
     try {
-      const { id, ...orderDataWithoutId } = {
-        ...formData,
-        client_id: formData.client_id,
-        id: 0,
-        client: "",
-  
-        price: 0,
-        expense: 0,
-        processing_at: "",
-        completed_at: "",
-        cancelled_at: "",
-        created_at: "",
-        updated_at: "",
-      };
-
-      const itemsToSend = appointmentItems.map(({ id, order_id, ...item }) => item);
+      const itemsToSend = appointmentItems.map(({ id, order_id, order_item_performers, service, ...item }) => ({
+        ...item,
+        order_item_performers_attributes: item.order_item_performers_attributes || [],
+      }));
 
       const response = await apiClient.post<{ order: Appointment }>(
         "/orders",
         { 
           order: {
-            ...orderDataWithoutId,
-            order_items_attributes: {
-              ...itemsToSend,
-              order_item_performers_attributes: [],
-            }
+            ...formData,
+            order_items_attributes: itemsToSend,
           },
         },
         true
@@ -151,13 +136,14 @@ export default function CreateAppointment() {
                 />
               </div>
               <div>
-                <Label>Дата записи</Label>
-                <Input
-                  type="date"
-                  placeholder="2026-01-15"
-                  value={formData.appointment_at}
-                  onChange={(e) => handleChange("appointment_at", e.target.value)}
-                  required
+                <DatePicker
+                  id="appointment-date"
+                  label="Дата записи"
+                  placeholder="Выберите дату"
+                  defaultDate={formData.appointment_at || undefined}
+                  onChange={(_dates, dateStr) => {
+                    handleChange("appointment_at", dateStr || "");
+                  }}
                 />
               </div>
               <div>
@@ -186,7 +172,11 @@ export default function CreateAppointment() {
         </div>
         <div className="border-b border-gray-200 p-4 sm:p-8 dark:border-gray-800">
           {selectedUser ? (
-            <AppointmentItems clientId={selectedUser.id} items={appointmentItems} />
+            <AppointmentItems 
+              clientId={selectedUser.id} 
+              items={appointmentItems}
+              onItemsChange={setAppointmentItems}
+            />
           )
         : (
           <div className="text-center text-gray-500 py-8 dark:text-gray-400">

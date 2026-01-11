@@ -16,14 +16,17 @@ import type { Car } from "../../entities/car/model";
 import { carService } from "../../api/cars";
 import { useConfirmDelete } from "../../hooks/useConfirmDelete";
 import { ConfirmDeleteModal } from "../../shared/ui/ConfirmDeleteModal";
+import type { Service } from "../../entities/service/model";
+import { serviceService } from "../../api/services";
 
 interface AppointmentItemProps {
   appointmentId?: number;
   clientId: number;
   items?: AppointmentItem[];
+  onItemsChange?: (items: AppointmentItem[]) => void;
 }
 
-export default function AppointmentItems({ appointmentId, clientId, items }: AppointmentItemProps) {
+export default function AppointmentItems({ appointmentId, clientId, items, onItemsChange }: AppointmentItemProps) {
   const { showNotification } = useNotification();
   const { isOpen: isModalOpen, openModal, closeModal } = useModal();
   const [appointmentItems, setAppointmentItems] = useState<AppointmentItem[]>(items || []);
@@ -31,6 +34,7 @@ export default function AppointmentItems({ appointmentId, clientId, items }: App
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
   const [performers, setPerformers] = useState<AppointmentItemPerformer[]>([]);
   const [selectedCar, setSelectedCar] = useState<Car | null>(null);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [formData, setFormData] = useState<Omit<AppointmentItem, "id" | "order_id" | "order_item_performers">>({
     service_id: 0,
     car_id: 0,
@@ -46,8 +50,12 @@ export default function AppointmentItems({ appointmentId, clientId, items }: App
   });
 
   useEffect(() => {
-    if (appointmentItems) setAppointmentItems(appointmentItems);
-  }, [appointmentItems]);
+    if (items) setAppointmentItems(items);
+  }, [items]);
+
+  useEffect(() => {
+    onItemsChange?.(appointmentItems);
+  }, [appointmentItems, onItemsChange]);
 
   const normalizeAppointmentItem = (item: any): AppointmentItem => {
     const normalized: AppointmentItem = {
@@ -109,6 +117,7 @@ export default function AppointmentItems({ appointmentId, clientId, items }: App
   const handleOpenModal = () => {
     setEditingItemId(null);
     setSelectedCar(null);
+    setSelectedService(null);
     setFormData({
       service_id: 0,
       car_id: 0,
@@ -140,6 +149,19 @@ export default function AppointmentItems({ appointmentId, clientId, items }: App
       comment: item.comment,
     });
     
+    // Load service if service_id exists
+    if (item.service_id) {
+      try {
+        const services = await serviceService.getServices();
+        const service = services.find(s => s.id === item.service_id);
+        setSelectedService(service || null);
+      } catch {
+        setSelectedService(null);
+      }
+    } else {
+      setSelectedService(null);
+    }
+    
     // Load car if car_id exists
     if (item.car_id && clientId) {
       try {
@@ -161,6 +183,15 @@ export default function AppointmentItems({ appointmentId, clientId, items }: App
         performer_type: p.performer_type,
         performer_fee: p.performer_fee,
         performer_name: p.performer_name,
+      })));
+    } else if (item.order_item_performers_attributes && item.order_item_performers_attributes.length > 0) {
+      // For local items, convert attributes to performers
+      setPerformers(item.order_item_performers_attributes.map(attr => ({
+        id: attr.id,
+        performer_id: attr.performer_id,
+        performer_type: attr.performer_type,
+        performer_fee: attr.performer_fee,
+        performer_name: (item.order_item_performers?.find(p => p.performer_id === attr.performer_id)?.performer_name) || "",
       })));
     } else {
       setPerformers([]);
@@ -264,10 +295,26 @@ export default function AppointmentItems({ appointmentId, clientId, items }: App
         });
       }
     } else {
+      // Convert attributes to performers for display, using performer_name from performers state
+      const order_item_performers: AppointmentItemPerformer[] = order_item_performers_attributes.map((attr) => {
+        const performer = performers.find(p => p.performer_id === attr.performer_id);
+        return {
+          id: attr.id,
+          performer_id: attr.performer_id,
+          performer_type: attr.performer_type,
+          performer_fee: attr.performer_fee,
+          performer_name: performer?.performer_name || "",
+        };
+      });
+
       const newItem: AppointmentItem = {
         id: Date.now(),
         order_id: 0,
-        ...formData
+        ...formData,
+        car_id: selectedCar?.id || formData.car_id || 0, // Ensure car_id is set from selectedCar
+        service: selectedService?.title || "",
+        order_item_performers_attributes,
+        order_item_performers, // For display in table
       };
       setAppointmentItems((prev) => [...prev, newItem]);
       closeModal();
@@ -515,7 +562,8 @@ export default function AppointmentItems({ appointmentId, clientId, items }: App
                   label="Услуга *"
                   placeholder="Введите название услуги"
                   value={formData.service_id === 0 ? null : formData.service_id}
-                  onChange={(serviceId, _service) => {
+                  onChange={(serviceId, service) => {
+                    setSelectedService(service || null);
                     setFormData((prev) => ({
                       ...prev,
                       service_id: serviceId || 0,
@@ -632,8 +680,16 @@ export default function AppointmentItems({ appointmentId, clientId, items }: App
                             placeholder={performer.performer_type === "User" ? "Введите имя или номер телефона пользователя" : "Введите имя или номер телефона контрагента"}
                             value={performer.performer_id === 0 ? null : performer.performer_id}
                             performerType={performer.performer_type}
-                            onChange={(performerId, _performer) => {
-                              updatePerformer(index, { performer_id: performerId || 0 });
+                            onChange={(performerId, performerObj) => {
+                              const performerName = performerObj 
+                                ? (performer.performer_type === "User" 
+                                    ? (performerObj as any).full_name || (performerObj as any).phone || ""
+                                    : (performerObj as any).name || "")
+                                : "";
+                              updatePerformer(index, { 
+                                performer_id: performerId || 0,
+                                performer_name: performerName,
+                              });
                             }}
                           />
                         </div>
