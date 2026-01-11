@@ -1,5 +1,7 @@
 import iconsUrl from "@/images/icons.svg";
 
+const DEFAULT_ICON_SIZE = 20;
+
 type IconProps = {
   name: string;
   width?: number;
@@ -10,17 +12,17 @@ type IconProps = {
 
 export default function SvgIcon({
   name,
-  width = 20,
+  width = DEFAULT_ICON_SIZE,
   height,
   className = "",
 }: IconProps) {
-  const size = height ?? width;
+  const normalizedHeight = height ?? DEFAULT_ICON_SIZE;
 
   return (
     <svg
       className={`pointer-events-none ${className}`}
       width={width}
-      height={size}
+      height={normalizedHeight}
       fill="currentColor"
       aria-hidden="true"
     >

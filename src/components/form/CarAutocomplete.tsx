@@ -4,6 +4,7 @@ import Label from "./Label";
 import { useCarSearch } from "../../hooks/useCarSearch";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import CarModal from "../cars/CarModal";
+import SvgIcon from "../../shared/ui/SvgIcon";
 
 interface CarAutocompleteProps {
   value?: Car | null;
@@ -27,7 +28,7 @@ export default function CarAutocomplete({
   useClickOutside(wrapperRef, () => setIsOpen(false));
 
   const getCarDisplayName = (car: Car): string => {
-    return [car.brand, car.model, car.year].filter(Boolean).join(" ");
+    return [car.brand, car.model].filter(Boolean).join(" ");
   };
 
   useEffect(() => {
@@ -40,7 +41,7 @@ export default function CarAutocomplete({
 
   const handleFocus = () => {
     if (!isOpen) {
-      loadCars();
+      if (cars.length === 0) loadCars();
       setIsOpen(true);
     }
   };
@@ -98,31 +99,7 @@ export default function CarAutocomplete({
           placeholder="Нажмите для выбора автомобиля"
           className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
         />
-        {isLoading && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <svg
-              className="animate-spin h-5 w-5 text-gray-400"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-          </div>
-        )}
-        {!isLoading && displayValue && ownerId && (
+        {displayValue && ownerId ? (
           <button
             type="button"
             onClick={() => {
@@ -131,22 +108,12 @@ export default function CarAutocomplete({
             }}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M15 5L5 15M5 5L15 15"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <SvgIcon name="close" />
           </button>
+        ) : (
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+            <SvgIcon name="down-arrow" className="text-gray-400" />
+          </div>
         )}
       </div>
 
@@ -161,9 +128,8 @@ export default function CarAutocomplete({
           ) : (
             <>
               {isLoading ? (
-                <div className="p-4 text-center">
-                  <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-brand-500 border-r-transparent"></div>
-                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Загрузка...</p>
+                <div className="px-4 py-2 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-500"></div>
                 </div>
               ) : cars.length > 0 ? (
                 <div className="max-h-60 overflow-auto">
@@ -181,7 +147,12 @@ export default function CarAutocomplete({
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="text-sm text-gray-800 dark:text-white">
-                            {getCarDisplayName(car)}
+                            <div>
+                              <div>{getCarDisplayName(car)}</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                №: {car.license_plate} Год: {car.year}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -209,7 +180,7 @@ export default function CarAutocomplete({
         </div>
       )}
 
-      <CarModal isModalOpen={isOpenModal} ownerId={ownerId} onClose={() => setIsOpenModal(false)} />
+      <CarModal isModalOpen={isOpenModal} ownerId={ownerId} cars={cars} onClose={() => setIsOpenModal(false)} />
     </div>
   );
 }

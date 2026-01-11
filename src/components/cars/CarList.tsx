@@ -85,6 +85,7 @@ export default function CarListComponent() {
           isModalOpen={isModalOpen} 
           onClose={() => setIsModalOpen(false)}
           ownerId={0} 
+          cars={cars}
         />
         <div className="flex gap-3.5">
           <div className="hidden flex-col gap-3 sm:flex sm:flex-row sm:items-center">

@@ -6,14 +6,16 @@ import { carService, type CreateCarData } from "../../api/cars";
 import { useNotification } from "../../context/NotificationContext";
 import UserAutocomplete from "../form/UserAutocomplete";
 import type { User } from "../../entities/user/model";
+import type { Car } from "../../entities/car/model";
 
 interface CarModalProps {
   isModalOpen: boolean;
   onClose: () => void;
   ownerId: number;
+  cars: Car[];
 }
 
-export default function CarModal({ isModalOpen, onClose, ownerId }: CarModalProps) {
+export default function CarModal({ isModalOpen, onClose, ownerId, cars }: CarModalProps) {
   const { showNotification } = useNotification();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [formData, setFormData] = useState<{
@@ -57,7 +59,9 @@ export default function CarModal({ isModalOpen, onClose, ownerId }: CarModalProp
         comment: formData.comment,
       };
 
-      await carService.createCar(carData);
+      const car = await carService.createCar(carData);
+      cars.push(car);
+      console.log(car);
 
       showNotification({
         variant: "success",
