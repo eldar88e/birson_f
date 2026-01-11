@@ -155,7 +155,7 @@ export default function CreateAppointment() {
                 <Label>Дата записи</Label>
                 <Input
                   type="date"
-                  placeholder="2023-09-15"
+                  placeholder="2026-01-15"
                   value={formData.appointment_at}
                   onChange={(e) => handleChange("appointment_at", e.target.value)}
                   required
