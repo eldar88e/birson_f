@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import TableDropdown from "../common/TableDropdown";
 import type { Appointment } from "../../entities/appointments/model";
-import { apiClient } from "../../api/client";
+import { appointmentService } from "../../api/appointmet";
 import Pages from "../../shared/ui/Pages.tsx";
 import SvgIcon from "../../shared/ui/SvgIcon";
 import { StatusBadge } from "../../shared/ui/StatusBadge";
@@ -10,8 +10,7 @@ import { useNavigate } from "react-router";
 import { ROUTES } from "../../shared/config/routes";
 import { FilterTabs } from "../../shared/ui/FilterTabs";
 import Loader from "../../shared/ui/Loader";
-import { ConfirmDeleteModal } from "../../shared/ui/ConfirmDeleteModal";
-import { useConfirmDelete } from "../../hooks/useConfirmDelete";
+import { DeleteAction } from "../../shared/ui/DeleteAction";
 
 interface Appointments {
   data: Appointment[];
@@ -49,15 +48,14 @@ export default function AppointmentListTable() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<string>("");
-  const [appointmentToDelete, setAppointmentToDelete] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchAppointments = async () => {
       setIsLoading(true);
       try {
-        let path = `/orders?page=${page}`
+        let path = `?page=${page}`
         if (filter) path += `&q[state_eq]=${filter}`
-        const data = await apiClient.get<Appointments>(path, true);
+        const data = await appointmentService.getAppointments(path);
         setAppointments(data.data);
         setPages(data.meta);
       } catch (err) {
@@ -89,16 +87,6 @@ export default function AppointmentListTable() {
       return new Set(appointments.map(a => a.id));
     });
   };
-
-  const deleteModal = useConfirmDelete({
-    onDelete: () =>
-      apiClient.delete(`/orders/${appointmentToDelete}`, true),
-    onSuccess: () =>
-      setAppointments((prev) =>
-        prev.filter((a) => a.id !== appointmentToDelete)
-      ),
-    successMessage: "Запись удалена",
-  });
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
@@ -342,20 +330,34 @@ export default function AppointmentListTable() {
                           dropdownContent={
                             <>
                               <button 
-                                onClick={() => navigate(`${ROUTES.APPOINTMENTS.INDEX}/${appointment.id}`)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`${ROUTES.APPOINTMENTS.INDEX}/${appointment.id}`);
+                                }}
                                 className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
                               >
                                 Подробнее
                               </button>
-                              <button 
-                                onClick={() => {
-                                  setAppointmentToDelete(appointment.id);
-                                  deleteModal.open();
-                                  }}
-                                className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                              <DeleteAction
+                                id={appointment.id}
+                                itemName={`Запись #${appointment.id}`}
+                                onDelete={(id) => appointmentService.deleteAppointment(id)}
+                                onSuccess={() =>
+                                  setAppointments((prev) => prev.filter((a) => a.id !== appointment.id))
+                                }
                               >
-                                Удалить
-                              </button>
+                                {(open) => (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      open();
+                                    }}
+                                    className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                                  >
+                                    Удалить
+                                  </button>
+                                )}
+                              </DeleteAction>
                             </>
                           }
                         />
@@ -374,14 +376,6 @@ export default function AppointmentListTable() {
           </div>
         </>
       )}
-
-      <ConfirmDeleteModal
-        isOpen={deleteModal.isOpen}
-        isLoading={deleteModal.isLoading}
-        onClose={deleteModal.close}
-        onConfirm={deleteModal.confirm}
-        itemName={`Запись #${appointmentToDelete}`}
-      />
     </div>
   );
 };

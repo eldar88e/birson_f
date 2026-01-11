@@ -20,7 +20,9 @@ const TableDropdown: React.FC<DropdownProps> = ({
     const target = event.target as Node;
     if (buttonRef.current && contentRef.current) {
       const dropdown = buttonRef.current.closest("div");
-      if (dropdown && !dropdown.contains(target)) {
+      const content = contentRef.current;
+      // Don't close if click is inside dropdown content
+      if (dropdown && !dropdown.contains(target) && !content.contains(target)) {
         setIsOpen(false);
       }
     }
@@ -78,6 +80,7 @@ const TableDropdown: React.FC<DropdownProps> = ({
             role="menu"
             aria-orientation="vertical"
             aria-labelledby="options-menu"
+            onClick={(e) => e.stopPropagation()}
           >
             {dropdownContent}
           </div>

@@ -1,4 +1,5 @@
 import { ReactNode, useState } from "react";
+import { createPortal } from "react-dom";
 import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
 import { useConfirmDelete } from "../../hooks/useConfirmDelete";
 
@@ -33,13 +34,16 @@ export function DeleteAction({
     <>
       {children(open)}
 
-      <ConfirmDeleteModal
-        isOpen={deleteModal.isOpen}
-        isLoading={deleteModal.isLoading}
-        onClose={deleteModal.close}
-        onConfirm={deleteModal.confirm}
-        itemName={itemName}
-      />
+      {deleteModal.isOpen && typeof document !== 'undefined' && createPortal(
+        <ConfirmDeleteModal
+          isOpen={deleteModal.isOpen}
+          isLoading={deleteModal.isLoading}
+          onClose={deleteModal.close}
+          onConfirm={deleteModal.confirm}
+          itemName={itemName}
+        />,
+        document.body
+      )}
     </>
   );
 }
