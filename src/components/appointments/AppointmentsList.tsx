@@ -238,9 +238,6 @@ export default function AppointmentListTable() {
                     </div>
                   </th>
                   <th className="p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400">
-                    Авто
-                  </th>
-                  <th className="p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400">
                     Создано
                   </th>
                   <th className="p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400">
