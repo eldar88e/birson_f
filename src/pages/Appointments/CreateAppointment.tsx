@@ -83,7 +83,6 @@ export default function CreateAppointment() {
   
         price: 0,
         expense: 0,
-        paid: false,
         processing_at: "",
         completed_at: "",
         cancelled_at: "",
@@ -142,7 +141,7 @@ export default function CreateAppointment() {
         </div>
         <div className="border-b border-gray-200 p-4 sm:p-8 dark:border-gray-800">
           <form className="space-y-6" id="create-appointment-form" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
               <div>
                 <UserAutocomplete
                   label="Клиент"
@@ -161,8 +160,6 @@ export default function CreateAppointment() {
                   required
                 />
               </div>
-            </div>
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
                 <Label>Статус</Label>
                 <select
@@ -176,20 +173,14 @@ export default function CreateAppointment() {
                   <option value="cancelled">Отменен</option>
                 </select>
               </div>
-              <div>
-                <Label>Оплата</Label>
-                <select className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30">
-                  <option value="initial">Не оплачен</option>
-                  <option value="processing">Оплачен</option>
-                </select>
-              </div>{" "}
             </div>
             <Label>Комментарий</Label>
             <textarea
-              className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+              className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
               placeholder="Введите коментарий..."
               value={formData.comment}
               onChange={(e) => handleChange("comment", e.target.value)}
+              rows={3}
             ></textarea>
           </form>
         </div>
@@ -205,7 +196,7 @@ export default function CreateAppointment() {
         </div>
         <div className="p-4 sm:p-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <AppointmentItemPreview />
+            {/* <AppointmentItemPreview /> */}
             <Button
               type="submit"
               form="create-appointment-form"

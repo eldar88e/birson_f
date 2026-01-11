@@ -294,7 +294,7 @@ export default function AppointmentItems({ appointmentId, clientId, items }: App
           <h3 className="text-lg font-medium text-gray-800 dark:text-white">Позиции записи</h3>
           <Button onClick={handleOpenModal} variant="primary">
             <SvgIcon name="plus" width={16} />
-            Добавить позицию
+            <span className="hidden sm:inline">Добавить позицию</span>
           </Button>
         </div>
         <div className="custom-scrollbar overflow-x-auto">
