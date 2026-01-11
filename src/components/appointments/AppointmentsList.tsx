@@ -367,19 +367,8 @@ export default function AppointmentListTable() {
             </table>
           </div>
           <div className="flex items-center flex-col sm:flex-row justify-between border-t border-gray-200 px-5 py-4 dark:border-gray-800">
-            <div className="pb-3 sm:pb-0">
-              <span className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                Showing{" "}
-                <b>{pages.from}</b>{" "}
-                to{" "}
-                <b>{pages.in}</b>{" "}
-                of{" "}
-                <b>{pages.count}</b>
-              </span>
-            </div>
             <Pages
-              page={page}
-              lastPages={pages.last}
+              pages={pages}
               onChange={setPage}
             />
           </div>

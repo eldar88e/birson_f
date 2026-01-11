@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { apiClient } from "../../api/client";
 import Pages from "../../shared/ui/Pages";
 import SvgIcon from "../../shared/ui/SvgIcon";
@@ -6,20 +6,14 @@ import { Link } from "react-router";
 import { ROUTES } from "../../shared/config/routes";
 import type { Car } from "../../entities/car/model";
 import { useNotification } from "../../context/NotificationContext";
+import type { PaginationMeta } from "../../shared/types/api/pagination";
 
 interface Cars {
   data: Car[];
-  meta: {
-    page: number;
-    count: number;
-    limit: number;
-    from: number;
-    in: number;
-    last: number;
-  };
+  meta: PaginationMeta;
 }
 
-const CarListComponent: React.FC = () => {
+export default function CarListComponent() {
   const [cars, setCars] = useState<Car[]>([]);
   const [pages, setPages] = useState<Cars["meta"]>({
     page: 1,
@@ -135,6 +129,24 @@ const CarListComponent: React.FC = () => {
                 Марка
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
+                Год
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
+                Владелец
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
+                Цвет
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
+                Номер
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
+                VIN
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
+                Комментарий
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
                 Действия
               </th>
             </tr>
@@ -161,6 +173,38 @@ const CarListComponent: React.FC = () => {
                   </p>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
+                  <p className="text-sm text-gray-700 dark:text-gray-400">
+                    {car.year}
+                  </p>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <p className="text-sm text-gray-700 dark:text-gray-400">
+                    <Link to={`${ROUTES.USERS.INDEX}/${car.owner_id}`} className="text-blue-500 hover:text-blue-600">
+                      Клиент ID: #{car.owner_id}
+                    </Link>
+                  </p>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <p className="text-sm text-gray-700 dark:text-gray-400">
+                    —
+                  </p>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <p className="text-sm text-gray-700 dark:text-gray-400">
+                    {car.license_plate}
+                  </p>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <p className="text-sm text-gray-700 dark:text-gray-400">
+                    {car.vin}
+                  </p>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <p className="text-sm text-gray-700 dark:text-gray-400">
+                    {car.comment}
+                  </p>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
                   <div className=" flex items-center justify-center">
                   <button 
                     onClick={() => handleDelete(car.id)}
@@ -176,30 +220,11 @@ const CarListComponent: React.FC = () => {
         </table>
       </div>
       <div className="flex items-center flex-col sm:flex-row justify-between border-t border-gray-200 px-5 py-4 dark:border-gray-800">
-        <div className="pb-3 sm:pb-0">
-          <span className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-            Showing{" "}
-            <span className="text-gray-800 dark:text-white/90">
-              {pages.from}
-            </span>{" "}
-            to
-            <span className="text-gray-800 dark:text-white/90">
-              {pages.in}
-            </span>{" "}
-            of{" "}
-            <span className="text-gray-800 dark:text-white/90">
-              {pages.count}
-            </span>
-          </span>
-        </div>
         <Pages
-          page={page}
-          lastPages={pages.last}
+          pages={pages}
           onChange={setPage}
         />
       </div>
     </div>
   );
 };
-
-export default CarListComponent;

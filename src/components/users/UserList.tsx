@@ -319,25 +319,8 @@ export default function UserList() {
             </table>
           </div>
           <div className="flex items-center flex-col sm:flex-row justify-between border-t border-gray-200 px-5 py-4 dark:border-gray-800">
-            <div className="pb-3 sm:pb-0">
-              <span className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                Showing{" "}
-                <span className="text-gray-800 dark:text-white/90">
-                  {pages.from}
-                </span>{" "}
-                to
-                <span className="text-gray-800 dark:text-white/90">
-                  {pages.in}
-                </span>{" "}
-                of{" "}
-                <span className="text-gray-800 dark:text-white/90">
-                  {pages.count}
-                </span>
-              </span>
-            </div>
             <Pages
-              page={page}
-              lastPages={pages.last}
+              pages={pages}
               onChange={setPage}
               maxVisible={pages.limit}
             />
