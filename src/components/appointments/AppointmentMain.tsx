@@ -6,10 +6,10 @@ import { apiClient } from "../../api/client";
 import type { Appointment } from "../../entities/appointments/model";
 import { formatDate } from "../../shared/lib/formatDate";
 import { StatusBadge } from "../../shared/ui/StatusBadge";
-import { useNavigate } from "react-router";
+// import { useNavigate } from "react-router";
 
 export default function AppointmentMain() {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { appointmentId } = useParams<{ appointmentId: string }>();
   const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [isLoading, setIsLoading] = useState(false);
