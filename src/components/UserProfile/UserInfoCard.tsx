@@ -7,6 +7,7 @@ import Label from "../form/Label";
 import { apiClient } from "../../api/client";
 import type { User } from "../../entities/user/model";
 import { useNotification } from "../../context/NotificationContext";
+import { USER_POSITIONS, USER_ROLES } from "../../entities/user/model";
 
 interface UserInfoCardProps {
   user: User;
@@ -24,6 +25,7 @@ export default function UserInfoCard({ user }: UserInfoCardProps) {
     additional_phone: user.additional_phone || "",
     role: user.role,
     comment: user.comment || "",
+    position: user.position,
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -234,10 +236,22 @@ export default function UserInfoCard({ user }: UserInfoCardProps) {
                       onChange={(e) => handleChange("role", e.target.value)}
                       className="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
                     >
-                      <option value="user">User</option>
-                      <option value="admin">Admin</option>
-                      <option value="manager">Manager</option>
-                      <option value="staff">Staff</option>
+                      {USER_ROLES.map((role) => (
+                        <option key={role.value} value={role.value}>{role.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-span-2 lg:col-span-1">
+                    <Label>Должность</Label>
+                    <select
+                      value={formData.position}
+                      onChange={(e) => handleChange("position", e.target.value)}
+                      className="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                    >
+                      {USER_POSITIONS.map((position) => (
+                        <option key={position.value} value={position.value}>{position.label}</option>
+                      ))}
                     </select>
                   </div>
 

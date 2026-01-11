@@ -41,3 +41,18 @@ export const USER_FILTERS = [
   { value: "1", label: "Сотрудник" },
   { value: "0", label: "Клиент" },
 ]
+
+export const USER_ROLES = [
+  { value: "user", label: "Клиент" },
+  { value: "admin", label: "Админ" },
+  { value: "manager", label: "Менеджер" },
+  { value: "staff", label: "Сотрудник" },
+]
+
+export const USER_POSITIONS = [
+  { value: "other", label: "Другая" },
+  { value: "cleaner", label: "Химчистка" },
+  { value: "detailer", label: "Детейлер" },
+  { value: "upholsterer", label: "Обивщик" },
+  { value: "painter", label: "Маляр" },
+]

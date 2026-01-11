@@ -307,16 +307,38 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
         };
       });
 
-      const newItem: AppointmentItem = {
-        id: Date.now(),
-        order_id: 0,
-        ...formData,
-        car_id: selectedCar?.id || formData.car_id || 0, // Ensure car_id is set from selectedCar
-        service: selectedService?.title || "",
-        order_item_performers_attributes,
-        order_item_performers, // For display in table
-      };
-      setAppointmentItems((prev) => [...prev, newItem]);
+      if (editingItemId) {
+        // Update existing local item
+        const updatedItem: AppointmentItem = {
+          id: editingItemId,
+          order_id: 0,
+          ...formData,
+          car_id: selectedCar?.id || formData.car_id || 0,
+          service: selectedService?.title || "",
+          order_item_performers_attributes,
+          order_item_performers,
+        };
+        setAppointmentItems((prev) =>
+          prev.map((item) => (item.id === editingItemId ? updatedItem : item))
+        );
+        showNotification({
+          variant: "success",
+          title: "Позиция обновлена",
+          description: "Позиция успешно обновлена",
+        });
+      } else {
+        // Create new local item
+        const newItem: AppointmentItem = {
+          id: Date.now(),
+          order_id: 0,
+          ...formData,
+          car_id: selectedCar?.id || formData.car_id || 0, // Ensure car_id is set from selectedCar
+          service: selectedService?.title || "",
+          order_item_performers_attributes,
+          order_item_performers, // For display in table
+        };
+        setAppointmentItems((prev) => [...prev, newItem]);
+      }
       closeModal();
     }
   };

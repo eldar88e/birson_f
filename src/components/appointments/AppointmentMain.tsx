@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import Button from "../ui/button/Button";
+// import Button from "../ui/button/Button";
 import AppointmentItems from "./AppointmentItems";
 import { apiClient } from "../../api/client";
 import type { Appointment } from "../../entities/appointments/model";
@@ -122,9 +122,9 @@ export default function AppointmentMain() {
         {/* Order Items Table */}
         <AppointmentItems appointmentId={appointment.id} clientId={appointment.client_id} items={appointment.order_items} />
 
-        <div className="flex items-center justify-end gap-3 mt-6">
+        {/* <div className="flex items-center justify-end gap-3 mt-6">
           <Button onClick={() => navigate(`/appointments/${appointment.id}/edit`)}>Редактировать</Button>
-        </div>
+        </div> */}
       </div>
     </div>
   );
