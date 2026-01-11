@@ -7,6 +7,7 @@ import { ROUTES } from "../../shared/config/routes";
 import type { Car } from "../../entities/car/model";
 import { useNotification } from "../../context/NotificationContext";
 import type { PaginationMeta } from "../../shared/types/api/pagination";
+import CarModal from "./CarModal";
 
 interface Cars {
   data: Car[];
@@ -27,6 +28,7 @@ export default function CarListComponent() {
   const [error, setError] = useState("");
   const { showNotification } = useNotification();
   const [page, setPage] = useState(pages.page);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchCars = async () => {
@@ -91,13 +93,18 @@ export default function CarListComponent() {
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
       <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
-        <Link
-          to={ROUTES.CARS.ADD}
+        <button
           className="bg-brand-500 shadow-sm hover inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white transition hover:bg-brand-600"
+          onClick={() => setIsModalOpen(true)}
         >
           <SvgIcon name="plus" />
           Добавить
-        </Link>
+        </button>
+        <CarModal 
+          isModalOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)}
+          ownerId={0} 
+        />
         <div className="flex gap-3.5">
           <div className="hidden flex-col gap-3 sm:flex sm:flex-row sm:items-center">
             <div className="relative">

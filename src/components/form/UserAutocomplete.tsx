@@ -13,15 +13,13 @@ interface UserAutocompleteProps {
   placeholder?: string;
   value?: User | null;
   onChange?: (user: User | null) => void;
-  className?: string;
 }
 
 export default function UserAutocomplete({
   label,
   placeholder = "Введите имя или номер телефона",
   value,
-  onChange,
-  className = "",
+  onChange
 }: UserAutocompleteProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<User[]>([]);
@@ -225,7 +223,7 @@ export default function UserAutocomplete({
   };
 
   return (
-    <div className={`relative ${className}`} ref={wrapperRef}>
+    <div className="relative" ref={wrapperRef}>
       {label && <Label>{label}</Label>}
       <div className="relative">
         <input
@@ -236,6 +234,12 @@ export default function UserAutocomplete({
           onKeyDown={handleKeyDown}
           onFocus={() => {
             if (searchQuery.length >= 2) {
+              setIsOpen(true);
+            }
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (searchQuery.length >= 2 && users.length > 0) {
               setIsOpen(true);
             }
           }}
@@ -296,7 +300,10 @@ export default function UserAutocomplete({
       </div>
 
       {isOpen && searchQuery.length >= 2 && (
-        <div className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-700">
+        <div 
+          className="absolute z-[100000] w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-700"
+          onClick={(e) => e.stopPropagation()}
+        >
           {isLoading ? (
             <div className="p-4 text-center">
               <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-brand-500 border-r-transparent"></div>
@@ -308,7 +315,10 @@ export default function UserAutocomplete({
                 {users.map((user, index) => (
                   <div
                     key={user.id}
-                    onClick={() => handleSelectUser(user)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectUser(user);
+                    }}
                     onMouseEnter={() => setHighlightedIndex(index)}
                     className={`px-4 py-3 cursor-pointer border-b border-gray-100 dark:border-gray-800 ${
                       index === highlightedIndex

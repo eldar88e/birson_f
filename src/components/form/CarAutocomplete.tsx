@@ -1,64 +1,33 @@
 import { useState, useEffect, useRef } from "react";
-import { carService, type CreateCarData } from "../../api/cars";
 import type { Car } from "../../entities/car/model";
 import Label from "./Label";
-import { Modal } from "../ui/modal";
-import { useModal } from "../../hooks/useModal";
-import { useNotification } from "../../context/NotificationContext";
-import Input from "./input/InputField";
-import SvgIcon from "../../shared/ui/SvgIcon";
 import { useCarSearch } from "../../hooks/useCarSearch";
 import { useClickOutside } from "../../hooks/useClickOutside";
+import CarModal from "../cars/CarModal";
 
 interface CarAutocompleteProps {
-  label?: string;
-  placeholder?: string;
   value?: Car | null;
   onChange?: (car: Car | null) => void;
-  className?: string;
-  ownerId?: number;
+  ownerId: number;
 }
 
 export default function CarAutocomplete({
-  label,
-  placeholder = "Нажмите для выбора автомобиля",
   value,
   onChange,
-  className = "",
   ownerId,
 }: CarAutocompleteProps) {
   const [displayValue, setDisplayValue] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [isOpenModal, setIsOpenModal] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { isOpen: isModalOpen, openModal, closeModal } = useModal();
-  const { showNotification } = useNotification();
-  const [formData, setFormData] = useState<{
-    brand: string;
-    model: string;
-    license_plate: string;
-    vin: string;
-    year: number;
-    owner_id: number;
-    comment: string;
-  }>({
-    brand: "",
-    model: "",
-    license_plate: "",
-    vin: "",
-    year: new Date().getFullYear(),
-    owner_id: ownerId || 0,
-    comment: "",
-  });
-
   const { cars, isLoading, loadCars } = useCarSearch(ownerId);
 
   useClickOutside(wrapperRef, () => setIsOpen(false));
 
   const getCarDisplayName = (car: Car): string => {
-    const parts = [car.brand, car.model, car.license_plate].filter(Boolean);
-    return parts.join(" ") || `ID: ${car.id}`;
+    return [car.brand, car.model, car.year].filter(Boolean).join(" ");
   };
 
   useEffect(() => {
@@ -69,15 +38,9 @@ export default function CarAutocomplete({
     }
   }, [value]);
 
-  useEffect(() => {
-    setFormData((prev) => ({ ...prev, owner_id: ownerId || 0 }));
-  }, [ownerId]);
-
   const handleFocus = () => {
     if (!isOpen) {
-      if (ownerId != null && ownerId > 0) {
-        loadCars();
-      }
+      loadCars();
       setIsOpen(true);
     }
   };
@@ -120,107 +83,9 @@ export default function CarAutocomplete({
     }
   };
 
-  const handleOpenAddCarModal = () => {
-    if (ownerId == null || ownerId === 0) {
-      showNotification({
-        variant: "warning",
-        title: "Выберите клиента",
-        description: "Сначала необходимо выбрать клиента",
-      });
-      return;
-    }
-
-    setFormData({
-      brand: "",
-      model: "",
-      license_plate: "",
-      vin: "",
-      year: new Date().getFullYear(),
-      owner_id: ownerId,
-      comment: "",
-    });
-    openModal();
-  };
-
-  const handleButtonClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleOpenAddCarModal();
-  };
-
-  const handleCreateCar = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.brand || !formData.model || !formData.license_plate) {
-      showNotification({
-        variant: "error",
-        title: "Ошибка валидации",
-        description: "Заполните обязательные поля: Марка, Модель, Номер",
-      });
-      return;
-    }
-
-    if (!formData.owner_id || formData.owner_id === 0) {
-      showNotification({
-        variant: "error",
-        title: "Ошибка валидации",
-        description: "Не указан владелец автомобиля",
-      });
-      return;
-    }
-
-    try {
-      const carData: CreateCarData = {
-        brand: formData.brand,
-        model: formData.model,
-        license_plate: formData.license_plate,
-        vin: formData.vin || "",
-        year: formData.year,
-        owner_id: formData.owner_id,
-        comment: formData.comment || "",
-      };
-
-      const newCar = await carService.createCar(carData);
-
-      showNotification({
-        variant: "success",
-        title: "Автомобиль создан!",
-        description: "Новый автомобиль успешно добавлен",
-      });
-
-      const displayName = getCarDisplayName(newCar);
-      
-      onChange?.(newCar);
-      setDisplayValue(displayName);
-      closeModal();
-      setIsOpen(false);
-
-      // Перезагрузить список авто после создания
-      if (ownerId) {
-        loadCars();
-      }
-
-      setFormData({
-        brand: "",
-        model: "",
-        license_plate: "",
-        vin: "",
-        year: new Date().getFullYear(),
-        owner_id: ownerId || 0,
-        comment: "",
-      });
-    } catch (error) {
-      showNotification({
-        variant: "error",
-        title: "Ошибка создания",
-        description: `Не удалось создать автомобиль. ${error}`,
-      });
-    }
-  };
-
   return (
-    <div className={`relative ${className}`} ref={wrapperRef}>
-      {label && <Label>{label}</Label>}
+    <div className="relative" ref={wrapperRef}>
+      <Label>Автомобиль</Label>
       <div className="relative">
         <input
           ref={inputRef}
@@ -230,7 +95,7 @@ export default function CarAutocomplete({
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
           onClick={handleInputClick}
-          placeholder={placeholder}
+          placeholder="Нажмите для выбора автомобиля"
           className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
         />
         {isLoading && (
@@ -315,19 +180,9 @@ export default function CarAutocomplete({
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-800 dark:text-white">
+                          <div className="text-sm text-gray-800 dark:text-white">
                             {getCarDisplayName(car)}
                           </div>
-                          {car.vin && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                              VIN: {car.vin}
-                            </div>
-                          )}
-                          {car.year && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              Год: {car.year}
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -340,14 +195,13 @@ export default function CarAutocomplete({
                   </div>
                 </div>
               )}
-              <div className="p-4 text-center border-t border-gray-200 dark:border-gray-700">
+              <div className="">
                 <button
                   type="button"
-                  onClick={handleButtonClick}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg transition px-4 py-3 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600"
+                  onClick={() => setIsOpenModal(true)}
+                  className="w-full px-4 py-2 text-left text-sm text-brand-600 hover:bg-gray-50 dark:text-brand-400 dark:hover:bg-gray-700"
                 >
-                  <SvgIcon name="plus" width={16} />
-                  Добавить автомобиль
+                  + Добавить автомобиль
                 </button>
               </div>
             </>
@@ -355,121 +209,7 @@ export default function CarAutocomplete({
         </div>
       )}
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        className="max-w-[500px] p-6 lg:p-8"
-      >
-        <div onClick={(e) => e.stopPropagation()}>
-          <h4 className="font-semibold text-gray-800 mb-6 text-title-sm dark:text-white/90">
-            Добавить новый автомобиль
-          </h4>
-          <form className="space-y-4">
-            <div>
-              <Label>Марка *</Label>
-              <Input
-                type="text"
-                placeholder="Введите марку"
-                value={formData.brand}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, brand: e.target.value }))
-                }
-                required
-              />
-            </div>
-
-            <div>
-              <Label>Модель *</Label>
-              <Input
-                type="text"
-                placeholder="Введите модель"
-                value={formData.model}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, model: e.target.value }))
-                }
-                required
-              />
-            </div>
-
-            <div>
-              <Label>Номер *</Label>
-              <Input
-                type="text"
-                placeholder="А123БВ777"
-                value={formData.license_plate}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, license_plate: e.target.value }))
-                }
-                required
-              />
-            </div>
-
-            <div>
-              <Label>VIN</Label>
-              <Input
-                type="text"
-                placeholder="Введите VIN"
-                value={formData.vin}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, vin: e.target.value }))
-                }
-              />
-            </div>
-
-            <div>
-              <Label>Год</Label>
-              <Input
-                type="number"
-                placeholder="2020"
-                value={formData.year === 0 ? "" : formData.year}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  const numValue = value === "" ? 0 : Number(value);
-                  setFormData((prev) => ({ ...prev, year: isNaN(numValue) ? 0 : numValue }));
-                }}
-              />
-            </div>
-
-            <div>
-              <Label>ID владельца</Label>
-              <Input
-                type="number"
-                placeholder="0"
-                value={formData.owner_id === 0 ? "" : formData.owner_id}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  const numValue = value === "" ? 0 : Number(value);
-                  setFormData((prev) => ({ ...prev, owner_id: isNaN(numValue) ? 0 : numValue }));
-                }}
-                disabled
-                className="disabled:bg-gray-100 dark:disabled:bg-gray-800"
-              />
-            </div>
-
-            <div>
-              <Label>Комментарий</Label>
-              <textarea
-                className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-24 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-                placeholder="Введите комментарий..."
-                value={formData.comment}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, comment: e.target.value }))
-                }
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-3 mt-6">
-              <button
-                type="button"
-                onClick={handleCreateCar}
-                className="inline-flex items-center justify-center gap-2 rounded-lg transition px-5 py-3.5 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Создать
-              </button>
-            </div>
-          </form>
-        </div>
-      </Modal>
+      <CarModal isModalOpen={isOpenModal} ownerId={ownerId} onClose={() => setIsOpenModal(false)} />
     </div>
   );
 }

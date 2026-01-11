@@ -574,8 +574,6 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
 
               <div>
                 <CarAutocomplete
-                  label="Автомобиль"
-                  placeholder="Нажмите для выбора автомобиля"
                   value={selectedCar}
                   onChange={(car) => {
                     setSelectedCar(car);
