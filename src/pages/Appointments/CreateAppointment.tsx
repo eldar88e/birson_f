@@ -5,7 +5,7 @@ import Label from "../../components/form/Label.tsx";
 import Input from "../../components/form/input/InputField.tsx";
 import UserAutocomplete from "../../components/form/UserAutocomplete.tsx";
 import type { User } from "../../entities/user/model.ts";
-import AppointmentItemPreview from "../../components/appointments/AppointmentItemPreview.tsx";
+// import AppointmentItemPreview from "../../components/appointments/AppointmentItemPreview.tsx";
 import AppointmentItems from "../../components/appointments/AppointmentItems.tsx";
 import SvgIcon from "../../shared/ui/SvgIcon.tsx";
 import { apiClient } from "../../api/client.ts";
