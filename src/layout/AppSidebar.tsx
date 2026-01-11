@@ -7,7 +7,6 @@ import { useTranslation } from "react-i18next";
 // Assume these icons are imported from an icon library
 import {
   CalenderIcon,
-  CartIcon,
   ChevronDownIcon,
   GridIcon,
   HorizontaLDots,
