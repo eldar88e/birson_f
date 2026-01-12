@@ -1,5 +1,5 @@
 import { apiClient } from "./client";
-import { clearAuth, saveAuth, saveUser, getStoredToken, getStoredUser } from "../shared/lib/authStorage";
+import { clearAuth, saveAuth, saveUser, getStoredToken, getStoredUser, getStoredUserId } from "../shared/lib/authStorage";
 import type { User } from "../entities/user/model";
 
 export interface LoginCredentials {
@@ -21,6 +21,15 @@ class AuthService {
   private async fetchUserData(userId: number): Promise<User> {
     const response = await apiClient.get<{ user: User }>(`/users/${userId}`, true);
     return response.user;
+  }
+
+  private async updateUserData(): Promise<null> {
+    const userId = getStoredUserId();
+    if (!userId) return null;
+  
+    const user = await this.fetchUserData(userId);
+    saveUser(user);
+    return null;
   }
 
   async login(credentials: LoginCredentials, rememberMe: boolean = false): Promise<LoginResponse> {
@@ -56,7 +65,11 @@ class AuthService {
   }
 
   getCurrentUser(): User | null {
-    return getStoredUser();
+    const stored = getStoredUser();
+    if (stored) return stored as User;
+  
+    this.updateUserData();
+    return null;
   }
 }
 

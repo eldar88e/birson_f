@@ -33,10 +33,10 @@ export function saveUser(user: User) {
 }
 
 export function clearAuth() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
-  sessionStorage.removeItem(TOKEN_KEY);
-  sessionStorage.removeItem(USER_KEY);
+  const storage = getAuthStorage();
+
+  storage.removeItem(TOKEN_KEY);
+  storage.removeItem(USER_KEY);
 }
 
 export function getStoredUser<T>() {
@@ -72,18 +72,21 @@ function decodeJWT(token: string | null): any | null {
   }
 }
 
-export function getStoredSessionId(): string | null {
+function getStoredPayload(): any | null {
   const token = getStoredToken();
   if (!token) return null;
   
-  const payload = decodeJWT(token);
-  return payload?.session_id;
+  return decodeJWT(token);
+}
+
+export function getStoredSessionId(): number | null {
+  return getStoredPayload()?.session_id;
 }
 
 export function getStoredRefreshToken(): string | null {
-  const token = getStoredToken();
-  if (!token) return null;
-  
-  const payload = decodeJWT(token);
-  return payload?.refresh_token;
+  return getStoredPayload()?.refresh_token;
+}
+
+export function getStoredUserId(): number | null {
+  return getStoredPayload()?.user_id;
 }
