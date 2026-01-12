@@ -10,7 +10,8 @@
     "settings": "Настройки",
     "cars": "Автомобили",
     "contractors": "Подрядчики",
-    "services": "Услуги"
+    "services": "Услуги",
+    "expenses": "Расходы"
   },
   "sections": {
     "menu": "Меню",

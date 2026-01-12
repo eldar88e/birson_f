@@ -10,7 +10,8 @@
     "settings": "Ayarlar",
     "cars": "Arabalar",
     "contractors": "İşverenler",
-    "services": "Hizmetler"
+    "services": "Hizmetler",
+    "expenses": "Giderler"
   },
   "sections": {
     "menu": "Menü",

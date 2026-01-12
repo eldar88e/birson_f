@@ -20,7 +20,10 @@ import Calendar from "../pages/Calendar";
 import CarList from "../pages/Cars/CarList";
 
 import ContractorList from "../pages/Contractors/ContractorsList";
+
 import ServiceList from "../pages/ServiceList";
+
+import ExpenseList from "../pages/ExpensesList";
 
 export const protectedRoutes = (
   <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
@@ -42,5 +45,7 @@ export const protectedRoutes = (
     <Route path={ROUTES.CONTRACTORS.INDEX} element={<ContractorList />} />
 
     <Route path={ROUTES.SERVICES.INDEX} element={<ServiceList />} />
+
+    <Route path={ROUTES.EXPENSES.INDEX} element={<ExpenseList />} />
   </Route>
 );

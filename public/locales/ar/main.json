@@ -10,7 +10,8 @@
     "settings": "الإعدادات",
     "cars": "السيارات",
     "contractors": "المقاولين",
-    "services": "الخدمات"
+    "services": "الخدمات",
+    "expenses": "المصاريف"
   },
   "sections": {
     "menu": "القائمة",

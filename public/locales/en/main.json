@@ -10,7 +10,8 @@
     "settings": "Settings",
     "cars": "Cars",
     "contractors": "Contractors",
-    "services": "Services"
+    "services": "Services",
+    "expenses": "Expenses"
   },
   "sections": {
     "menu": "Menu",

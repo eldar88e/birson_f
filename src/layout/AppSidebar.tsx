@@ -12,6 +12,7 @@ import {
   HorizontaLDots,
   PageIcon,
   SettingsIcon,
+  DollarLineIcon,
   UserCircleIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
@@ -45,6 +46,10 @@ const navItems: NavItem[] = [
   { icon: <CalenderIcon />,
     name: "calendar",
     path: ROUTES.CALENDAR,
+  },
+  { icon: <DollarLineIcon />,
+    name: "expenses",
+    path: ROUTES.EXPENSES.INDEX,
   },
 ];
 

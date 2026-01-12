@@ -17,6 +17,8 @@ export default function Pages({
   maxVisible = MAX_VISIBLE_PAGES,
   showMobileInfo = SHOW_MOBILE_INFO,
 }: PaginationProps){
+  if (pages.count === 0) return null;
+
   const lastPages = pages.last;
   const page = pages.page;
 

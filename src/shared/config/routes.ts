@@ -35,4 +35,7 @@ export const ROUTES = {
   SERVICES: {
     INDEX: "/services",
   },
+  EXPENSES: {
+    INDEX: "/expenses",
+  },
 } as const;
