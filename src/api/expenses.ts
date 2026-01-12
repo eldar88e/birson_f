@@ -8,7 +8,7 @@ interface Expenses {
   meta: PaginationMeta;
 }
 
-export type CreateExpenseData = Omit<Expense, "id">;
+export type CreateExpenseData = Omit<Expense, "id" | "created_at">;
 // TODO: Add create expense data type
 
 class ExpenseService {
@@ -20,7 +20,16 @@ class ExpenseService {
 
   async createExpense(expenseData: CreateExpenseData): Promise<Expense> {
     const response = await apiClient.post<{ expense: Expense }>(
-      `${ROUTES.SERVICES.INDEX}`,
+      `${ROUTES.EXPENSES.INDEX}`,
+      { expense: expenseData },
+      true
+    );
+    return response.expense;
+  }
+
+  async updateExpense(id: number, expenseData: Partial<CreateExpenseData>): Promise<Expense> {
+    const response = await apiClient.put<{ expense: Expense }>(
+      `${ROUTES.EXPENSES.INDEX}/${id}`,
       { expense: expenseData },
       true
     );

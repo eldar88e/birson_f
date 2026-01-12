@@ -2,12 +2,10 @@ import { useEffect, useState } from "react";
 import { expenseService } from "../../api/expenses";
 import Pages from "../../shared/ui/Pages";
 import SvgIcon from "../../shared/ui/SvgIcon";
-// import { Link } from "react-router";
-// import { ROUTES } from "../../shared/config/routes";
 import type { Expense } from "../../entities/expenses/model";
 import type { PaginationMeta } from "../../shared/types/api/pagination";
-// import CarModal from "./CarModal";
 import { DeleteAction } from "../../shared/ui/DeleteAction";
+import ExpenseModal from "./ExpenseModal";
 
 interface Expenses {
   data: Expense[];
@@ -28,7 +26,8 @@ export default function ExpensesListComponent() {
   const [error, setError] = useState("");
   const [page, setPage] = useState(pages.page);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  // const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   useEffect(() => {
     const fetchResources = async () => {
@@ -55,19 +54,33 @@ export default function ExpensesListComponent() {
       <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
         <button
           className="bg-brand-500 shadow-sm hover inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white transition hover:bg-brand-600"
-          // onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setEditingExpense(null);
+            setIsModalOpen(true);
+          }}
         >
           <SvgIcon name="plus" />
           Добавить
         </button>
-        {/* <ContractorModal 
-          isModalOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)}
-          ownerId={0}
-          onSuccess={(car) => {
-            setCars((prev) => [...prev, car]);
+        <ExpenseModal
+          isModalOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingExpense(null);
           }}
-        /> */}
+          expense={editingExpense}
+          onSuccess={(expense) => {
+            if (editingExpense) {
+              setExpenses((prev) =>
+                prev.map((e) => (e.id === expense.id ? expense : e))
+              );
+            } else {
+              setExpenses((prev) => [expense, ...prev]);
+            }
+            setIsModalOpen(false);
+            setEditingExpense(null);
+          }}
+        />
         <div className="flex gap-3.5">
           <div className="hidden flex-col gap-3 sm:flex sm:flex-row sm:items-center">
             <div className="relative">
@@ -93,7 +106,16 @@ export default function ExpensesListComponent() {
                 ID
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
-                Название
+                Категория
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
+                Сумма
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
+                Описание
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
+                Дата расхода
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
                 Дата создания
@@ -107,7 +129,7 @@ export default function ExpensesListComponent() {
           {error || expenses.length === 0 || isLoading ? (
             <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
               <tr>
-                <td colSpan={4} className="px-4 py-10 text-center text-gray-500 dark:text-gray-400">
+                <td colSpan={6} className="px-4 py-10 text-center text-gray-500 dark:text-gray-400">
                   {error ? `Ошибка: ${error}` : expenses.length === 0 ? "Расходы не найдены" : "Загрузка..."}
                 </td>
               </tr>
@@ -136,6 +158,11 @@ export default function ExpensesListComponent() {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <p className="text-sm text-gray-700 dark:text-gray-400">
+                      {expense.description}
+                    </p>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <p className="text-sm text-gray-700 dark:text-gray-400">
                       {expense.spent_at}
                     </p>
                   </td>
@@ -145,24 +172,33 @@ export default function ExpensesListComponent() {
                     </div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    <div className=" flex items-center justify-center">
-                    <DeleteAction
-                      id={expense.id}
-                      itemName={`Расход #${expense.id}`}
-                      onDelete={(id) => expenseService.deleteExpense(id)}
-                      onSuccess={() =>
-                        setExpenses((prev) => prev.filter((c) => c.id !== expense.id))
-                      }
-                    >
-                      {(open) => (
-                        <button
-                          onClick={open}
-                          className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                        >
-                          Удалить
-                        </button>
-                      )}
-                    </DeleteAction>
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => {
+                          setEditingExpense(expense);
+                          setIsModalOpen(true);
+                        }}
+                        className="text-xs flex rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                      >
+                        Редактировать
+                      </button>
+                      <DeleteAction
+                        id={expense.id}
+                        itemName={`Расход #${expense.id}`}
+                        onDelete={(id) => expenseService.deleteExpense(id)}
+                        onSuccess={() =>
+                          setExpenses((prev) => prev.filter((c) => c.id !== expense.id))
+                        }
+                      >
+                        {(open) => (
+                          <button
+                            onClick={open}
+                            className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                          >
+                            Удалить
+                          </button>
+                        )}
+                      </DeleteAction>
                     </div>
                   </td>
                 </tr>
