@@ -15,4 +15,5 @@ export interface Contractor {
   service_profile?: string;
   active: boolean;
   comment?: string;
+  created_at?: string;
 }

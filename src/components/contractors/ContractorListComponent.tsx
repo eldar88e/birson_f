@@ -27,7 +27,7 @@ export default function ContractorListComponent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [page, setPage] = useState(pages.page);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchContractors = async () => {
@@ -76,7 +76,7 @@ export default function ContractorListComponent() {
       <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
         <button
           className="bg-brand-500 shadow-sm hover inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white transition hover:bg-brand-600"
-          onClick={() => setIsModalOpen(true)}
+          // onClick={() => setIsModalOpen(true)}
         >
           <SvgIcon name="plus" />
           Добавить
