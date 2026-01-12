@@ -17,12 +17,17 @@ export function saveAuth(
   storage.setItem(TOKEN_KEY, token);
 }
 
-export function saveUser(
-  user: User,
-  rememberMe: boolean
-) {
-  const storage = rememberMe ? localStorage : sessionStorage;
-  storage.setItem(USER_KEY, JSON.stringify(user));
+export function saveUser(user: User) {
+  const userData = {
+    id: user.id,
+    email: user.email,
+    full_name: user.full_name,
+    first_name: user.first_name,
+    middle_name: user.middle_name,
+    last_name: user.last_name
+  };
+  const storage = getAuthStorage();
+  storage.setItem(USER_KEY, JSON.stringify(userData));
 }
 
 export function clearAuth() {

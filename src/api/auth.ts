@@ -39,7 +39,7 @@ class AuthService {
 
     saveAuth(token, rememberMe);
     const user = await this.fetchUserData(response.user_id);
-    saveUser(user, rememberMe);
+    saveUser(user);
 
     return {
       token,
