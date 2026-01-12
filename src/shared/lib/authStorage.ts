@@ -24,7 +24,9 @@ export function saveUser(user: User) {
     full_name: user.full_name,
     first_name: user.first_name,
     middle_name: user.middle_name,
-    last_name: user.last_name
+    last_name: user.last_name,
+    role: user.role,
+    phone: user.phone
   };
   const storage = getAuthStorage();
   storage.setItem(USER_KEY, JSON.stringify(userData));
