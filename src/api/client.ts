@@ -1,4 +1,4 @@
-import { getStoredToken, clearAuth } from "../shared/lib/authStorage";
+import { getStoredToken, clearAuth, getStoredSessionId, getStoredRefreshToken, saveAuth, TOKEN_KEY } from "../shared/lib/authStorage";
 import { ROUTES } from "../shared/config/routes";
 import { notificationService } from "../context/NotificationContext";
 
@@ -21,6 +21,7 @@ interface RequestOptions extends RequestInit {
 
 class ApiClient {
   private baseURL: string;
+  private refreshingToken: Promise<string> | null = null;
 
   constructor(baseURL: string) {
     this.baseURL = baseURL;
@@ -45,6 +46,46 @@ class ApiClient {
     return headers;
   }
 
+  private async refreshToken(): Promise<string> {
+    const refreshToken = getStoredRefreshToken();
+    const sessionId = getStoredSessionId();
+
+    if (!refreshToken) {
+      throw new Error("No refresh token available");
+    }
+
+    const url = `${this.baseURL}/refresh_token`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        refresh_token: refreshToken,
+        session_id: sessionId,
+      }),
+    });
+
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      if (data.code === "refresh_token_expired") {
+        this.exitSession();
+      } else {
+        throw new ApiError(
+          data?.message || "Token refresh failed",
+          response.status,
+          data
+        );
+      }
+    }
+
+    const newToken = data.access_token;
+    saveAuth(newToken, !!localStorage.getItem(TOKEN_KEY));
+
+    return newToken;
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestOptions = {}
@@ -67,15 +108,38 @@ class ApiClient {
 
       if (!response.ok) {
         if (response.status === 401) {
-          clearAuth();
-          notificationService.showNotification({
-            variant: "error",
-            title: "Ошибка",
-            description: "Сессия истекла. Пожалуйста, авторизуйтесь снова.",
-          });
-          setTimeout(() => {
-            window.location.href = ROUTES.AUTH.SIGN_IN;
-          }, 3000);
+          // check recursive request
+          if (endpoint === "/refresh_token") {
+            this.exitSession();
+          }
+
+          if (data.code === "token_expired") {
+            if (this.refreshingToken) {
+              try {
+                await this.refreshingToken;
+                return this.request<T>(endpoint, options);
+              } catch (error) {
+                this.exitSession();
+              }
+            }
+
+            this.refreshingToken = this.refreshToken();
+
+            try {
+              await this.refreshingToken;
+              return this.request<T>(endpoint, options);
+            } catch (error) {
+              this.exitSession();
+            } finally {
+              this.refreshingToken = null;
+            }
+          } else {
+            throw new ApiError(
+              data?.message || "Unauthorized",
+              response.status,
+              data
+            );
+          }
         } else {
           throw new ApiError(
             data?.message || `Request failed with status ${response.status}`,
@@ -94,6 +158,18 @@ class ApiClient {
         error instanceof Error ? error.message : "Network error occurred"
       );
     }
+  }
+
+  private exitSession() {
+    clearAuth();
+    notificationService.showNotification({
+      variant: "error",
+      title: "Ошибка",
+      description: "Сессия истекла. Пожалуйста, авторизуйтесь снова.",
+    });
+    setTimeout(() => {
+      window.location.href = ROUTES.AUTH.SIGN_IN;
+    }, 3000);
   }
 
   async get<T>(endpoint: string, requiresAuth: boolean = false): Promise<T> {

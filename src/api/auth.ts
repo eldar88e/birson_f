@@ -14,7 +14,6 @@ export interface LoginResponse {
 
 type LoginApiResponse = {
   access_token: string;
-  // refresh_token: string;
   user_id: number;
 };
 

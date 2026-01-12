@@ -1,6 +1,6 @@
 import type { User } from "../../entities/user/model";
 
-const TOKEN_KEY = "token";
+export const TOKEN_KEY = "token";
 const USER_KEY = "user";
 
 export function getAuthStorage(): Storage {
@@ -40,4 +40,43 @@ export function getStoredUser<T>() {
 
 export function getStoredToken() {
   return getAuthStorage().getItem(TOKEN_KEY);
+}
+
+function decodeJWT(token: string | null): any | null {
+  if (!token) return null;
+  
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error('Error decoding JWT:', error);
+    return null;
+  }
+}
+
+export function getStoredSessionId(): string | null {
+  const token = getStoredToken();
+  if (!token) return null;
+  
+  const payload = decodeJWT(token);
+  return payload?.session_id;
+}
+
+export function getStoredRefreshToken(): string | null {
+  const token = getStoredToken();
+  if (!token) return null;
+  
+  const payload = decodeJWT(token);
+  return payload?.refresh_token;
 }
