@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { userService, type CreateUserData } from "../../api/users";
-import type { User } from "../../entities/user/model";
+import { USER_ROLES, type User } from "../../entities/user/model";
 import Label from "./Label";
 import { Modal } from "../ui/modal";
 import { useModal } from "../../hooks/useModal";
 import { useNotification } from "../../context/NotificationContext";
 import Input from "./input/InputField";
 import SvgIcon from "../../shared/ui/SvgIcon";
+
+const DEFAULT_USER_ROLE = "user";
 
 interface UserAutocompleteProps {
   label?: string;
@@ -36,11 +38,13 @@ export default function UserAutocomplete({
     last_name: string;
     phone: string;
     email: string;
+    role: string;
   }>({
     first_name: "",
     last_name: "",
     phone: "",
     email: "",
+    role: DEFAULT_USER_ROLE,
   });
 
   useEffect(() => {
@@ -156,6 +160,7 @@ export default function UserAutocomplete({
       last_name: queryParts.slice(1).join(" ") || "",
       phone: /^[\d\s\+\-\(\)]+$/.test(searchQuery) ? searchQuery : "",
       email: "",
+      role: DEFAULT_USER_ROLE,
     });
     openModal();
   };
@@ -169,11 +174,11 @@ export default function UserAutocomplete({
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.first_name || !formData.phone || !formData.email) {
+    if (!formData.first_name || !formData.phone) {
       showNotification({
         variant: "error",
         title: "Ошибка валидации",
-        description: "Заполните обязательные поля: Имя, Телефон, Email",
+        description: "Заполните обязательные поля: Имя, Email",
       });
       return;
     }
@@ -212,6 +217,7 @@ export default function UserAutocomplete({
         last_name: "",
         phone: "",
         email: "",
+        role: DEFAULT_USER_ROLE,
       });
     } catch (error) {
       showNotification({
@@ -301,7 +307,7 @@ export default function UserAutocomplete({
 
       {isOpen && searchQuery.length >= 2 && (
         <div 
-          className="absolute z-[100000] w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-700"
+          className="absolute z-[10] w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-700"
           onClick={(e) => e.stopPropagation()}
         >
           {isLoading ? (
@@ -426,6 +432,21 @@ export default function UserAutocomplete({
               }
               required
             />
+          </div>
+
+          <div>
+            <Label>Роль *</Label>
+            <select
+              value={formData.role}
+              className="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, role: e.target.value }))
+              }
+            >
+              {USER_ROLES.map((role) => (
+                <option key={role.value} value={role.value}>{role.label}</option>
+              ))}
+            </select>
           </div>
 
           <div className="flex items-center justify-end gap-3 mt-6">
