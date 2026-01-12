@@ -1,7 +1,7 @@
 import PageBreadcrumb from "../../components/common/PageBreadCrumb.tsx";
-import UserMetaCard from "../../components/UserProfile/UserMetaCard.tsx";
-import UserInfoCard from "../../components/UserProfile/UserInfoCard.tsx";
-import UserAddressCard from "../../components/UserProfile/UserAddressCard.tsx";
+import UserMetaCard from "../../components/users/UserProfile/UserMetaCard.tsx";
+import UserInfoCard from "../../components/users/UserProfile/UserInfoCard.tsx";
+import UserAddressCard from "../../components/users/UserProfile/UserAddressCard.tsx";
 import PageMeta from "../../components/common/PageMeta.tsx";
 import { apiClient } from "../../api/client";
 import { useParams } from "react-router";

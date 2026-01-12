@@ -1,6 +1,6 @@
-import type { User } from "../../entities/user/model";
-import AvatarText from "../../shared/ui/AvatarText";
-import { formatDate } from "../../shared/lib/formatDate";
+import type { User } from "../../../entities/user/model";
+import AvatarText from "../../../shared/ui/AvatarText";
+import { formatDate } from "../../../shared/lib/formatDate";
 
 interface UserMetaCardProps {
   user: User;

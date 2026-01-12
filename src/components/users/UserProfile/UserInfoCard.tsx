@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { useModal } from "../../hooks/useModal";
-import { Modal } from "../ui/modal";
-import Button from "../ui/button/Button";
-import Input from "../form/input/InputField";
-import Label from "../form/Label";
-import { apiClient } from "../../api/client";
-import type { User } from "../../entities/user/model";
-import { useNotification } from "../../context/NotificationContext";
-import { USER_POSITIONS, USER_ROLES } from "../../entities/user/model";
+import { useModal } from "../../../hooks/useModal";
+import { Modal } from "../../ui/modal";
+import Button from "../../ui/button/Button";
+import Input from "../../form/input/InputField";
+import Label from "../../form/Label";
+import { apiClient } from "../../../api/client";
+import type { User } from "../../../entities/user/model";
+import { useNotification } from "../../../context/NotificationContext";
+import { USER_POSITIONS, USER_ROLES } from "../../../entities/user/model";
 
 interface UserInfoCardProps {
   user: User;
