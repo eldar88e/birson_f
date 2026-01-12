@@ -1,0 +1,11 @@
+{
+  "categories": {
+    "other": "Другое",
+    "equipment": "Оборудование",
+    "service": "Услуга",
+    "materials": "Материалы",
+    "marketing": "Маркетинг",
+    "software": "Программное обеспечение",
+    "site": "Сайт"
+  }
+}

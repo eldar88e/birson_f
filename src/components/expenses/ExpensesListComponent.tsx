@@ -6,6 +6,8 @@ import type { Expense } from "../../entities/expenses/model";
 import type { PaginationMeta } from "../../shared/types/api/pagination";
 import { DeleteAction } from "../../shared/ui/DeleteAction";
 import ExpenseModal from "./ExpenseModal";
+import Loader from "../../shared/ui/Loader";
+import { useTranslation } from "react-i18next";
 
 interface Expenses {
   data: Expense[];
@@ -13,6 +15,7 @@ interface Expenses {
 }
 
 export default function ExpensesListComponent() {
+  const { t } = useTranslation("expense");
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [pages, setPages] = useState<Expenses["meta"]>({
     page: 1,
@@ -126,11 +129,13 @@ export default function ExpensesListComponent() {
             </tr>
           </thead>
 
-          {error || expenses.length === 0 || isLoading ? (
+          {isLoading || expenses.length === 0 || error ? (
             <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
               <tr>
                 <td colSpan={6} className="px-4 py-10 text-center text-gray-500 dark:text-gray-400">
-                  {error ? `Ошибка: ${error}` : expenses.length === 0 ? "Расходы не найдены" : "Загрузка..."}
+                  {isLoading ? (<Loader text="Загрузка расходов..." />)
+                  : expenses.length === 0 ? "Расходы не найдены" : (error && `Ошибка: ${error}`)
+                  }
                 </td>
               </tr>
             </tbody>
@@ -148,7 +153,7 @@ export default function ExpensesListComponent() {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-800 dark:text-white/90 flex items-center gap-2">
-                      {expense.category}
+                      {t(`categories.${expense.category}`)}
                     </div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">

@@ -1,0 +1,11 @@
+{
+  "categories": {
+    "other": "Diğer",
+    "equipment": "Ekipman",
+    "service": "Hizmet",
+    "materials": "Malzeme",
+    "marketing": "Pazarlama",
+    "software": "Yazılım",
+    "site": "Site"
+  }
+}

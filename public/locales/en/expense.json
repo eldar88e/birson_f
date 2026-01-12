@@ -1,0 +1,11 @@
+{
+  "categories": {
+    "other": "Other",
+    "equipment": "Equipment",
+    "service": "Service",
+    "materials": "Materials",
+    "marketing": "Marketing",
+    "software": "Software",
+    "site": "Site"
+  }
+}
