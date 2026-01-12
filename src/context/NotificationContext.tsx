@@ -1,7 +1,7 @@
 import { createContext, useContext, useRef, useState } from "react";
 import Notification from "../components/ui/notification/Notfication";
 
-type NotificationType = {
+export type NotificationType = {
   variant: "success" | "error" | "warning" | "info";
   title: string;
   description?: string;
@@ -12,6 +12,12 @@ const NotificationContext = createContext<{
 }>({
   showNotification: () => {},
 });
+
+export const notificationService = {
+  showNotification: (_notification: NotificationType) => {
+    console.warn("NotificationService not initialized");
+  },
+};
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notification, setNotification] = useState<NotificationType | null>(null);
@@ -28,6 +34,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       setNotification(null);
     }, 3000);
   };
+
+  notificationService.showNotification = showNotification;
 
   const closeNotification = () => {
     if (timeoutRef.current) {

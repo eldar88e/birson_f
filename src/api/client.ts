@@ -1,4 +1,6 @@
-import { getStoredToken } from "../shared/lib/authStorage";
+import { getStoredToken, clearAuth } from "../shared/lib/authStorage";
+import { ROUTES } from "../shared/config/routes";
+import { notificationService } from "../context/NotificationContext";
 
 const API_BASE_URL = "https://birson.tgapp.online/api/v1";
 
@@ -64,11 +66,23 @@ class ApiClient {
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new ApiError(
-          data?.message || `Request failed with status ${response.status}`,
-          response.status,
-          data
-        );
+        if (response.status === 401) {
+          clearAuth();
+          notificationService.showNotification({
+            variant: "error",
+            title: "Ошибка",
+            description: "Сессия истекла. Пожалуйста, авторизуйтесь снова.",
+          });
+          setTimeout(() => {
+            window.location.href = ROUTES.AUTH.SIGN_IN;
+          }, 3000);
+        } else {
+          throw new ApiError(
+            data?.message || `Request failed with status ${response.status}`,
+            response.status,
+            data
+          );
+        }
       }
 
       return data as T;
@@ -134,4 +148,3 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);
-
