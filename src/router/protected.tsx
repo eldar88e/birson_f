@@ -21,6 +21,9 @@ import CarList from "../pages/Cars/CarList";
 import AddCar from "../pages/Cars/AddCar";
 import EditCar from "../pages/Cars/EditCar";
 
+import ContractorList from "../pages/Contractors/ContractorsList";
+import AddContractor from "../pages/Contractors/AddContractor";
+
 export const protectedRoutes = (
   <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
     <Route index path={ROUTES.ROOT} element={<Ecommerce />} />
@@ -39,5 +42,8 @@ export const protectedRoutes = (
     <Route path={ROUTES.CARS.INDEX} element={<CarList />} />
     <Route path={ROUTES.CARS.ADD} element={<AddCar />} />
     <Route path={`${ROUTES.CARS.INDEX}/:carId/edit`} element={<EditCar />} />
+
+    <Route path={ROUTES.CONTRACTORS.INDEX} element={<ContractorList />} />
+    <Route path={ROUTES.CONTRACTORS.ADD} element={<AddContractor />} />
   </Route>
 );
