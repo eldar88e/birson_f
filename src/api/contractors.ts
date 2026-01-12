@@ -1,21 +1,29 @@
 import { apiClient } from "./client";
 import type { Contractor } from "../entities/contractor/model";
+import type { PaginationMeta } from "../shared/types/api/pagination";
+import { ROUTES } from "../shared/config/routes";
 
 interface ContractorsResponse {
   data: Contractor[];
 }
 
+interface Contractors {
+  data: Contractor[];
+  meta: PaginationMeta;
+}
+
 export type CreateContractorData = Omit<Contractor, "id">;
 
 class ContractorService {
-  async getContractors(): Promise<Contractor[]> {
-    const response = await apiClient.get<ContractorsResponse>("/contractors", true);
-    return response.data;
+  async getContractors(params: string = ""): Promise<Contractors> {
+    const url = `${ROUTES.CONTRACTORS.INDEX}${params}`;
+    const response = await apiClient.get<Contractors>(url, true);
+    return response;
   }
 
   async searchContractors(query: string): Promise<Contractor[]> {
     const response = await apiClient.get<ContractorsResponse>(
-      `/contractors?q%5Bname_or_phone_cont_any%5D=${encodeURIComponent(query)}`,
+      `${ROUTES.CONTRACTORS.INDEX}?q%5Bname_or_phone_cont_any%5D=${encodeURIComponent(query)}`,
       true
     );
     return response.data;
@@ -23,11 +31,15 @@ class ContractorService {
 
   async createContractor(contractorData: CreateContractorData): Promise<Contractor> {
     const response = await apiClient.post<{ contractor: Contractor }>(
-      "/contractors",
+      `${ROUTES.CONTRACTORS.INDEX}`,
       { contractor: contractorData },
       true
     );
     return response.contractor;
+  }
+
+  async deleteContractor(id: number): Promise<void> {
+    await apiClient.delete(`${ROUTES.CONTRACTORS.INDEX}/${id}`, true);
   }
 }
 

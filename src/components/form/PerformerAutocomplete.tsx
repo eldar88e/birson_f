@@ -99,7 +99,8 @@ export default function PerformerAutocomplete({
               }
             }
           } else {
-            const contractors = await contractorService.getContractors();
+            const response = await contractorService.getContractors();
+            const contractors = response.data;
             const foundContractor = contractors.find(c => c.id === value);
             if (foundContractor) {
               setSelectedPerformer(foundContractor);
