@@ -184,6 +184,7 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
         performer_type: p.performer_type,
         performer_fee: p.performer_fee,
         performer_name: p.performer_name,
+        _destroy: false, // При загрузке из БД они еще не помечены на удаление
       })));
     } else if (item.order_item_performers_attributes && item.order_item_performers_attributes.length > 0) {
       // For local items, convert attributes to performers
@@ -193,6 +194,7 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
         performer_type: attr.performer_type,
         performer_fee: attr.performer_fee,
         performer_name: (item.order_item_performers?.find(p => p.performer_id === attr.performer_id)?.performer_name) || "",
+        _destroy: attr._destroy || false, // Сохраняем флаг удаления для локальных элементов
       })));
     } else {
       setPerformers([]);
@@ -212,7 +214,17 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
   };
 
   const removePerformer = (index: number) => {
-    setPerformers((prev) => prev.filter((_, i) => i !== index));
+    setPerformers((prev) => {
+      const performer = prev[index];
+      // Если исполнитель сохранен в БД (есть id), помечаем для удаления через _destroy
+      if (performer.id) {
+        return prev.map((p, i) => 
+          i === index ? { ...p, _destroy: true } : p
+        );
+      }
+      // Если исполнитель не сохранен (нет id), просто удаляем из массива
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const updatePerformer = (index: number, updates: Partial<AppointmentItemPerformer>) => {
@@ -233,8 +245,8 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
       return;
     }
 
-    // Validate performers
-    const validPerformers = performers.filter((p) => p.performer_id > 0);
+    // Validate performers - исключаем помеченные на удаление и невалидные
+    const validPerformers = performers.filter((p) => !p._destroy && p.performer_id > 0);
     if (validPerformers.length === 0) {
       showNotification({
         variant: "error",
@@ -244,12 +256,14 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
       return;
     }
 
-    const order_item_performers_attributes: AppointmentItemPerformerAttribute[] = validPerformers.map((p) => ({
+    // Включаем всех исполнителей: валидных и помеченных на удаление (для сохраненных в БД)
+    const allPerformersForSubmit = performers.filter((p) => p.performer_id > 0 || p._destroy);
+    const order_item_performers_attributes: AppointmentItemPerformerAttribute[] = allPerformersForSubmit.map((p) => ({
       id: p.id,
       performer_id: p.performer_id,
       performer_type: p.performer_type,
       performer_fee: p.performer_fee,
-      _destroy: p._destroy,
+      _destroy: p._destroy || false,
     }));
 
     if (appointmentId) {
@@ -655,25 +669,48 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                 </Button>
               </div>
               
-              {performers.length === 0 ? (
+              {performers.filter(p => !p._destroy).length === 0 ? (
                 <div className="text-sm text-gray-500 dark:text-gray-400 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
                   Исполнители не добавлены. Нажмите "Добавить исполнителя" для добавления.
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {performers.map((performer, index) => (
+                  {performers.map((performer, originalIndex) => {
+                    // Пропускаем помеченных на удаление при отображении
+                    if (performer._destroy) return null;
+                    
+                    // Находим реальный индекс для отображения (без удаленных)
+                    const displayIndex = performers.slice(0, originalIndex).filter(p => !p._destroy).length;
+                    
+                    return (
                     <div
-                      key={index}
+                      key={performer.id || `performer-${originalIndex}`}
                       className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3"
                     >
                       <div className="flex items-center justify-between">
-                        <Label>Исполнитель {index + 1}</Label>
+                        <Label>Исполнитель {displayIndex + 1}</Label>
                         <button
                           type="button"
-                          onClick={() => removePerformer(index)}
-                          className="text-error-500 hover:text-error-600 text-sm"
+                          onClick={() => removePerformer(originalIndex)}
+                          className="text-error-500 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 text-sm flex items-center gap-1.5 px-2 py-1 rounded transition-colors"
+                          title={performer.id ? "Удалить исполнителя из записи" : "Удалить исполнителя"}
                         >
-                          <SvgIcon name="trash" width={16} />
+                          <svg
+                            className="cursor-pointer fill-error-500 dark:fill-error-500"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 20 20"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              clipRule="evenodd"
+                              d="M8.75 3.33333C8.33579 3.33333 8 3.66912 8 4.08333V4.58333H4.16667C3.75246 4.58333 3.41667 4.91912 3.41667 5.33333C3.41667 5.74754 3.75246 6.08333 4.16667 6.08333H4.66667V15.8333C4.66667 16.7538 5.41286 17.5 6.33333 17.5H13.6667C14.5871 17.5 15.3333 16.7538 15.3333 15.8333V6.08333H15.8333C16.2475 6.08333 16.5833 5.74754 16.5833 5.33333C16.5833 4.91912 16.2475 4.58333 15.8333 4.58333H12V4.08333C12 3.66912 11.6642 3.33333 11.25 3.33333H8.75ZM6.08333 6.08333V15.8333C6.08333 16.0895 6.29381 16.3 6.55 16.3H13.45C13.7062 16.3 13.9167 16.0895 13.9167 15.8333V6.08333H6.08333ZM8.33333 8.33333C8.74754 8.33333 9.08333 8.66912 9.08333 9.08333V13.75C9.08333 14.1642 8.74754 14.5 8.33333 14.5C7.91912 14.5 7.58333 14.1642 7.58333 13.75V9.08333C7.58333 8.66912 7.91912 8.33333 8.33333 8.33333ZM11.6667 8.33333C12.0809 8.33333 12.4167 8.66912 12.4167 9.08333V13.75C12.4167 14.1642 12.0809 14.5 11.6667 14.5C11.2525 14.5 10.9167 14.1642 10.9167 13.75V9.08333C10.9167 8.66912 11.2525 8.33333 11.6667 8.33333Z"
+                              fill="currentColor"
+                            />
+                          </svg>
+                          <span className="text-xs font-medium">Удалить</span>
                         </button>
                       </div>
                       
@@ -683,7 +720,7 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                           <select
                             value={performer.performer_type}
                             onChange={(e) =>
-                              updatePerformer(index, {
+                              updatePerformer(originalIndex, {
                                 performer_type: e.target.value as "User" | "Contractor",
                                 performer_id: 0,
                               })
@@ -707,7 +744,7 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                                     ? (performerObj as any).full_name || (performerObj as any).phone || ""
                                     : (performerObj as any).name || "")
                                 : "";
-                              updatePerformer(index, { 
+                              updatePerformer(originalIndex, { 
                                 performer_id: performerId || 0,
                                 performer_name: performerName,
                               });
@@ -722,7 +759,7 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                             value={performer.performer_fee || ""}
                             onChange={(e) => {
                               const numValue = e.target.value === "" ? 0 : Number(e.target.value);
-                              updatePerformer(index, {
+                              updatePerformer(originalIndex, {
                                 performer_fee: isNaN(numValue) ? 0 : numValue,
                               });
                             }}
@@ -733,7 +770,8 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
