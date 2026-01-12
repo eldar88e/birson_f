@@ -152,7 +152,8 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
     // Load service if service_id exists
     if (item.service_id) {
       try {
-        const services = await serviceService.getServices();
+        const response = await serviceService.getServices();
+        const services = response.data;
         const service = services.find(s => s.id === item.service_id);
         setSelectedService(service || null);
       } catch {

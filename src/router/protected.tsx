@@ -18,9 +18,9 @@ import CreateInvoice from "../pages/Kanban";
 import Calendar from "../pages/Calendar";
 
 import CarList from "../pages/Cars/CarList";
-import EditCar from "../pages/Cars/EditCar";
 
 import ContractorList from "../pages/Contractors/ContractorsList";
+import ServiceList from "../pages/ServiceList";
 
 export const protectedRoutes = (
   <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
@@ -38,8 +38,9 @@ export const protectedRoutes = (
     <Route path={ROUTES.CALENDAR} element={<Calendar />} />
 
     <Route path={ROUTES.CARS.INDEX} element={<CarList />} />
-    <Route path={`${ROUTES.CARS.INDEX}/:carId/edit`} element={<EditCar />} />
 
     <Route path={ROUTES.CONTRACTORS.INDEX} element={<ContractorList />} />
+
+    <Route path={ROUTES.SERVICES.INDEX} element={<ServiceList />} />
   </Route>
 );

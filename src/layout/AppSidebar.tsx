@@ -65,6 +65,7 @@ const supportItems: NavItem[] = [
     subItems: [
     { name: "cars", path: ROUTES.CARS.INDEX, new: true },
     { name: "contractors", path: ROUTES.CONTRACTORS.INDEX },
+    { name: "services", path: ROUTES.SERVICES.INDEX },
     ],
   },
 ];

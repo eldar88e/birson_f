@@ -32,4 +32,7 @@ export const ROUTES = {
   CONTRACTORS: {
     INDEX: "/contractors",
   },
+  SERVICES: {
+    INDEX: "/services",
+  },
 } as const;

@@ -48,7 +48,8 @@ export default function ServiceAutocomplete({
     
     setIsLoading(true);
     try {
-      const loadedServices = await serviceService.getServices();
+      const response = await serviceService.getServices();
+      const loadedServices = response.data;
       setServices(loadedServices);
       setFilteredServices(loadedServices);
       setServicesLoaded(true);

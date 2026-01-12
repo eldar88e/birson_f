@@ -9,7 +9,8 @@
     "kanban": "Kanban",
     "settings": "Settings",
     "cars": "Cars",
-    "contractors": "Contractors"
+    "contractors": "Contractors",
+    "services": "Services"
   },
   "sections": {
     "menu": "Menu",

@@ -9,7 +9,8 @@
     "kanban": "Kanban",
     "settings": "Настройки",
     "cars": "Автомобили",
-    "contractors": "Подрядчики"
+    "contractors": "Подрядчики",
+    "services": "Услуги"
   },
   "sections": {
     "menu": "Меню",
