@@ -16,7 +16,7 @@ export default function SvgIcon({
   height,
   className = "",
 }: IconProps) {
-  const normalizedHeight = height ?? DEFAULT_ICON_SIZE;
+  const normalizedHeight = height ?? width ?? DEFAULT_ICON_SIZE;
 
   return (
     <svg

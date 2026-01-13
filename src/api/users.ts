@@ -14,6 +14,11 @@ class UserService {
     return response.data;
   }
 
+  async getUser(id: number): Promise<User> {
+    const response = await apiClient.get<{ user: User }>(`${ROUTES.USERS.INDEX}/${id}`, true);
+    return response.user;
+  }
+
   async searchUsers(query: string, role?: number): Promise<User[]> {
     let url = `${ROUTES.USERS.INDEX}?q%5Bfull_name_or_phone_cont_any%5D=${encodeURIComponent(query)}&button=`;
     if (role !== undefined) {

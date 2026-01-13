@@ -1,19 +1,43 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-// import Button from "../ui/button/Button";
+import Button from "../ui/button/Button";
 import AppointmentItems from "./AppointmentItems";
 import { apiClient } from "../../api/client";
+import { userService } from "../../api/users";
+import { appointmentService } from "../../api/appointmet";
 import type { Appointment } from "../../entities/appointments/model";
 import { formatDate } from "../../shared/lib/formatDate";
 import { StatusBadge } from "../../shared/ui/StatusBadge";
-// import { useNavigate } from "react-router";
+import { Modal } from "../ui/modal";
+import { useModal } from "../../hooks/useModal";
+import { useNotification } from "../../context/NotificationContext";
+import Label from "../form/Label";
+import DatePicker from "../form/date-picker";
+import UserAutocomplete from "../form/UserAutocomplete";
+import type { User } from "../../entities/user/model";
+import SvgIcon from "../../shared/ui/SvgIcon";
+import Loader from "../../shared/ui/Loader";
 
 export default function AppointmentMain() {
-  // const navigate = useNavigate();
   const { appointmentId } = useParams<{ appointmentId: string }>();
+  const { showNotification } = useNotification();
+  const { isOpen: isModalOpen, openModal, closeModal } = useModal();
   const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [formData, setFormData] = useState<{
+    client_id: number;
+    state: Appointment["state"];
+    comment: string;
+    appointment_at: string;
+  }>({
+    client_id: 0,
+    state: "initial",
+    comment: "",
+    appointment_at: "",
+  });
 
   useEffect(() => {
     const fetchAppointment = async () => {
@@ -27,6 +51,10 @@ export default function AppointmentMain() {
           true
         );
         setAppointment(data.order);
+
+        const user = await userService.getUser(data.order.client_id);
+        setSelectedUser(user);
+     
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Не удалось загрузить запись";
         setError(errorMessage);
@@ -38,14 +66,74 @@ export default function AppointmentMain() {
     fetchAppointment();
   }, [appointmentId]);
 
+  const handleOpenEditModal = () => {
+    if (!appointment) return;
+    
+    setFormData({
+      client_id: appointment.client_id,
+      state: appointment.state,
+      comment: appointment.comment || "",
+      appointment_at: appointment.appointment_at || "",
+    });
+    openModal();
+  };
+
+  const handleUserChange = (user: User | null) => {
+    setSelectedUser(user);
+    setFormData((prev) => ({
+      ...prev,
+      client_id: user?.id || 0,
+    }));
+  };
+
+  const handleSave = async () => {
+    if (!appointment || !appointmentId) return;
+
+    if (!formData.client_id) {
+      showNotification({
+        variant: "error",
+        title: "Ошибка валидации",
+        description: "Необходимо выбрать клиента",
+      });
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const updatedAppointment = await appointmentService.updateAppointment(
+        parseInt(appointmentId),
+        {
+          client_id: formData.client_id,
+          state: formData.state,
+          comment: formData.comment,
+          appointment_at: formData.appointment_at,
+        }
+      );
+
+      setAppointment(updatedAppointment);
+
+      showNotification({
+        variant: "success",
+        title: "Запись обновлена!",
+        description: "Основная информация о записи успешно обновлена",
+      });
+
+      closeModal();
+    } catch (error) {
+      showNotification({
+        variant: "error",
+        title: "Ошибка обновления",
+        description: error instanceof Error ? error.message : "Не удалось обновить запись",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-brand-500"></div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Загрузка записи...</p>
-        </div>
-      </div>
+      <Loader text="Загрузка записи..." />
     );
   }
 
@@ -109,6 +197,15 @@ export default function AppointmentMain() {
           <div className="h-px w-full bg-gray-200 dark:bg-gray-800 sm:h-[158px] sm:w-px"></div>
 
           <div className="sm:text-right">
+            <div className="mb-4">
+              <Button
+                variant="outline"
+                onClick={handleOpenEditModal}
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200 lg:inline-flex lg:w-auto"
+              >
+                <SvgIcon name="pencil" width={18} />
+              </Button>
+            </div>
             <span className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
               Дата записи:
             </span>
@@ -121,11 +218,94 @@ export default function AppointmentMain() {
 
         {/* Order Items Table */}
         <AppointmentItems appointmentId={appointment.id} clientId={appointment.client_id} items={appointment.order_items} />
-
-        {/* <div className="flex items-center justify-end gap-3 mt-6">
-          <Button onClick={() => navigate(`/appointments/${appointment.id}/edit`)}>Редактировать</Button>
-        </div> */}
       </div>
+
+      {/* Edit Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        className="max-w-[700px] p-4 sm:p-6 lg:p-8 sm:m-4 sm:rounded-3xl"
+      >
+        <div onClick={(e) => e.stopPropagation()}>
+          <h4 className="font-semibold text-gray-800 mb-6 text-title-sm dark:text-white/90">
+            Редактировать запись
+          </h4>
+          <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <Label>Статус *</Label>
+                <select
+                  value={formData.state}
+                  className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, state: e.target.value as Appointment["state"] }))
+                  }
+                  required
+                >
+                  <option value="initial">В ожидании</option>
+                  <option value="processing">В процессе</option>
+                  <option value="completed">Завершен</option>
+                  <option value="cancelled">Отменен</option>
+                </select>
+              </div>
+
+              <div>
+                <DatePicker
+                  id="edit-appointment-date"
+                  label="Дата записи"
+                  placeholder="Выберите дату"
+                  defaultDate={formData.appointment_at || undefined}
+                  onChange={(_dates, dateStr) => {
+                    setFormData((prev) => ({ ...prev, appointment_at: dateStr || "" }));
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1">
+              <div>
+                <UserAutocomplete
+                  label="Клиент *"
+                  placeholder="Введите имя или номер телефона"
+                  value={selectedUser}
+                  onChange={handleUserChange}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Комментарий</Label>
+              <textarea
+                className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                placeholder="Введите комментарий..."
+                value={formData.comment}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, comment: e.target.value }))
+                }
+                rows={3}
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-3 mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={closeModal}
+                disabled={isSaving}
+              >
+                Отмена
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={isSaving}
+              >
+                {isSaving ? "Сохранение..." : "Сохранить"}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </Modal>
     </div>
   );
 }

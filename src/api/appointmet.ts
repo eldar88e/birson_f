@@ -22,6 +22,16 @@ class AppointmentService {
     return response;
   }
 
+  async updateAppointment(id: number, appointmentData: Partial<Appointment>): Promise<Appointment> {
+    const url = `${API_APPOINTMENT_PATH}/${id}`;
+    const response = await apiClient.put<{ order: Appointment }>(
+      url,
+      { order: appointmentData },
+      true
+    );
+    return response.order;
+  }
+
   async deleteAppointment(id: number): Promise<void> {
     const url = `${API_APPOINTMENT_PATH}/${id}`
     await apiClient.delete(url, true);

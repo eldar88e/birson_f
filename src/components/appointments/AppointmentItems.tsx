@@ -586,7 +586,7 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
           closeModal();
           setEditingItemId(null);
         }}
-        className="max-w-3xl p-4 sm:p-6 lg:p-8 sm:m-4 sm:rounded-3xl"
+        className="max-w-4xl p-4 sm:p-6 lg:p-8 sm:m-4 sm:rounded-3xl"
       >
         <div onClick={(e) => e.stopPropagation()}>
           <h4 className="font-semibold text-gray-800 mb-6 text-title-sm dark:text-white/90">
@@ -622,7 +622,9 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                   ownerId={clientId}
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
                 <Label>Статус</Label>
                 <select
@@ -651,6 +653,20 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                   min="0"
                   step={0.01}
                 />
+              </div>
+
+              <div>
+                <Label>Оплачено</Label>
+                <div className="flex items-center h-11">
+                  <input
+                    type="checkbox"
+                    name="paid"
+                    checked={formData.paid}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700"
+                  />
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Да</span>
+                </div>
               </div>
             </div>
 
@@ -714,7 +730,7 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                         </button>
                       </div>
                       
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <div>
                           <Label>Тип исполнителя</Label>
                           <select
@@ -776,22 +792,7 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-
-              <div>
-                <Label>Оплачено</Label>
-                <div className="flex items-center h-11">
-                  <input
-                    type="checkbox"
-                    name="paid"
-                    checked={formData.paid}
-                    onChange={handleInputChange}
-                    className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700"
-                  />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Да</span>
-                </div>
-              </div>
-
+            <div className="pt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <Label>Цена материалов</Label>
                 <Input
