@@ -226,9 +226,6 @@ export default function AppointmentListTable() {
                     </div>
                   </th>
                   <th className="p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400">
-                    Создано
-                  </th>
-                  <th className="p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400">
                     Дата записи
                   </th>
                   <th className="p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400">
@@ -236,6 +233,9 @@ export default function AppointmentListTable() {
                   </th>
                   <th className="p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400">
                     Статус
+                  </th>
+                  <th className="p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400">
+                    Дата взятия в работу
                   </th>
                   <th className="p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400">
                     <div className="relative">
@@ -289,11 +289,6 @@ export default function AppointmentListTable() {
                     </td>
                     <td className="p-4 whitespace-nowrap">
                       <p className="text-sm text-gray-700 dark:text-gray-400">
-                        {formatDate(appointment.created_at)}
-                      </p>
-                    </td>
-                    <td className="p-4 whitespace-nowrap">
-                      <p className="text-sm text-gray-700 dark:text-gray-400">
                         {formatDate(appointment.appointment_at)}
                       </p>
                     </td>
@@ -304,6 +299,11 @@ export default function AppointmentListTable() {
                     </td>
                     <td className="p-4 whitespace-nowrap">
                       <StatusBadge state={appointment.state} />
+                    </td>
+                    <td className="p-4 whitespace-nowrap">
+                      <p className="text-sm text-gray-700 dark:text-gray-400">
+                        {formatDate(appointment.processing_at)}
+                      </p>
                     </td>
                     <td className="p-4 whitespace-nowrap">
                       <div className="relative flex justify-center dropdown">

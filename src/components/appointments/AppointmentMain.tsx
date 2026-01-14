@@ -210,21 +210,47 @@ export default function AppointmentMain() {
                 <SvgIcon name="pencil" width={18} />
               </Button>
             </div>
-            <span className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            <span className="mb-1 block text-sm font-medium text-blue-500 dark:text-blue-400">
               Дата записи:
             </span>
 
-            <span className="block text-sm text-gray-500 dark:text-gray-400">
+            <span className="mb-2 block text-sm text-gray-500 dark:text-gray-400">
               {appointment.appointment_at ? formatDate(appointment.appointment_at) : "Не указана"}
             </span>
+
+            <span className="mb-1 block text-sm font-medium text-orange-500 dark:text-orange-400">
+              Дата взятия в работу:
+            </span>
+
+            <span className="mb-2 block text-sm text-gray-500 dark:text-gray-400">
+              {formatDate(appointment.processing_at)}
+            </span>
+
+            <span className="mb-1 block text-sm font-medium text-green-500 dark:text-green-400">
+              Дата завершения:
+            </span>
+
+            <span className="mb-2 block text-sm text-gray-500 dark:text-gray-400">
+              {formatDate(appointment.completed_at)}
+            </span>
+
+            {appointment.cancelled_at && (
+              <>
+                <span className="mb-1 block text-sm font-medium text-red-500 dark:text-red-400">
+                  Дата отмены:
+                </span>
+
+                <span className="block text-sm text-gray-500 dark:text-gray-400">
+                  {formatDate(appointment.cancelled_at)}
+                </span>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Order Items Table */}
         <AppointmentItems appointmentId={appointment.id} clientId={appointment.client_id} items={appointment.order_items} />
       </div>
 
-      {/* Edit Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}

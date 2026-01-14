@@ -1,6 +1,7 @@
 import { apiClient } from "./client";
 import { clearAuth, saveAuth, saveUser, getStoredToken, getStoredUser, getStoredUserId } from "../shared/lib/authStorage";
 import type { User } from "../entities/user/model";
+import { userService } from "./users";
 
 export interface LoginCredentials {
   email: string;
@@ -18,9 +19,8 @@ type LoginApiResponse = {
 };
 
 class AuthService {
-  private async fetchUserData(userId: number): Promise<User> {
-    const response = await apiClient.get<{ user: User }>(`/users/${userId}`, true);
-    return response.user;
+  private fetchUserData(userId: number) {
+    return userService.getUser(userId);
   }
 
   private async updateUserData(): Promise<null> {
