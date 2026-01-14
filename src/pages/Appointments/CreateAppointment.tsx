@@ -82,7 +82,7 @@ export default function CreateAppointment() {
 
       const response = await appointmentService.createAppointment({
         ...formData,
-        client_id: formData.client_id ?? undefined,
+        client_id: formData.client_id,
         order_items_attributes: itemsToSend,
       });
 
