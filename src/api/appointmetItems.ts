@@ -1,4 +1,5 @@
 import { apiClient } from "./client";
+import { API_APPOINTMENT_PATH } from "./appointmet";
 
 export interface AppointmentItemPerformer {
   id?: number;
@@ -11,7 +12,7 @@ export interface AppointmentItemPerformer {
 
 export interface AppointmentItem {
   id?: number;
-  order_id: number;
+  order_id?: number;
   service_id: number;
   car_id?: number;
   state: "initial" | "diagnostic" | "agreement" | "processing" | "control" | "completed" | "cancelled";
@@ -24,19 +25,12 @@ export interface AppointmentItem {
   comment: string;
   order_item_performers?: AppointmentItemPerformer[];
   service?: string;
-  order_item_performers_attributes?: AppointmentItemPerformerAttribute[];
-}
-
-export interface AppointmentItemPerformerAttribute {
-  id?: number;
-  performer_id: number;
-  performer_type: "User" | "Contractor";
-  performer_fee: number;
+  order_item_performers_attributes?: AppointmentItemPerformer[];
   _destroy?: boolean;
 }
 
 export type CreateAppointmentItemData = Omit<AppointmentItem, "id" | "performers"> & {
-  order_item_performers_attributes?: AppointmentItemPerformerAttribute[];
+  order_item_performers_attributes?: AppointmentItemPerformer[];
 };
 
 class AppointmentItemService {
@@ -51,7 +45,7 @@ class AppointmentItemService {
     };
 
     const response = await apiClient.post<{ order_item: AppointmentItem }>(
-      `/orders/${appointmentId}/order_items`,
+      `${API_APPOINTMENT_PATH}/${appointmentId}/order_items`,
       payload,
       true
     );
@@ -61,7 +55,7 @@ class AppointmentItemService {
 
   async getAppointmentItems(appointmentId: number): Promise<AppointmentItem[]> {
     const response = await apiClient.get<{ data: AppointmentItem[] }>(
-      `/orders/${appointmentId}/order_items`,
+      `${API_APPOINTMENT_PATH}/${appointmentId}/order_items`,
       true
     );
     return response.data;
@@ -78,7 +72,7 @@ class AppointmentItemService {
     };
 
     const response = await apiClient.put<{ order_item: AppointmentItem }>(
-      `/orders/${appointmentId}/order_items/${itemId}`,
+      `${API_APPOINTMENT_PATH}/${appointmentId}/order_items/${itemId}`,
       payload,
       true
     );
@@ -87,7 +81,7 @@ class AppointmentItemService {
   }
 
   async delete(appointmentId: number, itemId: number): Promise<void> {
-    await apiClient.delete(`/orders/${appointmentId}/order_items/${itemId}`, true);
+    await apiClient.delete(`${API_APPOINTMENT_PATH}/${appointmentId}/order_items/${itemId}`, true);
   }
 }
 

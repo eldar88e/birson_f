@@ -2,7 +2,7 @@ import { apiClient } from "./client";
 import type { Appointment } from "../entities/appointments/model";
 import type { PaginationMeta } from "../shared/types/api/pagination";
 
-const API_APPOINTMENT_PATH = "/orders"
+export const API_APPOINTMENT_PATH = "/orders"
 
 interface Appointments {
   data: Appointment[];
@@ -18,8 +18,14 @@ class AppointmentService {
 
   async getAppointment(id: number): Promise<Appointment> {
     const url = `${API_APPOINTMENT_PATH}/${id}`
-    const response = await apiClient.get<Appointment>(url, true);
-    return response;
+    const response = await apiClient.get<{ order: Appointment }>(url, true);
+    return response.order;
+  }
+
+  async createAppointment(appointmentData: Partial<Appointment>): Promise<Appointment> {
+    const url = `${API_APPOINTMENT_PATH}`;
+    const response = await apiClient.post<{ order: Appointment }>(url, { order: appointmentData }, true);
+    return response.order;
   }
 
   async updateAppointment(id: number, appointmentData: Partial<Appointment>): Promise<Appointment> {

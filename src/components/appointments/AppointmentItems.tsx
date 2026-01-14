@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import Button from "../ui/button/Button";
-import { appointmentItemService, type AppointmentItem, type AppointmentItemPerformer, type AppointmentItemPerformerAttribute } from "../../api/appointmetItems";
+import { appointmentItemService, type AppointmentItem, type AppointmentItemPerformer } from "../../api/appointmetItems";
 import { useNotification } from "../../context/NotificationContext";
 import { Modal } from "../ui/modal";
 import { useModal } from "../../hooks/useModal";
@@ -256,9 +256,8 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
       return;
     }
 
-    // Включаем всех исполнителей: валидных и помеченных на удаление (для сохраненных в БД)
     const allPerformersForSubmit = performers.filter((p) => p.performer_id > 0 || p._destroy);
-    const order_item_performers_attributes: AppointmentItemPerformerAttribute[] = allPerformersForSubmit.map((p) => ({
+    const order_item_performers_attributes: AppointmentItemPerformer[] = allPerformersForSubmit.map((p) => ({
       id: p.id,
       performer_id: p.performer_id,
       performer_type: p.performer_type,

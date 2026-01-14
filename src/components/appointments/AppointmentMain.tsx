@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import Button from "../ui/button/Button";
 import AppointmentItems from "./AppointmentItems";
-import { apiClient } from "../../api/client";
-import { userService } from "../../api/users";
 import { appointmentService } from "../../api/appointmet";
+import { userService } from "../../api/users";
 import type { Appointment } from "../../entities/appointments/model";
 import { formatDate } from "../../shared/lib/formatDate";
 import { StatusBadge } from "../../shared/ui/StatusBadge";
@@ -46,15 +45,20 @@ export default function AppointmentMain() {
       setIsLoading(true);
       setError("");
       try {
-        const data = await apiClient.get<{ order: Appointment }>(
-          `/orders/${appointmentId}`,
-          true
-        );
-        setAppointment(data.order);
+        const appointmentIdNum = parseInt(appointmentId, 10);
+        if (isNaN(appointmentIdNum)) throw new Error("Invalid appointment ID");
 
-        const user = await userService.getUser(data.order.client_id);
-        setSelectedUser(user);
-     
+        const appointmentData = await appointmentService.getAppointment(appointmentIdNum);
+        setAppointment(appointmentData);
+
+        if (appointmentData.client_id) return;
+
+        try {
+          const user = await userService.getUser(appointmentData.client_id);
+          setSelectedUser(user);
+        } catch {
+          // Ignore error
+        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Не удалось загрузить запись";
         setError(errorMessage);

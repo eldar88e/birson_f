@@ -16,4 +16,5 @@ export interface Appointment {
   created_at: string;
   updated_at: string;
   order_items?: AppointmentItem[];
+  order_items_attributes?: AppointmentItem[];
 }

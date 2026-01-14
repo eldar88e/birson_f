@@ -8,7 +8,7 @@ import type { User } from "../../entities/user/model.ts";
 // import AppointmentItemPreview from "../../components/appointments/AppointmentItemPreview.tsx";
 import AppointmentItems from "../../components/appointments/AppointmentItems.tsx";
 import SvgIcon from "../../shared/ui/SvgIcon.tsx";
-import { apiClient } from "../../api/client.ts";
+import { appointmentService } from "../../api/appointmet.ts";
 import {useNotification} from "../../context/NotificationContext.tsx";
 import { Appointment } from "../../entities/appointments/model.ts";
 import {ROUTES} from "../../shared/config/routes.ts";
@@ -80,16 +80,11 @@ export default function CreateAppointment() {
         order_item_performers_attributes: item.order_item_performers_attributes || [],
       }));
 
-      const response = await apiClient.post<{ order: Appointment }>(
-        "/orders",
-        { 
-          order: {
-            ...formData,
-            order_items_attributes: itemsToSend,
-          },
-        },
-        true
-      );
+      const response = await appointmentService.createAppointment({
+        ...formData,
+        client_id: formData.client_id ?? undefined,
+        order_items_attributes: itemsToSend,
+      });
 
       showNotification({
         variant: "success",
@@ -98,7 +93,7 @@ export default function CreateAppointment() {
       });
 
       setTimeout(() => {
-        navigate(`${ROUTES.APPOINTMENTS.INDEX}/${response.order.id}`);
+        navigate(`${ROUTES.APPOINTMENTS.INDEX}/${response.id}`);
       }, 1000);
     } catch (error) {
       showNotification({
