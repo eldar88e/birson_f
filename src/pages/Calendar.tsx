@@ -7,6 +7,7 @@ import { EventInput, DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import { Modal } from "../components/ui/modal";
 import { useModal } from "../hooks/useModal";
 import PageMeta from "../components/common/PageMeta";
+import { eventService } from "../api/events";
 
 interface CalendarEvent extends EventInput {
   extendedProps: {
@@ -34,28 +35,31 @@ const Calendar: React.FC = () => {
   };
 
   useEffect(() => {
+    eventService.getEvents().then((response) => {
+      setEvents(response.data);
+    });
     // Initialize with some events
-    setEvents([
-      {
-        id: "1",
-        title: "Event Conf.",
-        start: new Date().toISOString().split("T")[0],
-        extendedProps: { calendar: "Danger" },
-      },
-      {
-        id: "2",
-        title: "Meeting",
-        start: new Date(Date.now() + 86400000).toISOString().split("T")[0],
-        extendedProps: { calendar: "Success" },
-      },
-      {
-        id: "3",
-        title: "Workshop",
-        start: new Date(Date.now() + 172800000).toISOString().split("T")[0],
-        end: new Date(Date.now() + 259200000).toISOString().split("T")[0],
-        extendedProps: { calendar: "Primary" },
-      },
-    ]);
+    // setEvents([
+    //   {
+    //     id: "1",
+    //     title: "Event Conf.",
+    //     start: new Date().toISOString().split("T")[0],
+    //     extendedProps: { calendar: "Danger" },
+    //   },
+    //   {
+    //     id: "2",
+    //     title: "Meeting",
+    //     start: new Date(Date.now() + 86400000).toISOString().split("T")[0],
+    //     extendedProps: { calendar: "Success" },
+    //   },
+    //   {
+    //     id: "3",
+    //     title: "Workshop",
+    //     start: new Date(Date.now() + 172800000).toISOString().split("T")[0],
+    //     end: new Date(Date.now() + 259200000).toISOString().split("T")[0],
+    //     extendedProps: { calendar: "Primary" },
+    //   },
+    // ]);
   }, []);
 
   const handleDateSelect = (selectInfo: DateSelectArg) => {

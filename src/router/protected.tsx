@@ -47,5 +47,7 @@ export const protectedRoutes = (
     <Route path={ROUTES.SERVICES.INDEX} element={<ServiceList />} />
 
     <Route path={ROUTES.EXPENSES.INDEX} element={<ExpenseList />} />
+
+    <Route path={ROUTES.EVENTS.INDEX} element={<Calendar />} />
   </Route>
 );

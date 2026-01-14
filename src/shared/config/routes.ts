@@ -5,7 +5,6 @@ export const ROUTES = {
     SIGN_IN: "/signin",
   },
 
-  CALENDAR: "/calendar",
   KANBAN: "/task-kanban",
 
   APPOINTMENTS: {
@@ -37,5 +36,8 @@ export const ROUTES = {
   },
   EXPENSES: {
     INDEX: "/expenses",
+  },
+  EVENTS: {
+    INDEX: "/events",
   },
 } as const;

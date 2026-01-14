@@ -45,7 +45,7 @@ const navItems: NavItem[] = [
   },
   { icon: <CalenderIcon />,
     name: "calendar",
-    path: ROUTES.CALENDAR,
+    path: ROUTES.EVENTS.INDEX,
   },
   { icon: <DollarLineIcon />,
     name: "expenses",
