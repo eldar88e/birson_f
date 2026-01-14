@@ -8,6 +8,7 @@ import { DeleteAction } from "../../shared/ui/DeleteAction";
 import ExpenseModal from "./ExpenseModal";
 import Loader from "../../shared/ui/Loader";
 import { useTranslation } from "react-i18next";
+import { formatDate } from "../../shared/lib/formatDate";
 
 interface Expenses {
   data: Expense[];
@@ -168,12 +169,12 @@ export default function ExpensesListComponent() {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <p className="text-sm text-gray-700 dark:text-gray-400">
-                      {expense.spent_at}
+                      {formatDate(expense.spent_at)}
                     </p>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-800 dark:text-white/90 flex items-center gap-2">
-                      {expense.created_at}
+                      {formatDate(expense.created_at)}
                     </div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">

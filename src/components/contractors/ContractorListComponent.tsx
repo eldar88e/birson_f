@@ -8,6 +8,7 @@ import type { Contractor } from "../../entities/contractor/model";
 import type { PaginationMeta } from "../../shared/types/api/pagination";
 // import CarModal from "./CarModal";
 import { DeleteAction } from "../../shared/ui/DeleteAction";
+import { formatDate } from "../../shared/lib/formatDate";
 
 interface Contractors {
   data: Contractor[];
@@ -174,7 +175,7 @@ export default function ContractorListComponent() {
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <p className="text-sm text-gray-700 dark:text-gray-400">
-                    {contractor.created_at}
+                    {formatDate(contractor.created_at || "")}
                   </p>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
