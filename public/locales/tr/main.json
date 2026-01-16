@@ -18,5 +18,14 @@
     "settings": "Ayarlar",
     "admin": "Yönetici"
   },
-  "actions": "İşlemler"
+  "actions": "İşlemler",
+  "btn": {
+    "add": "Ekle",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "close": "Kapat",
+    "save": "Kaydet",
+    "update": "Güncelle"
+  },
+  "title": "Başlık"
 }

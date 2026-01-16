@@ -18,5 +18,14 @@
     "settings": "Settings",
     "admin": "Admin"
   },
-  "actions": "Actions"
+  "actions": "Actions",
+  "btn": {
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "close": "Close",
+    "save": "Save",
+    "update": "Update"
+  },
+  "title": "Title"
 }

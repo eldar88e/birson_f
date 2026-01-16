@@ -12,6 +12,7 @@ i18n
     fallbackLng: "ru",
     ns: ["main"],
     defaultNS: "main",
+    fallbackNS: "main",
     backend: {
       loadPath: "/locales/{{lng}}/{{ns}}.json",
     },

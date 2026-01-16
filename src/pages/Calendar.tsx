@@ -11,6 +11,10 @@ import { eventService } from "../api/events";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../shared/config/routes";
+import { CalenderIcon } from "../icons";
+import flatpickr from "flatpickr";
+import "flatpickr/dist/flatpickr.css";
+import { useNotification } from "../context/NotificationContext";
 
 interface CalendarEvent extends EventInput {
   extendedProps: {
@@ -22,10 +26,82 @@ interface CalendarEvent extends EventInput {
 
 const APPOINTMENT_TYPE = "Order";
 
+// Компонент DatePicker с поддержкой времени
+const DateTimePicker: React.FC<{
+  id: string;
+  value: string;
+  onChange: (dateStr: string | null) => void;
+  placeholder?: string;
+}> = ({ id, value, onChange, placeholder }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const flatpickrRef = useRef<flatpickr.Instance | null>(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      const fp = flatpickr(inputRef.current, {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        time_24hr: true,
+        static: true,
+        monthSelectorType: "static",
+        defaultDate: value || undefined,
+        onChange: (selectedDates) => {
+          // Форматируем для datetime-local (YYYY-MM-DDTHH:mm)
+          if (selectedDates.length > 0) {
+            const date = selectedDates[0];
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            const hours = String(date.getHours()).padStart(2, "0");
+            const minutes = String(date.getMinutes()).padStart(2, "0");
+            onChange(`${year}-${month}-${day}T${hours}:${minutes}`);
+          } else {
+            onChange(null);
+          }
+        },
+      });
+
+      flatpickrRef.current = fp;
+
+      return () => {
+        if (fp && !Array.isArray(fp)) {
+          fp.destroy();
+        }
+      };
+    }
+  }, [id, onChange]);
+
+  // Обновляем значение при изменении value извне
+  useEffect(() => {
+    if (flatpickrRef.current && value) {
+      const date = new Date(value);
+      if (!isNaN(date.getTime())) {
+        flatpickrRef.current.setDate(date, false);
+      }
+    }
+  }, [value]);
+
+  return (
+    <div className="relative">
+      <input
+        ref={inputRef}
+        id={id}
+        placeholder={placeholder}
+        className="dark:bg-dark-900 h-11 w-full rounded-lg border appearance-none px-4 py-2.5 pr-11 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:focus:border-brand-800"
+      />
+      <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+        <CalenderIcon className="size-6" />
+      </span>
+    </div>
+  );
+};
+
 const Calendar: React.FC = () => {
   const { t } = useTranslation("event");
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [eventTitle, setEventTitle] = useState("");
   const [eventStartDate, setEventStartDate] = useState("");
   const [eventEndDate, setEventEndDate] = useState("");
@@ -67,69 +143,81 @@ const Calendar: React.FC = () => {
     setDateRange({ start: normalizedStart, end: normalizedEnd });
   };
 
+  const loadEvents = async () => {
+    try {
+      const startDate = new Date(dateRange.start);
+      startDate.setHours(0, 0, 0, 0);
+      
+      const endDate = new Date(dateRange.end);
+      endDate.setHours(23, 59, 59, 999);
+      
+      const startDateStr = startDate.toISOString();
+      const endDateStr = endDate.toISOString();
+      const params = `?q[starts_at_gteq]=${encodeURIComponent(startDateStr)}&q[starts_at_lt]=${encodeURIComponent(endDateStr)}`;
+      
+      const response = await eventService.getEvents(params);
+      const calendarEvents: CalendarEvent[] = response.data
+        .filter((event: any) => {
+          const startDate = event.starts_at || event.start_at || event.startAt || event.start || event.appointment_at;
+          return startDate && startDate.trim() !== "";
+        })
+        .map((event: any) => {
+          const startDateRaw = event.starts_at || event.start_at || event.startAt || event.start || event.appointment_at;
+          const endDateRaw = event.ends_at || event.end_at || event.endAt || event.end;
+
+          let startDate = startDateRaw;
+          let endDate = endDateRaw || undefined;
+
+          if (startDate && typeof startDate === "string" && startDate.includes("T")) {
+            startDate = startDate.split("T")[0];
+          }
+          if (endDate && typeof endDate === "string" && endDate.includes("T")) {
+            endDate = endDate.split("T")[0];
+          }
+
+          const title = event.eventable_type === APPOINTMENT_TYPE ? `${t("appointment_title")} #${event.eventable_id}` : event.title;
+          
+          return {
+            id: String(event.id),
+            title: title,
+            start: startDate,
+            end: endDate || undefined,
+            allDay: true,
+            extendedProps: {
+              calendar: event.kind ? 
+                event.kind.charAt(0).toUpperCase() + event.kind.slice(1) : 
+                "Primary",
+              eventable_type: event.eventable_type,
+              eventable_id: event.eventable_id,
+            },
+          };
+        });
+      setEvents(calendarEvents);
+    } catch (error) {
+      console.error("Failed to load events:", error);
+    }
+  };
+
   useEffect(() => {
-    const loadEvents = async () => {
-      try {
-        const startDate = new Date(dateRange.start);
-        startDate.setHours(0, 0, 0, 0);
-        
-        const endDate = new Date(dateRange.end);
-        endDate.setHours(23, 59, 59, 999);
-        
-        const startDateStr = startDate.toISOString();
-        const endDateStr = endDate.toISOString();
-        const params = `?q[starts_at_gteq]=${encodeURIComponent(startDateStr)}&q[starts_at_lt]=${encodeURIComponent(endDateStr)}`;
-        
-        const response = await eventService.getEvents(params);
-        const calendarEvents: CalendarEvent[] = response.data
-          .filter((event: any) => {
-            const startDate = event.starts_at || event.start_at || event.startAt || event.start || event.appointment_at;
-            return startDate && startDate.trim() !== "";
-          })
-          .map((event: any) => {
-            const startDateRaw = event.starts_at || event.start_at || event.startAt || event.start || event.appointment_at;
-            const endDateRaw = event.ends_at || event.end_at || event.endAt || event.end;
-
-            let startDate = startDateRaw;
-            let endDate = endDateRaw || undefined;
-
-            if (startDate && typeof startDate === "string" && startDate.includes("T")) {
-              startDate = startDate.split("T")[0];
-            }
-            if (endDate && typeof endDate === "string" && endDate.includes("T")) {
-              endDate = endDate.split("T")[0];
-            }
-
-            const title = event.eventable_type === APPOINTMENT_TYPE ? `Запись на сервис #${event.eventable_id}` : event.title;
-            
-            return {
-              id: String(event.id),
-              title: title,
-              start: startDate,
-              end: endDate || undefined,
-              allDay: true, // Указываем, что это события на весь день
-              extendedProps: {
-                calendar: event.kind ? 
-                  event.kind.charAt(0).toUpperCase() + event.kind.slice(1) : 
-                  "Primary",
-                eventable_type: event.eventable_type,
-                eventable_id: event.eventable_id,
-              },
-            };
-          });
-        setEvents(calendarEvents);
-      } catch (error) {
-        console.error("Failed to load events:", error);
-      }
-    };
-
     loadEvents();
   }, [dateRange]);
 
   const handleDateSelect = (selectInfo: DateSelectArg) => {
     resetModalFields();
-    setEventStartDate(selectInfo.startStr);
-    setEventEndDate(selectInfo.endStr || selectInfo.startStr);
+    // Форматируем для datetime-local (YYYY-MM-DDTHH:mm)
+    const formatForDateTimeLocal = (dateStr: string) => {
+      if (!dateStr) return "";
+      const date = new Date(dateStr);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+    
+    setEventStartDate(formatForDateTimeLocal(selectInfo.startStr));
+    setEventEndDate(formatForDateTimeLocal(selectInfo.endStr || selectInfo.startStr));
     openModal();
   };
 
@@ -144,42 +232,104 @@ const Calendar: React.FC = () => {
 
     setSelectedEvent(event as unknown as CalendarEvent);
     setEventTitle(event.title);
-    setEventStartDate(event.start?.toISOString().split("T")[0] || "");
-    setEventEndDate(event.end?.toISOString().split("T")[0] || "");
+    // Форматируем дату и время для datetime-local (YYYY-MM-DDTHH:mm)
+    const formatForDateTimeLocal = (date: Date | null | undefined) => {
+      if (!date) return "";
+      // Получаем локальную дату и время без смещения часового пояса
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+    
+    setEventStartDate(formatForDateTimeLocal(event.start ? new Date(event.start) : null));
+    setEventEndDate(formatForDateTimeLocal(event.end ? new Date(event.end) : null));
     setEventLevel(extendedProps.calendar);
     openModal();
   };
 
-  const handleAddOrUpdateEvent = () => {
-    if (selectedEvent) {
-      // Update existing event
-      setEvents((prevEvents) =>
-        prevEvents.map((event) =>
-          event.id === selectedEvent.id
-            ? {
-                ...event,
-                title: eventTitle,
-                start: eventStartDate,
-                end: eventEndDate,
-                extendedProps: { calendar: eventLevel },
-              }
-            : event
-        )
-      );
-    } else {
-      // Add new event
-      const newEvent: CalendarEvent = {
-        id: crypto.randomUUID(),
-        title: eventTitle,
-        start: eventStartDate,
-        end: eventEndDate,
-        allDay: true,
-        extendedProps: { calendar: eventLevel },
-      };
-      setEvents((prevEvents) => [...prevEvents, newEvent]);
+  const handleAddOrUpdateEvent = async () => {
+    if (!eventTitle.trim()) {
+      showNotification({
+        variant: "error",
+        title: "Ошибка валидации",
+        description: "Необходимо указать название события",
+      });
+      return;
     }
-    closeModal();
-    resetModalFields();
+
+    if (!eventStartDate) {
+      showNotification({
+        variant: "error",
+        title: "Ошибка валидации",
+        description: "Необходимо указать дату начала",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // datetime-local возвращает формат YYYY-MM-DDTHH:mm, нужно добавить секунды для ISO
+      const formatForISO = (dateTime: string) => {
+        if (!dateTime) return "";
+        // Если формат уже содержит время, добавляем секунды, иначе возвращаем как есть
+        if (dateTime.includes("T")) {
+          return dateTime + ":00";
+        }
+        return dateTime;
+      };
+
+      const startsAt = formatForISO(eventStartDate);
+      const endsAt = eventEndDate ? formatForISO(eventEndDate) : null;
+
+      // Преобразуем calendar в kind (Primary -> primary)
+      const kind = eventLevel ? eventLevel.toLowerCase() as "primary" | "success" | "warning" | "danger" : "primary";
+
+      if (selectedEvent && selectedEvent.id) {
+        // Update existing event
+        const eventId = parseInt(selectedEvent.id);
+        await eventService.updateEvent(eventId, {
+          title: eventTitle,
+          starts_at: startsAt,
+          ends_at: endsAt,
+          kind,
+        });
+        showNotification({
+          variant: "success",
+          title: "Событие обновлено!",
+          description: "Событие успешно обновлено",
+        });
+      } else {
+        // Create new event
+        await eventService.createEvent({
+          title: eventTitle,
+          starts_at: startsAt,
+          ends_at: endsAt,
+          kind,
+        });
+        showNotification({
+          variant: "success",
+          title: "Событие создано!",
+          description: "Новое событие успешно добавлено",
+        });
+      }
+
+      // Перезагружаем события для текущего диапазона дат
+      await loadEvents();
+      closeModal();
+      resetModalFields();
+    } catch (error) {
+      showNotification({
+        variant: "error",
+        title: selectedEvent ? "Ошибка обновления" : "Ошибка создания",
+        description: error instanceof Error ? error.message : "Не удалось сохранить событие",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetModalFields = () => {
@@ -229,18 +379,17 @@ const Calendar: React.FC = () => {
           <div className="flex flex-col px-2 overflow-y-auto custom-scrollbar">
             <div>
               <h5 className="mb-2 font-semibold text-gray-800 modal-title text-theme-xl dark:text-white/90 lg:text-2xl">
-                {selectedEvent ? "Edit Event" : "Add Event"}
+                {selectedEvent ? `${t("edit_event_title")}` : `${t("add_event_title")}`}
               </h5>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Plan your next big moment: schedule or edit an event to stay on
-                track
+                {t("event_description")}
               </p>
             </div>
             <div className="mt-8">
               <div>
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                    Event Title
+                    {t("title")}
                   </label>
                   <input
                     id="event-title"
@@ -253,7 +402,7 @@ const Calendar: React.FC = () => {
               </div>
               <div className="mt-6">
                 <label className="block mb-4 text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Event Color
+                  {t("color")}
                 </label>
                 <div className="flex flex-wrap items-center gap-4 sm:gap-5">
                   {Object.entries(calendarsEvents).map(([key, value]) => (
@@ -285,7 +434,7 @@ const Calendar: React.FC = () => {
                               ></span>
                             </span>
                           </span>
-                          {key}
+                          {t(`kind.${value}`)}
                         </label>
                       </div>
                     </div>
@@ -295,32 +444,26 @@ const Calendar: React.FC = () => {
 
               <div className="mt-6">
                 <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Enter Start Date
+                  {t("start_time")}
                 </label>
-                <div className="relative">
-                  <input
-                    id="event-start-date"
-                    type="date"
-                    value={eventStartDate}
-                    onChange={(e) => setEventStartDate(e.target.value)}
-                    className="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                  />
-                </div>
+                <DateTimePicker
+                  id="event-start-date"
+                  value={eventStartDate}
+                  onChange={(dateStr: string | null) => setEventStartDate(dateStr || "")}
+                  placeholder="Выберите дату и время"
+                />
               </div>
 
               <div className="mt-6">
                 <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Enter End Date
+                  {t("end_time")}
                 </label>
-                <div className="relative">
-                  <input
-                    id="event-end-date"
-                    type="date"
-                    value={eventEndDate}
-                    onChange={(e) => setEventEndDate(e.target.value)}
-                    className="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                  />
-                </div>
+                <DateTimePicker
+                  id="event-end-date"
+                  value={eventEndDate}
+                  onChange={(dateStr: string | null) => setEventEndDate(dateStr || "")}
+                  placeholder={t("placeholder.end_time")}
+                />
               </div>
             </div>
             <div className="flex items-center gap-3 mt-6 modal-footer sm:justify-end">
@@ -329,14 +472,15 @@ const Calendar: React.FC = () => {
                 type="button"
                 className="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] sm:w-auto"
               >
-                Close
+                {t("btn.close")}
               </button>
               <button
                 onClick={handleAddOrUpdateEvent}
                 type="button"
-                className="btn btn-success btn-update-event flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto"
+                disabled={isSubmitting}
+                className="btn btn-success btn-update-event flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto"
               >
-                {selectedEvent ? "Update Changes" : "Add Event"}
+                {isSubmitting ? "Сохранение..." : selectedEvent ? `${t("btn.update")}` : `${t("btn.add")}`}
               </button>
             </div>
           </div>

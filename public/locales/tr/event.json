@@ -1,7 +1,19 @@
 {
-  "btn": {
-    "add": "Etkinlik Ekle",
-    "edit": "Etkinlik Düzenle",
-    "delete": "Etkinlik Sil"
-  }
+  "edit_event_title": "Etkinlik Düzenle",
+  "add_event_title": "Etkinlik Ekle",
+  "event_description": "Sonraki büyük anınızı planlayın: yolunuzu korumak için etkinlik planlayın veya düzenleyin.",
+  "kind": {
+    "primary": "Öne Çıkan",
+    "success": "Başarılı",
+    "warning": "Uyarı",
+    "danger": "Tehlikeli"
+  },
+  "color": "Etkinlik Rengi",
+  "start_time": "Başlangıç Saati",
+  "end_time": "Bitiş Saati",
+  "placeholder": {
+    "start_time": "Başlangıç Saati Seç",
+    "end_time": "Bitiş Saati Seç"
+  },
+  "appointment_title": "Randevu"
 }

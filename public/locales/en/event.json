@@ -1,7 +1,19 @@
 {
-  "btn": {
-    "add": "Add Event",
-    "edit": "Edit Event",
-    "delete": "Delete Event"
-  }
+  "edit_event_title": "Edit Event",
+  "add_event_title": "Add Event",
+  "event_description": "Plan your next big moment: schedule or edit an event to stay on track",
+  "kind": {
+    "primary": "Primary",
+    "success": "Success",
+    "warning": "Warning",
+    "danger": "Danger"
+  },
+  "color": "Event Color",
+  "start_time": "Start Time",
+  "end_time": "End Time",
+  "placeholder": {
+    "start_time": "Select Start Time",
+    "end_time": "Select End Time"
+  },
+  "appointment_title": "Appointment"
 }

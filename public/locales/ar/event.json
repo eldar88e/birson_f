@@ -1,7 +1,19 @@
 {
-  "btn": {
-    "add": "إضافة حدث",
-    "edit": "تعديل حدث",
-    "delete": "حذف حدث"
-  }
+  "edit_event_title": "تعديل الحدث",
+  "add_event_title": "إضافة الحدث",
+  "event_description": "خطط لمرحك القادم: حجز أو تعديل حدث للبقاء على الطريق",
+  "kind": {
+    "primary": "الأساسي",
+    "success": "نجاح",
+    "warning": "تحذير",
+    "danger": "خطر"
+  },
+  "color": "لون الحدث",
+  "start_time": "وقت البدء",
+  "end_time": "وقت النهاية",
+  "placeholder": {
+    "start_time": "اختر وقت البدء",
+    "end_time": "اختر وقت النهاية"
+  },
+  "appointment_title": "الحجز"
 }
