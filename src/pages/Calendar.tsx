@@ -3,11 +3,12 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { EventInput, DateSelectArg, EventClickArg } from "@fullcalendar/core";
+import { EventInput, DateSelectArg, EventClickArg, DatesSetArg } from "@fullcalendar/core";
 import { Modal } from "../components/ui/modal";
 import { useModal } from "../hooks/useModal";
 import PageMeta from "../components/common/PageMeta";
 import { eventService } from "../api/events";
+import { useTranslation } from "react-i18next";
 
 interface CalendarEvent extends EventInput {
   extendedProps: {
@@ -16,9 +17,8 @@ interface CalendarEvent extends EventInput {
 }
 
 const Calendar: React.FC = () => {
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
-    null
-  );
+  const { t } = useTranslation("event");
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [eventTitle, setEventTitle] = useState("");
   const [eventStartDate, setEventStartDate] = useState("");
   const [eventEndDate, setEventEndDate] = useState("");
@@ -26,6 +26,12 @@ const Calendar: React.FC = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const calendarRef = useRef<FullCalendar>(null);
   const { isOpen, openModal, closeModal } = useModal();
+  const [dateRange, setDateRange] = useState<{ start: Date; end: Date }>(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    return { start, end };
+  });
 
   const calendarsEvents = {
     Danger: "danger",
@@ -34,33 +40,82 @@ const Calendar: React.FC = () => {
     Warning: "warning",
   };
 
+  const handleDatesSet = (arg: DatesSetArg) => {
+    const { start, end, view } = arg;
+    let normalizedStart = new Date(start);
+    let normalizedEnd = new Date(end);
+
+    if (view.type === "dayGridMonth") {
+      const midDate = new Date((start.getTime() + end.getTime()) / 2);
+      const monthToUse = midDate.getMonth();
+      const yearToUse = midDate.getFullYear();
+      
+      normalizedStart = new Date(yearToUse, monthToUse, 1);
+      normalizedEnd = new Date(yearToUse, monthToUse + 1, 0, 23, 59, 59, 999);
+    } else {
+      normalizedStart.setHours(0, 0, 0, 0);
+      normalizedEnd.setHours(23, 59, 59, 999);
+    }
+    
+    setDateRange({ start: normalizedStart, end: normalizedEnd });
+  };
+
   useEffect(() => {
-    eventService.getEvents().then((response) => {
-      setEvents(response.data);
-    });
-    // Initialize with some events
-    // setEvents([
-    //   {
-    //     id: "1",
-    //     title: "Event Conf.",
-    //     start: new Date().toISOString().split("T")[0],
-    //     extendedProps: { calendar: "Danger" },
-    //   },
-    //   {
-    //     id: "2",
-    //     title: "Meeting",
-    //     start: new Date(Date.now() + 86400000).toISOString().split("T")[0],
-    //     extendedProps: { calendar: "Success" },
-    //   },
-    //   {
-    //     id: "3",
-    //     title: "Workshop",
-    //     start: new Date(Date.now() + 172800000).toISOString().split("T")[0],
-    //     end: new Date(Date.now() + 259200000).toISOString().split("T")[0],
-    //     extendedProps: { calendar: "Primary" },
-    //   },
-    // ]);
-  }, []);
+    const loadEvents = async () => {
+      try {
+        const startDate = new Date(dateRange.start);
+        startDate.setHours(0, 0, 0, 0);
+        
+        const endDate = new Date(dateRange.end);
+        endDate.setHours(23, 59, 59, 999);
+        
+        const startDateStr = startDate.toISOString();
+        const endDateStr = endDate.toISOString();
+        const params = `?q[starts_at_gteq]=${encodeURIComponent(startDateStr)}&q[starts_at_lt]=${encodeURIComponent(endDateStr)}`;
+        
+        const response = await eventService.getEvents(params);
+        const calendarEvents: CalendarEvent[] = response.data
+          .filter((event: any) => {
+            const startDate = event.starts_at || event.start_at || event.startAt || event.start || event.appointment_at;
+            return startDate && startDate.trim() !== "";
+          })
+          .map((event: any) => {
+            const startDateRaw = event.starts_at || event.start_at || event.startAt || event.start || event.appointment_at;
+            const endDateRaw = event.ends_at || event.end_at || event.endAt || event.end;
+
+            let startDate = startDateRaw;
+            let endDate = endDateRaw || undefined;
+
+            if (startDate && typeof startDate === "string" && startDate.includes("T")) {
+              startDate = startDate.split("T")[0];
+            }
+            if (endDate && typeof endDate === "string" && endDate.includes("T")) {
+              endDate = endDate.split("T")[0];
+            }
+
+            const title = event.eventable_type === "Order" ? `Запись на сервис #${event.eventable_id}` : event.title;
+            
+            return {
+              id: String(event.id),
+              title: title,
+              start: startDate,
+              end: endDate || undefined,
+              allDay: true, // Указываем, что это события на весь день
+              extendedProps: {
+                calendar: event.kind ? 
+                  event.kind.charAt(0).toUpperCase() + event.kind.slice(1) : 
+                  "Primary",
+              },
+            };
+          });
+        setEvents(calendarEvents);
+      } catch (error) {
+        console.error("Failed to load events:", error);
+      }
+    };
+
+    loadEvents();
+  }, [dateRange]);
 
   const handleDateSelect = (selectInfo: DateSelectArg) => {
     resetModalFields();
@@ -141,9 +196,10 @@ const Calendar: React.FC = () => {
             select={handleDateSelect}
             eventClick={handleEventClick}
             eventContent={renderEventContent}
+            datesSet={handleDatesSet}
             customButtons={{
               addEventButton: {
-                text: "Add Event +",
+                text: `${t("btn.add")} +`,
                 click: openModal,
               },
             }}

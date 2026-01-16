@@ -4,7 +4,7 @@ import { ROUTES } from "../shared/config/routes";
 
 interface Events {
   data: Event[];
-  meta: PaginationMeta;
+  meta: { start_at: string; end_at: string };
 }
 
 export const eventService = {

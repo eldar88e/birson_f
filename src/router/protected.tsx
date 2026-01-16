@@ -38,7 +38,7 @@ export const protectedRoutes = (
     <Route path={ROUTES.APPOINTMENTS.ADD_APPOINTMENT} element={<CreateAppointment />} />
 
     <Route path={ROUTES.KANBAN} element={<CreateInvoice />} />
-    <Route path={ROUTES.CALENDAR} element={<Calendar />} />
+    <Route path={ROUTES.EVENTS.INDEX} element={<Calendar />} />
 
     <Route path={ROUTES.CARS.INDEX} element={<CarList />} />
 
