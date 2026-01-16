@@ -9,15 +9,22 @@ import { useModal } from "../hooks/useModal";
 import PageMeta from "../components/common/PageMeta";
 import { eventService } from "../api/events";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router";
+import { ROUTES } from "../shared/config/routes";
 
 interface CalendarEvent extends EventInput {
   extendedProps: {
     calendar: string;
+    eventable_type?: string;
+    eventable_id?: number;
   };
 }
 
+const APPOINTMENT_TYPE = "Order";
+
 const Calendar: React.FC = () => {
   const { t } = useTranslation("event");
+  const navigate = useNavigate();
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [eventTitle, setEventTitle] = useState("");
   const [eventStartDate, setEventStartDate] = useState("");
@@ -93,7 +100,7 @@ const Calendar: React.FC = () => {
               endDate = endDate.split("T")[0];
             }
 
-            const title = event.eventable_type === "Order" ? `Запись на сервис #${event.eventable_id}` : event.title;
+            const title = event.eventable_type === APPOINTMENT_TYPE ? `Запись на сервис #${event.eventable_id}` : event.title;
             
             return {
               id: String(event.id),
@@ -105,6 +112,8 @@ const Calendar: React.FC = () => {
                 calendar: event.kind ? 
                   event.kind.charAt(0).toUpperCase() + event.kind.slice(1) : 
                   "Primary",
+                eventable_type: event.eventable_type,
+                eventable_id: event.eventable_id,
               },
             };
           });
@@ -126,11 +135,18 @@ const Calendar: React.FC = () => {
 
   const handleEventClick = (clickInfo: EventClickArg) => {
     const event = clickInfo.event;
+    const extendedProps = event.extendedProps as CalendarEvent["extendedProps"];
+
+    if (extendedProps.eventable_type === APPOINTMENT_TYPE && extendedProps.eventable_id) {
+      navigate(`${ROUTES.APPOINTMENTS.INDEX}/${extendedProps.eventable_id}`);
+      return;
+    }
+
     setSelectedEvent(event as unknown as CalendarEvent);
     setEventTitle(event.title);
     setEventStartDate(event.start?.toISOString().split("T")[0] || "");
     setEventEndDate(event.end?.toISOString().split("T")[0] || "");
-    setEventLevel(event.extendedProps.calendar);
+    setEventLevel(extendedProps.calendar);
     openModal();
   };
 
