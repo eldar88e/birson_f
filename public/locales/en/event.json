@@ -1,0 +1,7 @@
+{
+  "btn": {
+    "add": "Add Event",
+    "edit": "Edit Event",
+    "delete": "Delete Event"
+  }
+}
