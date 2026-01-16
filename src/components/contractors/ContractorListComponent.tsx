@@ -2,14 +2,12 @@ import { useEffect, useState } from "react";
 import { contractorService } from "../../api/contractors";
 import Pages from "../../shared/ui/Pages";
 import SvgIcon from "../../shared/ui/SvgIcon";
-// import { Link } from "react-router";
-// import { ROUTES } from "../../shared/config/routes";
 import type { Contractor } from "../../entities/contractor/model";
 import type { PaginationMeta } from "../../shared/types/api/pagination";
-// import CarModal from "./CarModal";
 import { DeleteAction } from "../../shared/ui/DeleteAction";
 import { formatDate } from "../../shared/lib/formatDate";
 import Loader from "../../shared/ui/Loader";
+import ContractorModal from "./ContractorModal";
 
 interface Contractors {
   data: Contractor[];
@@ -29,7 +27,8 @@ export default function ContractorListComponent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [page, setPage] = useState(pages.page);
-  // const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingContractor, setEditingContractor] = useState<Contractor | null>(null);
 
   useEffect(() => {
     const fetchContractors = async () => {
@@ -76,19 +75,30 @@ export default function ContractorListComponent() {
       <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
         <button
           className="bg-brand-500 shadow-sm hover inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white transition hover:bg-brand-600"
-          // onClick={() => setIsModalOpen(true)}
+          onClick={() => setIsModalOpen(true)}
         >
           <SvgIcon name="plus" />
           Добавить
         </button>
-        {/* <ContractorModal 
-          isModalOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)}
-          ownerId={0}
-          onSuccess={(car) => {
-            setCars((prev) => [...prev, car]);
+        <ContractorModal 
+          isModalOpen={isModalOpen || editingContractor !== null} 
+          contractor={editingContractor}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingContractor(null);
           }}
-        /> */}
+          onSuccess={(contractor) => {
+            if (editingContractor) {
+              setContractors((prev) => 
+                prev.map((c) => c.id === contractor.id ? contractor : c)
+              );
+              setEditingContractor(null);
+            } else {
+              setContractors((prev) => [...prev, contractor]);
+              setIsModalOpen(false);
+            }
+          }}
+        />
         <div className="flex gap-3.5">
           <div className="hidden flex-col gap-3 sm:flex sm:flex-row sm:items-center">
             <div className="relative">
@@ -178,24 +188,30 @@ export default function ContractorListComponent() {
                   </p>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <div className=" flex items-center justify-center">
-                  <DeleteAction
-                    id={contractor.id}
-                    itemName={`Подрядчик #${contractor.id}`}
-                    onDelete={(id) => contractorService.deleteContractor(id)}
-                    onSuccess={() =>
-                      setContractors((prev) => prev.filter((c) => c.id !== contractor.id))
-                    }
-                  >
-                    {(open) => (
-                      <button
-                        onClick={open}
-                        className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                      >
-                        Удалить
-                      </button>
-                    )}
-                  </DeleteAction>
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => setEditingContractor(contractor)}
+                      className="text-xs flex rounded-lg px-3 py-2 font-medium text-brand-600 hover:bg-brand-50 hover:text-brand-700 dark:text-brand-400 dark:hover:bg-brand-900/20"
+                    >
+                      Редактировать
+                    </button>
+                    <DeleteAction
+                      id={contractor.id}
+                      itemName={`Подрядчик #${contractor.id}`}
+                      onDelete={(id) => contractorService.deleteContractor(id)}
+                      onSuccess={() =>
+                        setContractors((prev) => prev.filter((c) => c.id !== contractor.id))
+                      }
+                    >
+                      {(open) => (
+                        <button
+                          onClick={open}
+                          className="text-xs flex rounded-lg px-3 py-2 font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-900"
+                        >
+                          Удалить
+                        </button>
+                      )}
+                    </DeleteAction>
                   </div>
                 </td>
               </tr>

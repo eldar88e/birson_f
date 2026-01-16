@@ -13,6 +13,7 @@ interface Contractors {
 }
 
 export type CreateContractorData = Omit<Contractor, "id">;
+export type UpdateContractorData = Partial<CreateContractorData>;
 
 class ContractorService {
   async getContractors(params: string = ""): Promise<Contractors> {
@@ -32,6 +33,15 @@ class ContractorService {
   async createContractor(contractorData: CreateContractorData): Promise<Contractor> {
     const response = await apiClient.post<{ contractor: Contractor }>(
       `${ROUTES.CONTRACTORS.INDEX}`,
+      { contractor: contractorData },
+      true
+    );
+    return response.contractor;
+  }
+
+  async updateContractor(id: number, contractorData: UpdateContractorData): Promise<Contractor> {
+    const response = await apiClient.put<{ contractor: Contractor }>(
+      `${ROUTES.CONTRACTORS.INDEX}/${id}`,
       { contractor: contractorData },
       true
     );

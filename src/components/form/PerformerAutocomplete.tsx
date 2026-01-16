@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { userService, type CreateUserData } from "../../api/users";
-import { contractorService, type CreateContractorData } from "../../api/contractors";
+import { contractorService } from "../../api/contractors";
 import type { User } from "../../entities/user/model";
 import type { Contractor } from "../../entities/contractor/model";
 import Label from "./Label";
@@ -11,6 +11,7 @@ import { useNotification } from "../../context/NotificationContext";
 import Input from "./input/InputField";
 import SvgIcon from "../../shared/ui/SvgIcon";
 import { USER_POSITIONS } from "../../entities/user/model";
+import ContractorModal from "../contractors/ContractorModal";
 
 const DEFAULT_PERFORMER_ROLE = "staff";
 
@@ -44,6 +45,7 @@ export default function PerformerAutocomplete({
   const inputRef = useRef<HTMLInputElement>(null);
   const { isOpen: isModalOpen, openModal, closeModal } = useModal();
   const { showNotification } = useNotification();
+  const [isContractorModalOpen, setIsContractorModalOpen] = useState(false);
   const [userFormData, setUserFormData] = useState<{
     first_name: string;
     last_name: string;
@@ -58,24 +60,6 @@ export default function PerformerAutocomplete({
     email: "",
     role: DEFAULT_PERFORMER_ROLE,
     position: "",
-  });
-
-  const [contractorFormData, setContractorFormData] = useState<CreateContractorData>({
-    name: "",
-    entity_type: "",
-    email: "",
-    phone: "",
-    inn: "",
-    kpp: "",
-    legal_address: "",
-    contact_person: "",
-    bank_name: "",
-    bik: "",
-    checking_account: "",
-    correspondent_account: "",
-    service_profile: "",
-    active: true,
-    comment: "",
   });
 
   useEffect(() => {
@@ -101,7 +85,7 @@ export default function PerformerAutocomplete({
           } else {
             const response = await contractorService.getContractors();
             const contractors = response.data;
-            const foundContractor = contractors.find(c => c.id === value);
+            const foundContractor = contractors.find((c: Contractor) => c.id === value);
             if (foundContractor) {
               setSelectedPerformer(foundContractor);
               setInputValue(foundContractor.name || "");
@@ -267,26 +251,10 @@ export default function PerformerAutocomplete({
         role: DEFAULT_PERFORMER_ROLE,
         position: "",
       });
+      openModal();
     } else {
-      setContractorFormData({
-        name: searchQuery || "",
-        entity_type: "",
-        email: "",
-        phone: "",
-        inn: "",
-        kpp: "",
-        legal_address: "",
-        contact_person: "",
-        bank_name: "",
-        bik: "",
-        checking_account: "",
-        correspondent_account: "",
-        service_profile: "",
-        active: true,
-        comment: "",
-      });
+      setIsContractorModalOpen(true);
     }
-    openModal();
   };
 
   const handleCreateUser = async () => {
@@ -346,58 +314,12 @@ export default function PerformerAutocomplete({
     }
   };
 
-  const handleCreateContractor = async () => {
-    if (!contractorFormData.name) {
-      showNotification({
-        variant: "error",
-        title: "Ошибка валидации",
-        description: "Заполните обязательное поле: Название",
-      });
-      return;
-    }
-
-    try {
-      const response = await contractorService.createContractor(contractorFormData);
-      
-      // Handle response - API returns { contractor: {...} }
-      const newContractor = (response as any).contractor || response;
-
-      showNotification({
-        variant: "success",
-        title: "Контрагент создан!",
-        description: "Новый контрагент успешно добавлен",
-      });
-
-      onChange?.(newContractor.id, newContractor);
-      setInputValue(newContractor.name);
-      setSearchQuery("");
-      closeModal();
-      setIsOpen(false);
-
-      setContractorFormData({
-        name: "",
-        entity_type: "",
-        email: "",
-        phone: "",
-        inn: "",
-        kpp: "",
-        legal_address: "",
-        contact_person: "",
-        bank_name: "",
-        bik: "",
-        checking_account: "",
-        correspondent_account: "",
-        service_profile: "",
-        active: true,
-        comment: "",
-      });
-    } catch (error) {
-      showNotification({
-        variant: "error",
-        title: "Ошибка создания",
-        description: `Не удалось создать контрагента. ${error}`,
-      });
-    }
+  const handleContractorCreated = (newContractor: Contractor) => {
+    onChange?.(newContractor.id, newContractor);
+    setInputValue(newContractor.name);
+    setSearchQuery("");
+    setIsContractorModalOpen(false);
+    setIsOpen(false);
   };
 
   return (
@@ -624,223 +546,12 @@ export default function PerformerAutocomplete({
       )}
 
       {performerType === "Contractor" && (
-        <Modal
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          className="max-w-3xl p-4 sm:p-6 lg:p-8 sm:m-4 sm:rounded-3xl"
-        >
-          <div onClick={(e) => e.stopPropagation()} className="overflow-y-auto max-h-[calc(90vh-2rem)]">
-            <h4 className="font-semibold text-gray-800 mb-6 text-title-sm dark:text-white/90">
-              Добавить нового контрагента
-            </h4>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <Label>Название *</Label>
-                  <Input
-                    type="text"
-                    placeholder="Введите название"
-                    value={contractorFormData.name}
-                    onChange={(e) =>
-                      setContractorFormData((prev) => ({ ...prev, name: e.target.value }))
-                    }
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label>Тип организации</Label>
-                  <select
-                    value={contractorFormData.entity_type}
-                    onChange={(e) =>
-                      setContractorFormData((prev) => ({ ...prev, entity_type: e.target.value }))
-                    }
-                    className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-                  >
-                    <option value="individual">Физическое лицо</option>
-                    <option value="legal">Юридическое лицо</option>
-                  </select>
-                </div>
-
-                <div>
-                  <Label>Email</Label>
-                  <Input
-                    type="email"
-                    placeholder="example@mail.com"
-                    value={contractorFormData.email}
-                    onChange={(e) =>
-                      setContractorFormData((prev) => ({ ...prev, email: e.target.value }))
-                    }
-                  />
-                </div>
-
-                <div>
-                  <Label>Телефон</Label>
-                  <Input
-                    type="tel"
-                    placeholder="+7 (999) 999-99-99"
-                    value={contractorFormData.phone}
-                    onChange={(e) =>
-                      setContractorFormData((prev) => ({ ...prev, phone: e.target.value }))
-                    }
-                  />
-                </div>
-
-                <div>
-                  <Label>ИНН</Label>
-                  <Input
-                    type="text"
-                    placeholder="Введите ИНН"
-                    value={contractorFormData.inn}
-                    onChange={(e) =>
-                      setContractorFormData((prev) => ({ ...prev, inn: e.target.value }))
-                    }
-                  />
-                </div>
-
-                <div>
-                  <Label>КПП</Label>
-                  <Input
-                    type="text"
-                    placeholder="Введите КПП"
-                    value={contractorFormData.kpp}
-                    onChange={(e) =>
-                      setContractorFormData((prev) => ({ ...prev, kpp: e.target.value }))
-                    }
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <Label>Юридический адрес</Label>
-                  <Input
-                    type="text"
-                    placeholder="Введите юридический адрес"
-                    value={contractorFormData.legal_address}
-                    onChange={(e) =>
-                      setContractorFormData((prev) => ({ ...prev, legal_address: e.target.value }))
-                    }
-                  />
-                </div>
-
-                <div>
-                  <Label>Контактное лицо</Label>
-                  <Input
-                    type="text"
-                    placeholder="Введите контактное лицо"
-                    value={contractorFormData.contact_person}
-                    onChange={(e) =>
-                      setContractorFormData((prev) => ({ ...prev, contact_person: e.target.value }))
-                    }
-                  />
-                </div>
-
-                <div>
-                  <Label>Название банка</Label>
-                  <Input
-                    type="text"
-                    placeholder="Введите название банка"
-                    value={contractorFormData.bank_name}
-                    onChange={(e) =>
-                      setContractorFormData((prev) => ({ ...prev, bank_name: e.target.value }))
-                    }
-                  />
-                </div>
-
-                <div>
-                  <Label>БИК</Label>
-                  <Input
-                    type="text"
-                    placeholder="Введите БИК"
-                    value={contractorFormData.bik}
-                    onChange={(e) =>
-                      setContractorFormData((prev) => ({ ...prev, bik: e.target.value }))
-                    }
-                  />
-                </div>
-
-                <div>
-                  <Label>Расчетный счет</Label>
-                  <Input
-                    type="text"
-                    placeholder="Введите расчетный счет"
-                    value={contractorFormData.checking_account}
-                    onChange={(e) =>
-                      setContractorFormData((prev) => ({ ...prev, checking_account: e.target.value }))
-                    }
-                  />
-                </div>
-
-                <div>
-                  <Label>Корреспондентский счет</Label>
-                  <Input
-                    type="text"
-                    placeholder="Введите корреспондентский счет"
-                    value={contractorFormData.correspondent_account}
-                    onChange={(e) =>
-                      setContractorFormData((prev) => ({ ...prev, correspondent_account: e.target.value }))
-                    }
-                  />
-                </div>
-
-                <div>
-                  <Label>Профиль услуг</Label>
-                  <Input
-                    type="text"
-                    placeholder="Введите профиль услуг"
-                    value={contractorFormData.service_profile}
-                    onChange={(e) =>
-                      setContractorFormData((prev) => ({ ...prev, service_profile: e.target.value }))
-                    }
-                  />
-                </div>
-
-                <div>
-                  <Label>Активен</Label>
-                  <div className="flex items-center h-11">
-                    <input
-                      type="checkbox"
-                      checked={contractorFormData.active}
-                      onChange={(e) =>
-                        setContractorFormData((prev) => ({ ...prev, active: e.target.checked }))
-                      }
-                      className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700"
-                    />
-                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Да</span>
-                  </div>
-                </div>
-
-                <div className="md:col-span-2">
-                  <Label>Комментарий</Label>
-                  <textarea
-                    className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-24 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-                    placeholder="Введите комментарий..."
-                    value={contractorFormData.comment}
-                    onChange={(e) =>
-                      setContractorFormData((prev) => ({ ...prev, comment: e.target.value }))
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 mt-6">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg transition px-5 py-3.5 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
-                >
-                  Отмена
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCreateContractor}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg transition px-5 py-3.5 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600"
-                >
-                  Создать
-                </button>
-              </div>
-            </div>
-          </div>
-        </Modal>
+        <ContractorModal
+          isModalOpen={isContractorModalOpen}
+          onClose={() => setIsContractorModalOpen(false)}
+          onSuccess={handleContractorCreated}
+          initialData={searchQuery ? { name: searchQuery } : undefined}
+        />
       )}
     </div>
   );
