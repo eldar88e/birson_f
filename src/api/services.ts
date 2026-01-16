@@ -26,6 +26,15 @@ class ServiceService {
     return response.service;
   }
 
+  async updateService(id: number, serviceData: CreateServiceData): Promise<Service> {
+    const response = await apiClient.put<{ service: Service }>(
+      `${ROUTES.SERVICES.INDEX}/${id}`,
+      { service: serviceData },
+      true
+    );
+    return response.service;
+  }
+
   async deleteService(id: number): Promise<void> {
     await apiClient.delete(`${ROUTES.SERVICES.INDEX}/${id}`, true);
   }

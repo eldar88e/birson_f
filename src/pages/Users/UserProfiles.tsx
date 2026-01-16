@@ -7,6 +7,7 @@ import { apiClient } from "../../api/client";
 import { useParams } from "react-router";
 import { useEffect, useState } from "react";
 import { User } from "../../entities/user/model";
+import Loader from "../../shared/ui/Loader";
 
 export default function UserProfiles() {
   const { userId } = useParams<{ userId: string }>();
@@ -36,12 +37,7 @@ export default function UserProfiles() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-brand-500 border-r-transparent"></div>
-          <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">Загрузка профиля...</p>
-        </div>
-      </div>
+      <Loader text="Загрузка профиля..." />
     );
   }
 

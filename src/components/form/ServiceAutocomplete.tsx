@@ -1,13 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { serviceService, type CreateServiceData } from "../../api/services";
+import { serviceService } from "../../api/services";
 import type { Service } from "../../entities/service/model";
 import Label from "./Label";
 import { useClickOutside } from "../../hooks/useClickOutside";
-import { Modal } from "../ui/modal";
-import { useModal } from "../../hooks/useModal";
 import { useNotification } from "../../context/NotificationContext";
-import Input from "./input/InputField";
-import Button from "../ui/button/Button";
+import ServiceModal from "../services/ServiceModal";
 
 interface ServiceAutocompleteProps {
   label?: string;
@@ -15,6 +12,7 @@ interface ServiceAutocompleteProps {
   value?: number | null;
   onChange?: (serviceId: number | null, service?: Service | null) => void;
   className?: string;
+  onServiceModalOpenChange?: (isOpen: boolean) => void;
 }
 
 export default function ServiceAutocomplete({
@@ -23,6 +21,7 @@ export default function ServiceAutocomplete({
   value,
   onChange,
   className = "",
+  onServiceModalOpenChange,
 }: ServiceAutocompleteProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [services, setServices] = useState<Service[]>([]);
@@ -35,12 +34,8 @@ export default function ServiceAutocomplete({
   const inputRef = useRef<HTMLInputElement>(null);
   const isServiceSelectedRef = useRef(false);
   const skipFilterRef = useRef(false);
-  const { isOpen: isModalOpen, openModal, closeModal } = useModal();
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const { showNotification } = useNotification();
-
-  const [serviceFormData, setServiceFormData] = useState<CreateServiceData>({
-    title: "",
-  });
   const [servicesLoaded, setServicesLoaded] = useState(false);
 
   const loadServices = async () => {
@@ -156,46 +151,23 @@ export default function ServiceAutocomplete({
     }
   };
 
-  const handleCreateService = async () => {
-    if (!serviceFormData.title.trim()) {
-      showNotification({
-        variant: "error",
-        title: "Ошибка валидации",
-        description: "Название услуги обязательно",
-      });
-      return;
-    }
+  const handleServiceCreated = async (newService: Service) => {
+    const updatedServices = [...services, newService];
+    setServices(updatedServices);
+    setFilteredServices(updatedServices);
 
-    try {
-      const newService = await serviceService.createService(serviceFormData);
+    skipFilterRef.current = true;
 
-      showNotification({
-        variant: "success",
-        title: "Услуга создана!",
-        description: "Новая услуга успешно добавлена",
-      });
+    setSelectedService(newService);
+    setSearchQuery(newService.title);
 
-      const updatedServices = [...services, newService];
-      setServices(updatedServices);
-      setFilteredServices(updatedServices);
+    isServiceSelectedRef.current = true;
 
-      skipFilterRef.current = true;
+    onChange?.(newService.id, newService);
 
-      setSelectedService(newService);
-      setSearchQuery(newService.title);
-
-      isServiceSelectedRef.current = true;
-      onChange?.(newService.id, newService);
-      closeModal();
-      setIsOpen(false);
-      setServiceFormData({ title: "" });
-    } catch (error) {
-      showNotification({
-        variant: "error",
-        title: "Ошибка создания",
-        description: `Не удалось создать услугу. ${error}`,
-      });
-    }
+    setIsServiceModalOpen(false);
+    onServiceModalOpenChange?.(false);
+    setIsOpen(false);
   };
 
   return (
@@ -260,7 +232,10 @@ export default function ServiceAutocomplete({
           <div className="border-t border-gray-200 dark:border-gray-700">
             <button
               type="button"
-              onClick={openModal}
+              onClick={() => {
+                setIsServiceModalOpen(true);
+                onServiceModalOpenChange?.(true);
+              }}
               className="w-full px-4 py-2 text-left text-sm text-brand-600 hover:bg-gray-50 dark:text-brand-400 dark:hover:bg-gray-700"
             >
               + Добавить новую услугу
@@ -269,40 +244,14 @@ export default function ServiceAutocomplete({
         </div>
       )}
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        className="max-w-2xl p-4 sm:p-6 lg:p-8 sm:m-4 sm:rounded-3xl"
-      >
-        <div onClick={(e) => e.stopPropagation()}>
-          <h4 className="font-semibold text-gray-800 mb-6 text-title-sm dark:text-white/90">
-            Добавить новую услугу
-          </h4>
-          <div className="space-y-4">
-            <div>
-              <Label>Название услуги *</Label>
-              <Input
-                type="text"
-                placeholder="Введите название услуги"
-                value={serviceFormData.title}
-                onChange={(e) =>
-                  setServiceFormData((prev) => ({ ...prev, title: e.target.value }))
-                }
-                required
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-3 mt-6">
-              <Button type="button" variant="outline" onClick={closeModal}>
-                Отмена
-              </Button>
-              <Button type="button" variant="primary" onClick={handleCreateService}>
-                Добавить
-              </Button>
-            </div>
-          </div>
-        </div>
-      </Modal>
+      <ServiceModal
+        isModalOpen={isServiceModalOpen}
+        onClose={() => {
+          setIsServiceModalOpen(false);
+          onServiceModalOpenChange?.(false);
+        }}
+        onSuccess={handleServiceCreated}
+      />
     </div>
   );
 }

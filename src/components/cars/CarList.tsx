@@ -8,6 +8,7 @@ import type { Car } from "../../entities/car/model";
 import type { PaginationMeta } from "../../shared/types/api/pagination";
 import CarModal from "./CarModal";
 import { DeleteAction } from "../../shared/ui/DeleteAction";
+import Loader from "../../shared/ui/Loader";
 
 interface Cars {
   data: Car[];
@@ -49,9 +50,7 @@ export default function CarListComponent() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500 dark:text-gray-400">Загрузка автомобилей...</div>
-      </div>
+      <Loader text="Загрузка автомобилей..." />
     );
   }
 
