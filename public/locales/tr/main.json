@@ -11,7 +11,8 @@
     "cars": "Arabalar",
     "contractors": "İşverenler",
     "services": "Hizmetler",
-    "expenses": "Giderler"
+    "expenses": "Giderler",
+    "expense-categories": "Gider Kategorileri"
   },
   "sections": {
     "menu": "Menü",

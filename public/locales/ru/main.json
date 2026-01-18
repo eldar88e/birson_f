@@ -11,7 +11,8 @@
     "cars": "Автомобили",
     "contractors": "Подрядчики",
     "services": "Услуги",
-    "expenses": "Расходы"
+    "expenses": "Расходы",
+    "expense-categories": "Категории расходов"
   },
   "sections": {
     "menu": "Меню",

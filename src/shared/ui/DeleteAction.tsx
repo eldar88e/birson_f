@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
 import { useConfirmDelete } from "../../hooks/useConfirmDelete";
@@ -30,6 +30,18 @@ export function DeleteAction({
     deleteModal.open();
   };
 
+  const handleClose = () => {
+    deleteModal.close();
+    setCurrentId(null);
+  };
+
+  // Очищаем currentId когда модалка закрывается
+  useEffect(() => {
+    if (!deleteModal.isOpen && currentId !== null) {
+      setCurrentId(null);
+    }
+  }, [deleteModal.isOpen, currentId]);
+
   return (
     <>
       {children(open)}
@@ -38,7 +50,7 @@ export function DeleteAction({
         <ConfirmDeleteModal
           isOpen={deleteModal.isOpen}
           isLoading={deleteModal.isLoading}
-          onClose={deleteModal.close}
+          onClose={handleClose}
           onConfirm={deleteModal.confirm}
           itemName={itemName}
         />,

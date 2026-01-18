@@ -11,7 +11,8 @@
     "cars": "السيارات",
     "contractors": "المقاولين",
     "services": "الخدمات",
-    "expenses": "المصاريف"
+    "expenses": "المصاريف",
+    "expense-categories": "فئات المصاريف"
   },
   "sections": {
     "menu": "القائمة",

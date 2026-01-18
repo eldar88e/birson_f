@@ -25,6 +25,8 @@ import ServiceList from "../pages/ServiceList";
 
 import ExpenseList from "../pages/ExpensesList";
 
+import ExpenseCategories from "../pages/ExpenseCategories";
+
 export const protectedRoutes = (
   <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
     <Route index path={ROUTES.ROOT} element={<Ecommerce />} />
@@ -49,5 +51,7 @@ export const protectedRoutes = (
     <Route path={ROUTES.EXPENSES.INDEX} element={<ExpenseList />} />
 
     <Route path={ROUTES.EVENTS.INDEX} element={<Calendar />} />
+
+    <Route path={ROUTES.EXPENSE_CATEGORIES.INDEX} element={<ExpenseCategories />} />
   </Route>
 );

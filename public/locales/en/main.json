@@ -11,7 +11,8 @@
     "cars": "Cars",
     "contractors": "Contractors",
     "services": "Services",
-    "expenses": "Expenses"
+    "expenses": "Expenses",
+    "expense-categories": "Expense Categories"
   },
   "sections": {
     "menu": "Menu",

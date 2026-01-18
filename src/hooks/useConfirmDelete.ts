@@ -27,9 +27,9 @@ export function useConfirmDelete({
     setIsLoading(true);
     try {
       if (useApi) await onDelete();
+      close();
       showNotification({ variant: "success", title: successMessage });
       onSuccess?.();
-      close();
     } catch {
       showNotification({ variant: "error", title: errorMessage });
     } finally {
