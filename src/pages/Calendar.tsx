@@ -4,6 +4,10 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { EventInput, DateSelectArg, EventClickArg, DatesSetArg } from "@fullcalendar/core";
+import ruLocale from "@fullcalendar/core/locales/ru";
+import enLocale from "@fullcalendar/core/locales/en-gb";
+import trLocale from "@fullcalendar/core/locales/tr";
+import arLocale from "@fullcalendar/core/locales/ar";
 import { Modal } from "../components/ui/modal";
 import { useModal } from "../hooks/useModal";
 import PageMeta from "../components/common/PageMeta";
@@ -15,6 +19,24 @@ import { CalenderIcon } from "../icons";
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.css";
 import { useNotification } from "../context/NotificationContext";
+import { Russian } from "flatpickr/dist/l10n/ru";
+import { english } from "flatpickr/dist/l10n/default";
+import { Turkish } from "flatpickr/dist/l10n/tr";
+import { Arabic } from "flatpickr/dist/l10n/ar";
+
+const flatpickrLocaleMap: Record<string, any> = {
+  ru: Russian,
+  en: english,
+  tr: Turkish,
+  ar: Arabic,
+};
+
+const fullCalendarLocaleMap: Record<string, any> = {
+  ru: ruLocale,
+  en: enLocale,
+  tr: trLocale,
+  ar: arLocale,
+};
 
 interface CalendarEvent extends EventInput {
   extendedProps: {
@@ -33,8 +55,11 @@ const DateTimePicker: React.FC<{
   onChange: (dateStr: string | null) => void;
   placeholder?: string;
 }> = ({ id, value, onChange, placeholder }) => {
+  const { i18n } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const flatpickrRef = useRef<flatpickr.Instance | null>(null);
+  const currentLocale = i18n.language || "ru";
+  const locale = flatpickrLocaleMap[currentLocale] || flatpickrLocaleMap.ru;
 
   useEffect(() => {
     if (inputRef.current) {
@@ -45,6 +70,7 @@ const DateTimePicker: React.FC<{
         static: true,
         monthSelectorType: "static",
         defaultDate: value || undefined,
+        locale,
         onChange: (selectedDates) => {
           // Форматируем для datetime-local (YYYY-MM-DDTHH:mm)
           if (selectedDates.length > 0) {
@@ -69,7 +95,7 @@ const DateTimePicker: React.FC<{
         }
       };
     }
-  }, [id, onChange]);
+  }, [id, onChange, locale]);
 
   // Обновляем значение при изменении value извне
   useEffect(() => {
@@ -97,9 +123,11 @@ const DateTimePicker: React.FC<{
 };
 
 const Calendar: React.FC = () => {
-  const { t } = useTranslation("event");
+  const { t, i18n } = useTranslation("event");
   const navigate = useNavigate();
   const { showNotification } = useNotification();
+  const currentLocale = i18n.language || "ru";
+  const calendarLocale = fullCalendarLocaleMap[currentLocale] || fullCalendarLocaleMap.ru;
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [eventTitle, setEventTitle] = useState("");
@@ -352,6 +380,7 @@ const Calendar: React.FC = () => {
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
+            locale={calendarLocale}
             headerToolbar={{
               left: "prev,next addEventButton",
               center: "title",
