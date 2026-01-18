@@ -42,6 +42,21 @@ class AppointmentService {
     const url = `${API_APPOINTMENT_PATH}/${id}`
     await apiClient.delete(url, true);
   }
+
+  async getStatistics(): Promise<{
+    cars_waiting: number;
+    cars_in_work: number;
+    money_in_work: number;
+    new_orders_week: number;
+  }> {
+    const response = await apiClient.get<{
+      cars_waiting: number;
+      cars_in_work: number;
+      money_in_work: number;
+      new_orders_week: number;
+    }>("/statistics", true);
+    return response;
+  }
 }
 
 export const appointmentService = new AppointmentService();
