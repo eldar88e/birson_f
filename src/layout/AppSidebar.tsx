@@ -52,6 +52,11 @@ const navItems: NavItem[] = [
     name: "expenses",
     path: ROUTES.EXPENSES.INDEX,
   },
+  {
+    icon: <DollarLineIcon />,
+    name: "investments",
+    path: ROUTES.INVESTMENTS.INDEX,
+  },
 ];
 
 const othersItems: NavItem[] = [

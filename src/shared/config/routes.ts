@@ -43,4 +43,7 @@ export const ROUTES = {
   EXPENSE_CATEGORIES: {
     INDEX: "/expense_categories",
   },
+  INVESTMENTS: {
+    INDEX: "/investments",
+  },
 } as const;

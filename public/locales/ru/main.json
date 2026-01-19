@@ -12,7 +12,8 @@
     "contractors": "Подрядчики",
     "services": "Услуги",
     "expenses": "Расходы",
-    "expense-categories": "Категории расходов"
+    "expense-categories": "Категории расходов",
+    "investments": "Инвестиции"
   },
   "sections": {
     "menu": "Меню",
