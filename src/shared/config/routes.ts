@@ -46,4 +46,7 @@ export const ROUTES = {
   INVESTMENTS: {
     INDEX: "/investments",
   },
+  CHATS: {
+    INDEX: "/chats",
+  },
 } as const;

@@ -13,6 +13,7 @@ import {
   SettingsIcon,
   DollarLineIcon,
   UserCircleIcon,
+  ChatIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
@@ -56,6 +57,11 @@ const navItems: NavItem[] = [
     icon: <DollarLineIcon />,
     name: "investments",
     path: ROUTES.INVESTMENTS.INDEX,
+  },
+  {
+    icon: <ChatIcon />,
+    name: "chats",
+    path: ROUTES.CHATS.INDEX,
   },
 ];
 

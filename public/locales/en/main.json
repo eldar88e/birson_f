@@ -13,7 +13,8 @@
     "services": "Services",
     "expenses": "Expenses",
     "expense-categories": "Expense Categories",
-    "investments": "Investments"
+    "investments": "Investments",
+    "chats": "Chats"
   },
   "sections": {
     "menu": "Menu",
