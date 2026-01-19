@@ -7,6 +7,9 @@ import { investmentService, type CreateInvestmentData } from "../../api/investme
 import { useNotification } from "../../context/NotificationContext";
 import { type Investment } from "../../entities/investment/model";
 import Button from "../ui/button/Button";
+import UserAutocomplete from "../form/UserAutocomplete";
+import { userService } from "../../api/users";
+import { type User } from "../../entities/user/model";
 
 interface InvestmentModalProps {
   isModalOpen: boolean;
@@ -18,25 +21,45 @@ interface InvestmentModalProps {
 export default function InvestmentModal({ isModalOpen, onClose, investment, onSuccess }: InvestmentModalProps) {
   const { showNotification } = useNotification();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [formData, setFormData] = useState<CreateInvestmentData>({
     amount: 0,
     comment: "",
     invested_at: new Date().toISOString().split("T")[0],
+    user_id: undefined,
   });
 
   useEffect(() => {
+    const loadUser = async () => {
+      if (investment?.user_id) {
+        try {
+          const user = await userService.getUser(investment.user_id);
+          setSelectedUser(user);
+        } catch (error) {
+          // Ignore error, user might not exist
+          setSelectedUser(null);
+        }
+      } else {
+        setSelectedUser(null);
+      }
+    };
+
     if (investment) {
       setFormData({
         amount: investment.amount || 0,
         comment: investment.comment || "",
         invested_at: investment.invested_at ? investment.invested_at.split("T")[0] : new Date().toISOString().split("T")[0],
+        user_id: investment.user_id,
       });
+      loadUser();
     } else {
       setFormData({
         amount: 0,
         comment: "",
         invested_at: new Date().toISOString().split("T")[0],
+        user_id: undefined,
       });
+      setSelectedUser(null);
     }
   }, [investment, isModalOpen]);
 
@@ -97,6 +120,18 @@ export default function InvestmentModal({ isModalOpen, onClose, investment, onSu
           {investment ? "Редактировать инвестицию" : "Добавить новую инвестицию"}
         </h4>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <UserAutocomplete
+              label="Пользователь"
+              placeholder="Введите имя или номер телефона"
+              value={selectedUser}
+              onChange={(user) => {
+                setSelectedUser(user);
+                setFormData((prev) => ({ ...prev, user_id: user?.id }));
+              }}
+            />
+          </div>
+
           <div>
             <Label>Сумма *</Label>
             <Input
