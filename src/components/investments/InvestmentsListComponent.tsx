@@ -5,7 +5,7 @@ import SvgIcon from "../../shared/ui/SvgIcon";
 import type { Investment } from "../../entities/investment/model";
 import type { PaginationMeta } from "../../shared/types/api/pagination";
 import { DeleteAction } from "../../shared/ui/DeleteAction";
-//import InvestmentModal from "./InvestmentModal";
+import InvestmentModal from "./InvestmentModal";
 import Loader from "../../shared/ui/Loader";
 // import { useTranslation } from "react-i18next";
 import { formatDate } from "../../shared/lib/formatDate";
@@ -29,6 +29,8 @@ export default function InvestmentsListComponent() {
   const [error, setError] = useState("");
   const [page, setPage] = useState(pages.page);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingInvestment, setEditingInvestment] = useState<Investment | null>(null);
 
   useEffect(() => {
     const fetchResources = async () => {
@@ -84,6 +86,16 @@ export default function InvestmentsListComponent() {
           </p>
         </div>
         <div className="flex gap-3.5">
+          <button
+            className="bg-brand-500 shadow-sm hover inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white transition hover:bg-brand-600"
+            onClick={() => {
+              setEditingInvestment(null);
+              setIsModalOpen(true);
+            }}
+          >
+            <SvgIcon name="plus" />
+            Добавить
+          </button>
           <div className="hidden flex-col gap-3 sm:flex sm:flex-row sm:items-center">
             <div className="relative">
               <span className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-500 dark:text-gray-400">
@@ -100,6 +112,25 @@ export default function InvestmentsListComponent() {
           </div>
         </div>
       </div>
+      <InvestmentModal
+        isModalOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingInvestment(null);
+        }}
+        investment={editingInvestment}
+        onSuccess={(investment) => {
+          if (editingInvestment) {
+            setInvestments((prev) =>
+              prev.map((i) => (i.id === investment.id ? investment : i))
+            );
+          } else {
+            setInvestments((prev) => [investment, ...prev]);
+          }
+          setIsModalOpen(false);
+          setEditingInvestment(null);
+        }}
+      />
       { isLoading && <Loader text="Загрузка инвестиций..." />}
       { error && (
         <div className="p-4 text-red-600 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400">
@@ -156,6 +187,10 @@ export default function InvestmentsListComponent() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center justify-center gap-2">
                     <button
+                      onClick={() => {
+                        setEditingInvestment(investment);
+                        setIsModalOpen(true);
+                      }}
                       className="text-xs flex rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
                     >
                       Редактировать
