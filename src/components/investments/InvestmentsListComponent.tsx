@@ -29,8 +29,6 @@ export default function InvestmentsListComponent() {
   const [error, setError] = useState("");
   const [page, setPage] = useState(pages.page);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingInvestment, setEditingInvestment] = useState<Investment | null>(null);
 
   useEffect(() => {
     const fetchResources = async () => {
@@ -158,10 +156,6 @@ export default function InvestmentsListComponent() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center justify-center gap-2">
                     <button
-                      onClick={() => {
-                        setEditingInvestment(investment);
-                        setIsModalOpen(true);
-                      }}
                       className="text-xs flex rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
                     >
                       Редактировать
