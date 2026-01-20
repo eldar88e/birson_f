@@ -49,4 +49,7 @@ export const ROUTES = {
   CHATS: {
     INDEX: "/chats",
   },
+  CONVERSATIONS: {
+    INDEX: "/conversations",
+  },
 } as const;
