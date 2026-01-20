@@ -18,7 +18,7 @@ export default function ChatBoxHeader() {
       <div className="flex items-center gap-3">
         <div className="relative h-12 w-full max-w-[48px] rounded-full">
           <img
-            src="./images/user/user-17.jpg"
+            src="./images/user/user-18.jpg"
             alt="profile"
             className="object-cover object-center w-full h-full overflow-hidden rounded-full"
           />

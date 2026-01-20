@@ -40,7 +40,7 @@ export default function ChatBox() {
               {message.direction !== "outgoing" && (
                 <div className="w-10 h-10 overflow-hidden rounded-full">
                   <img
-                    src="./images/user/user-17.jpg"
+                    src="./images/user/user-18.jpg"
                     alt="profile"
                     className="object-cover object-center w-full h-full"
                   />
@@ -70,7 +70,7 @@ export default function ChatBox() {
               <p className="mt-2 text-gray-500 text-theme-xs dark:text-gray-400">
                 {message.direction === "outgoing"
                   ? message.created_at
-                  : `You, ${formatDate(message.created_at || "")}`}
+                  : `${formatDate(message.created_at || "")}`}
               </p>
             </div>
           </div>
