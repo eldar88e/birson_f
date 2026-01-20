@@ -52,4 +52,7 @@ export const ROUTES = {
   CONVERSATIONS: {
     INDEX: "/conversations",
   },
+  MESSAGES: {
+    INDEX: "/messages",
+  },
 } as const;
