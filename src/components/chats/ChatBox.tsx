@@ -35,10 +35,8 @@ export default function ChatBox() {
     });
   }, [conversationId]);
 
-  // Автоматическая прокрутка вниз после загрузки сообщений
   useEffect(() => {
     if (messages.length > 0 && !isLoading) {
-      // Небольшая задержка для рендеринга DOM
       setTimeout(() => {
         if (messagesEndRef.current) {
           messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
