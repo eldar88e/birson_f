@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ChatBoxHeader from "./ChatBoxHeader";
 import ChatBoxSendForm from "./ChatBoxSendForm";
 import { messageService } from "../../api/messages";
@@ -13,6 +13,8 @@ export default function ChatBox() {
   const [searchParams] = useSearchParams();
   const conversationId = searchParams.get("conversationId");
   const [error, setError] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!conversationId) {
@@ -33,6 +35,20 @@ export default function ChatBox() {
     });
   }, [conversationId]);
 
+  // Автоматическая прокрутка вниз после загрузки сообщений
+  useEffect(() => {
+    if (messages.length > 0 && !isLoading) {
+      // Небольшая задержка для рендеринга DOM
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+        } else if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
+      }, 100);
+    }
+  }, [messages, isLoading]);
+
   if (error) {
     return (
       <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] xl:w-3/4">
@@ -47,7 +63,10 @@ export default function ChatBox() {
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] xl:w-3/4">
       {/* <!-- ====== Chat Box Start --> */}
       <ChatBoxHeader />
-      <div className="flex-1 max-h-full p-5 space-y-6 overflow-auto custom-scrollbar xl:space-y-8 xl:p-6">
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 max-h-full p-5 space-y-6 overflow-auto custom-scrollbar xl:space-y-8 xl:p-6"
+      >
         {!conversationId ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-gray-500 dark:text-gray-400">Выберите conversation для просмотра сообщений</p>
@@ -55,7 +74,8 @@ export default function ChatBox() {
         ) : isLoading ? (
           <Loader text="Загрузка сообщений..." height={20} />
         ) : (
-          messages.map((message) => (
+          <>
+            {messages.map((message) => (
             <div
               key={message.id}
               className={`flex ${
@@ -83,23 +103,25 @@ export default function ChatBox() {
                   </div>
               )} */}
 
-              <div
-                className={`px-3 py-2 rounded-lg ${
-                  message.direction === "outgoing"
-                    ? "bg-brand-500 text-white dark:bg-brand-500"
-                    : "bg-gray-100 dark:bg-white/5 text-gray-800 dark:text-white/90"
-                } ${message.direction === "outgoing" ? "rounded-tr-sm" : "rounded-tl-sm"}`}
-              >
-                <p className="text-sm ">{message.text}</p>
+                <div
+                  className={`px-3 py-2 rounded-lg ${
+                    message.direction === "outgoing"
+                      ? "bg-brand-500 text-white dark:bg-brand-500"
+                      : "bg-gray-100 dark:bg-white/5 text-gray-800 dark:text-white/90"
+                  } ${message.direction === "outgoing" ? "rounded-tr-sm" : "rounded-tl-sm"}`}
+                >
+                  <p className="text-sm ">{message.text}</p>
+                </div>
+                <p className="mt-2 text-gray-500 text-theme-xs dark:text-gray-400">
+                  {message.direction === "outgoing"
+                    ? message.created_at
+                    : `${formatDate(message.created_at || "")}`}
+                </p>
               </div>
-              <p className="mt-2 text-gray-500 text-theme-xs dark:text-gray-400">
-                {message.direction === "outgoing"
-                  ? message.created_at
-                  : `${formatDate(message.created_at || "")}`}
-              </p>
             </div>
-          </div>
-          ))
+            ))}
+            <div ref={messagesEndRef} />
+          </>
         )}
         {/* {chatList.map((chat) => (
           <div
