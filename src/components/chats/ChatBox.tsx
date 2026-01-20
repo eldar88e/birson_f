@@ -3,24 +3,40 @@ import ChatBoxHeader from "./ChatBoxHeader";
 import ChatBoxSendForm from "./ChatBoxSendForm";
 import { messageService } from "../../api/messages";
 import { Message } from "../../entities/message/model";
-// import { useParams } from "react-router";
+import { useSearchParams } from "react-router";
 import Loader from "../../shared/ui/Loader";
 import { formatDate } from "../../shared/lib/formatDate";
 
 export default function ChatBox() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const conversationId = 1; // useParams<{ conversationId: string }>().conversationId;
+  const [searchParams] = useSearchParams();
+  const conversationId = searchParams.get("conversationId");
+  const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!conversationId) return;
+    
     setIsLoading(true);
-    messageService.getMessages(conversationId).then((response) => {
+    messageService.getMessages(Number(conversationId)).then((response) => {
       setIsLoading(false);
       setMessages(response.data);
-      console.log(messages);
+    }).catch((error) => {
+      setError(error instanceof Error ? error.message : "Failed to load messages");
+    }).finally(() => {
+      setIsLoading(false);
     });
-  }, []);
+  }, [conversationId]);
 
+  if (error) {
+    return (
+      <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] xl:w-3/4">
+        <div className="flex-1 max-h-full p-5 space-y-6 overflow-auto custom-scrollbar xl:space-y-8 xl:p-6">
+          <p className="text-red-500">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] xl:w-3/4">
