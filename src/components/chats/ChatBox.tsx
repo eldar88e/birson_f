@@ -1,89 +1,82 @@
+import { useState, useEffect } from "react";
 import ChatBoxHeader from "./ChatBoxHeader";
 import ChatBoxSendForm from "./ChatBoxSendForm";
-
-interface ChatItem {
-  id: number;
-  name: string;
-  role: string;
-  profileImage: string;
-  status: "online" | "offline";
-  lastActive: string;
-  message: string;
-  isSender: boolean;
-  imagePreview?: string;
-}
-
-const chatList: ChatItem[] = [
-  {
-    id: 1,
-    name: "Kaiya George",
-    role: "Project Manager",
-    profileImage: "./images/user/user-18.jpg",
-    status: "online",
-    lastActive: "15 mins",
-    message: "I want to make an appointment tomorrow from 2:00 to 5:00pm?",
-    isSender: false,
-  },
-  {
-    id: 2,
-    name: "Lindsey Curtis",
-    role: "Designer",
-    profileImage: "./images/user/user-17.jpg",
-    status: "online",
-    lastActive: "30 mins",
-    message: "I want to make an appointment tomorrow from 2:00 to 5:00pm?",
-    isSender: false,
-  },
-  {
-    id: 3,
-    name: "You",
-    role: "",
-    profileImage: "",
-    status: "online",
-    lastActive: "2 hours ago",
-    message: "If don’t like something, I’ll stay away from it.",
-    isSender: true,
-  },
-  {
-    id: 4,
-    name: "Lindsey Curtis",
-    role: "Designer",
-    profileImage: "./images/user/user-17.jpg",
-    status: "online",
-    lastActive: "2 hours ago",
-    message: "I want more detailed information.",
-    isSender: false,
-  },
-  {
-    id: 5,
-    name: "You",
-    role: "",
-    profileImage: "",
-    status: "online",
-    lastActive: "2 hours ago",
-    message: "They got there early, and got really good seats.",
-    isSender: true,
-  },
-  {
-    id: 6,
-    name: "Lindsey Curtis",
-    role: "Designer",
-    profileImage: "./images/user/user-17.jpg",
-    status: "online",
-    lastActive: "2 hours ago",
-    message: "Please preview the image",
-    isSender: false,
-    imagePreview: "./images/chat/chat.jpg",
-  },
-];
+import { messageService } from "../../api/messages";
+import { Message } from "../../entities/message/model";
+// import { useParams } from "react-router";
+import Loader from "../../shared/ui/Loader";
+import { formatDate } from "../../shared/lib/formatDate";
 
 export default function ChatBox() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const conversationId = 1; // useParams<{ conversationId: string }>().conversationId;
+
+  useEffect(() => {
+    setIsLoading(true);
+    messageService.getMessages(conversationId).then((response) => {
+      setIsLoading(false);
+      setMessages(response.data);
+      console.log(messages);
+    });
+  }, []);
+
+
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] xl:w-3/4">
       {/* <!-- ====== Chat Box Start --> */}
       <ChatBoxHeader />
       <div className="flex-1 max-h-full p-5 space-y-6 overflow-auto custom-scrollbar xl:space-y-8 xl:p-6">
-        {chatList.map((chat) => (
+        {isLoading ? (
+          <Loader text="Загрузка сообщений..." />
+        ) : (
+          messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex ${
+                message.direction === "outgoing" ? "justify-end" : "items-start gap-4"
+              }`}
+            >
+              {message.direction !== "outgoing" && (
+                <div className="w-10 h-10 overflow-hidden rounded-full">
+                  <img
+                    src="./images/user/user-17.jpg"
+                    alt="profile"
+                    className="object-cover object-center w-full h-full"
+                  />
+                </div>
+              )}
+
+              <div className={`${message.direction === "outgoing" ? "text-right" : ""}`}>
+                {/* {chat.imagePreview && (
+                  <div className="mb-2 w-full max-w-[270px] overflow-hidden rounded-lg">
+                    <img
+                      src={chat.imagePreview}
+                      alt="chat"
+                      className="object-cover"
+                    />
+                  </div>
+              )} */}
+
+              <div
+                className={`px-3 py-2 rounded-lg ${
+                  message.direction === "outgoing"
+                    ? "bg-brand-500 text-white dark:bg-brand-500"
+                    : "bg-gray-100 dark:bg-white/5 text-gray-800 dark:text-white/90"
+                } ${message.direction === "outgoing" ? "rounded-tr-sm" : "rounded-tl-sm"}`}
+              >
+                <p className="text-sm ">{message.text}</p>
+              </div>
+              <p className="mt-2 text-gray-500 text-theme-xs dark:text-gray-400">
+                {message.direction === "outgoing"
+                  ? message.created_at
+                  : `You, ${formatDate(message.created_at || "")}`}
+              </p>
+            </div>
+          </div>
+          ))
+        )}
+        {/* {chatList.map((chat) => (
           <div
             key={chat.id}
             className={`flex ${
@@ -127,7 +120,7 @@ export default function ChatBox() {
               </p>
             </div>
           </div>
-        ))}
+        ))} */}
       </div>
       <ChatBoxSendForm />
       {/* <!-- ====== Chat Box End --> */}

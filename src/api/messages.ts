@@ -9,8 +9,8 @@ interface Messages {
 }
 
 class MessageService {
-  async getConversations(conversationId: number, params: string = ""): Promise<Messages> {
-    const url = `${ROUTES.CONVERSATIONS.INDEX}/${conversationId}/${ROUTES.MESSAGES.INDEX}${params}`;
+  async getMessages(conversationId: number, params: string = ""): Promise<Messages> {
+    const url = `${ROUTES.CONVERSATIONS.INDEX}/${conversationId}${ROUTES.MESSAGES.INDEX}${params}`;
     const response = await apiClient.get<Messages>(url, true);
     return response;
   }
