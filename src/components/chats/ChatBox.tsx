@@ -15,9 +15,14 @@ export default function ChatBox() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!conversationId) return;
+    if (!conversationId) {
+      setMessages([]);
+      setError("");
+      return;
+    }
     
     setIsLoading(true);
+    setError("");
     messageService.getMessages(Number(conversationId)).then((response) => {
       setIsLoading(false);
       setMessages(response.data);
@@ -43,7 +48,11 @@ export default function ChatBox() {
       {/* <!-- ====== Chat Box Start --> */}
       <ChatBoxHeader />
       <div className="flex-1 max-h-full p-5 space-y-6 overflow-auto custom-scrollbar xl:space-y-8 xl:p-6">
-        {isLoading ? (
+        {!conversationId ? (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-gray-500 dark:text-gray-400">Выберите conversation для просмотра сообщений</p>
+          </div>
+        ) : isLoading ? (
           <Loader text="Загрузка сообщений..." />
         ) : (
           messages.map((message) => (

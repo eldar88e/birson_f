@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { MoreDotIcon } from "../../icons";
 import { conversationService } from "../../api/conversation";
 import { Conversation } from "../../entities/conversation/model";
 import Loader from "../../shared/ui/Loader";
+import { useNavigate, useSearchParams } from "react-router";
 
 interface ChatListProps {
   isOpen: boolean;
@@ -15,14 +16,26 @@ export default function ChatList({ isOpen, onToggle }: ChatListProps) {
   const [isOpenTwo, setIsOpenTwo] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const currentConversationId = searchParams.get("conversationId");
+  const hasSetDefaultRef = useRef(false);
 
   useEffect(() => {
     setIsLoading(true);
     conversationService.getConversations().then((response) => {
       setIsLoading(false);
       setConversations(response.data);
-      console.log(response.data);
+      
+      // Если нет выбранного conversation и есть список, выбираем первый (только один раз)
+      const currentId = searchParams.get("conversationId");
+      if (!hasSetDefaultRef.current && !currentId && response.data.length > 0) {
+        hasSetDefaultRef.current = true;
+        const firstConversationId = response.data[0].id;
+        navigate(`?conversationId=${firstConversationId}`, { replace: true });
+      }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function toggleDropdownTwo() {
@@ -109,8 +122,22 @@ export default function ChatList({ isOpen, onToggle }: ChatListProps) {
           {isLoading ? (
               <Loader text="Загрузка чатов..." />
             ) : (
-              conversations.map((conversation) => (
-                <div key={conversation.id} className="flex cursor-pointer items-center gap-3 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-white/[0.03]">
+              conversations.map((conversation) => {
+                const isActive = currentConversationId === String(conversation.id);
+                return (
+                <div 
+                  key={conversation.id} 
+                  onClick={() => {
+                    navigate(`?conversationId=${conversation.id}`);
+                    // Закрываем sidebar только если он открыт (на мобильных устройствах)
+                    if (isOpen) {
+                      onToggle();
+                    }
+                  }}
+                  className={`flex cursor-pointer items-center gap-3 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-white/[0.03] ${
+                    isActive ? "bg-brand-50 dark:bg-brand-900/20" : ""
+                  }`}
+                >
                   <div className="relative h-12 w-full max-w-[48px] rounded-full">
                     <img
                       src="./images/user/user-18.jpg"
@@ -135,7 +162,8 @@ export default function ChatList({ isOpen, onToggle }: ChatListProps) {
                     </div>
                   </div>
                 </div>
-            )))
+              );
+            }))
           }
         </div>
       </div>
