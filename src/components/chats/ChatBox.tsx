@@ -53,7 +53,7 @@ export default function ChatBox() {
             <p className="text-gray-500 dark:text-gray-400">Выберите conversation для просмотра сообщений</p>
           </div>
         ) : isLoading ? (
-          <Loader text="Загрузка сообщений..." />
+          <Loader text="Загрузка сообщений..." height={20} />
         ) : (
           messages.map((message) => (
             <div

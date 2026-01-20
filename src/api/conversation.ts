@@ -14,6 +14,14 @@ class ConversationService {
     const response = await apiClient.get<Conversations>(url, true);
     return response;
   }
+
+  async getConversation(id: number): Promise<Conversation> {
+    const response = await apiClient.get<{ conversation: Conversation }>(
+      `${ROUTES.CONVERSATIONS.INDEX}/${id}`,
+      true
+    );
+    return response.conversation;
+  }
 }
 
 export const conversationService = new ConversationService();

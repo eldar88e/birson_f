@@ -26,8 +26,7 @@ export default function ChatList({ isOpen, onToggle }: ChatListProps) {
     conversationService.getConversations().then((response) => {
       setIsLoading(false);
       setConversations(response.data);
-      
-      // Если нет выбранного conversation и есть список, выбираем первый (только один раз)
+
       const currentId = searchParams.get("conversationId");
       if (!hasSetDefaultRef.current && !currentId && response.data.length > 0) {
         hasSetDefaultRef.current = true;
@@ -35,7 +34,6 @@ export default function ChatList({ isOpen, onToggle }: ChatListProps) {
         navigate(`?conversationId=${firstConversationId}`, { replace: true });
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function toggleDropdownTwo() {
@@ -122,7 +120,7 @@ export default function ChatList({ isOpen, onToggle }: ChatListProps) {
           {isLoading ? (
               <Loader text="Загрузка чатов..." />
             ) : (
-              conversations.map((conversation) => {
+              [...conversations].map((conversation) => {
                 const isActive = currentConversationId === String(conversation.id);
                 return (
                 <div 
