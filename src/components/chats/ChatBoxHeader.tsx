@@ -1,13 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { MoreDotIcon } from "../../icons";
 import SvgIcon from "../../shared/ui/SvgIcon";
 import { isRecentlyActive } from "../../shared/lib/formatDate";
-import { useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
+import { ROUTES } from "../../shared/config/routes";
 import { conversationService } from "../../api/conversation";
 import { Conversation } from "../../entities/conversation/model";
 import { useNotification } from "../../context/NotificationContext";
+import { useConfirmDelete } from "../../hooks/useConfirmDelete";
+import { ConfirmDeleteModal } from "../../shared/ui/ConfirmDeleteModal";
 import Loader from "../../shared/ui/Loader";
 
 export default function ChatBoxHeader() {
@@ -16,7 +19,9 @@ export default function ChatBoxHeader() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const conversationId = searchParams.get("conversationId");
+  const deleteTargetIdRef = useRef<number | null>(null);
   const { showNotification } = useNotification();
 
   useEffect(() => {
@@ -47,16 +52,27 @@ export default function ChatBoxHeader() {
     setIsOpen(false);
   }
 
+  const deleteModal = useConfirmDelete({
+    onDelete: async () => {
+      const id = deleteTargetIdRef.current;
+      if (id == null) return;
+      await conversationService.deleteConversation(id);
+    },
+    onSuccess: () => {
+      navigate(ROUTES.CHATS.INDEX, { replace: true });
+      window.dispatchEvent(new CustomEvent("chats:conversationDeleted"));
+    },
+    successMessage: "Диалог удалён",
+    errorMessage: "Не удалось удалить диалог",
+  });
+
   async function handleSaveContact() {
     if (!conversationId || isSaving) return;
     setIsSaving(true);
     closeDropdown();
     try {
       await conversationService.saveConversationUser(Number(conversationId));
-      showNotification({
-        variant: "success",
-        title: "Контакт сохранён",
-      });
+      showNotification({ variant: "success", title: "Контакт сохранён" });
     } catch {
       showNotification({
         variant: "error",
@@ -65,6 +81,13 @@ export default function ChatBoxHeader() {
     } finally {
       setIsSaving(false);
     }
+  }
+
+  function handleDeleteClick() {
+    if (!conversationId) return;
+    deleteTargetIdRef.current = Number(conversationId);
+    closeDropdown();
+    deleteModal.open();
   }
 
   return (
@@ -127,21 +150,37 @@ export default function ChatBoxHeader() {
                 Сохранить контакт
               </DropdownItem>
               <DropdownItem
+                tag="a"
+                to={
+                  currentConversation?.user_id != null
+                    ? `${ROUTES.USERS.INDEX}/${currentConversation.user_id}`
+                    : undefined
+                }
                 onItemClick={closeDropdown}
                 className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
               >
-                View More
+                Подробнее
               </DropdownItem>
               <DropdownItem
-                onItemClick={closeDropdown}
-                className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                onItemClick={handleDeleteClick}
+                className="flex w-full font-normal text-left text-red-600 rounded-lg hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/30 dark:hover:text-red-300"
               >
-                Delete
+                Удалить
               </DropdownItem>
             </Dropdown>
           </div>
         </div>
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={deleteModal.isOpen}
+        isLoading={deleteModal.isLoading}
+        onClose={deleteModal.close}
+        onConfirm={deleteModal.confirm}
+        title="Удалить диалог?"
+        description="Это действие нельзя отменить."
+        itemName={currentConversation?.user}
+      />
     </div>
   );
 }

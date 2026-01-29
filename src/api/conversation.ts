@@ -30,6 +30,13 @@ class ConversationService {
       true
     );
   }
+
+  async deleteConversation(conversationId: number): Promise<void> {
+    await apiClient.delete(
+      `${ROUTES.CONVERSATIONS.INDEX}/${conversationId}`,
+      true
+    );
+  }
 }
 
 export const conversationService = new ConversationService();

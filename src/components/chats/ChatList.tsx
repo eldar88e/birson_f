@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { MoreDotIcon } from "../../icons";
@@ -23,20 +23,34 @@ export default function ChatList({ isOpen, onToggle }: ChatListProps) {
   const currentConversationId = searchParams.get("conversationId");
   const hasSetDefaultRef = useRef(false);
 
-  useEffect(() => {
+  const fetchConversations = useCallback(() => {
     setIsLoading(true);
-    conversationService.getConversations().then((response) => {
-      setIsLoading(false);
-      setConversations(response.data);
+    conversationService
+      .getConversations()
+      .then((response) => {
+        setConversations(response.data);
+        const currentId = searchParams.get("conversationId");
+        if (
+          !hasSetDefaultRef.current &&
+          !currentId &&
+          response.data.length > 0
+        ) {
+          hasSetDefaultRef.current = true;
+          navigate(`?conversationId=${response.data[0].id}`, { replace: true });
+        }
+      })
+      .finally(() => setIsLoading(false));
+  }, [navigate, searchParams]);
 
-      const currentId = searchParams.get("conversationId");
-      if (!hasSetDefaultRef.current && !currentId && response.data.length > 0) {
-        hasSetDefaultRef.current = true;
-        const firstConversationId = response.data[0].id;
-        navigate(`?conversationId=${firstConversationId}`, { replace: true });
-      }
-    });
-  }, []);
+  useEffect(() => {
+    fetchConversations();
+  }, [fetchConversations]);
+
+  useEffect(() => {
+    const handler = () => fetchConversations();
+    window.addEventListener("chats:conversationDeleted", handler);
+    return () => window.removeEventListener("chats:conversationDeleted", handler);
+  }, [fetchConversations]);
 
   function toggleDropdownTwo() {
     setIsOpenTwo(!isOpenTwo);
