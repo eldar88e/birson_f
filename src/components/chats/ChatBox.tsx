@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import ChatBoxHeader from "./ChatBoxHeader";
 import ChatBoxSendForm from "./ChatBoxSendForm";
 import { messageService } from "../../api/messages";
 import { Message } from "../../entities/message/model";
 import { useSearchParams } from "react-router";
 import Loader from "../../shared/ui/Loader";
-import { formatDate } from "../../shared/lib/formatDate";
+import { timeAgo } from "../../shared/lib/formatDate";
 
 export default function ChatBox() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -16,24 +16,31 @@ export default function ChatBox() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
+  const fetchMessages = useCallback(() => {
+    if (!conversationId) return;
+    setIsLoading(true);
+    setError("");
+    messageService
+      .getMessages(Number(conversationId))
+      .then((response) => {
+        setMessages(response.data);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Failed to load messages");
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [conversationId]);
+
   useEffect(() => {
     if (!conversationId) {
       setMessages([]);
       setError("");
       return;
     }
-    
-    setIsLoading(true);
-    setError("");
-    messageService.getMessages(Number(conversationId)).then((response) => {
-      setIsLoading(false);
-      setMessages(response.data);
-    }).catch((error) => {
-      setError(error instanceof Error ? error.message : "Failed to load messages");
-    }).finally(() => {
-      setIsLoading(false);
-    });
-  }, [conversationId]);
+    fetchMessages();
+  }, [conversationId, fetchMessages]);
 
   useEffect(() => {
     if (messages.length > 0 && !isLoading) {
@@ -111,9 +118,7 @@ export default function ChatBox() {
                   <p className="text-sm ">{message.text}</p>
                 </div>
                 <p className="mt-2 text-gray-500 text-theme-xs dark:text-gray-400">
-                  {message.direction === "outgoing"
-                    ? message.created_at
-                    : `${formatDate(message.created_at || "")}`}
+                  {timeAgo(message.created_at || "")}
                 </p>
               </div>
             </div>
@@ -167,7 +172,10 @@ export default function ChatBox() {
           </div>
         ))} */}
       </div>
-      <ChatBoxSendForm />
+      <ChatBoxSendForm
+        conversationId={conversationId ? Number(conversationId) : null}
+        onMessageSent={(msg) => setMessages((prev) => [...prev, msg])}
+      />
       {/* <!-- ====== Chat Box End --> */}
     </div>
   );

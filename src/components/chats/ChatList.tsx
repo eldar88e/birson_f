@@ -5,6 +5,7 @@ import { MoreDotIcon } from "../../icons";
 import { conversationService } from "../../api/conversation";
 import { Conversation } from "../../entities/conversation/model";
 import Loader from "../../shared/ui/Loader";
+import { timeAgo } from "../../shared/lib/formatDate";
 import { useNavigate, useSearchParams } from "react-router";
 
 interface ChatListProps {
@@ -42,18 +43,6 @@ export default function ChatList({ isOpen, onToggle }: ChatListProps) {
 
   function closeDropdownTwo() {
     setIsOpenTwo(false);
-  }
-
-  function minutesAgo(dateString: string) {
-    if (!dateString) return "";
-
-    const diffMs = Date.now() - new Date(dateString).getTime();
-    const minutes = Math.floor(diffMs / 1000 / 60);
-
-    if (minutes === 0) return "только что";
-    if (minutes > 60) return `${Math.floor(minutes / 60)} часов назад`;
-  
-    return `${minutes} мин назад`;
   }
 
   return (
@@ -155,7 +144,7 @@ export default function ChatList({ isOpen, onToggle }: ChatListProps) {
                         </p>
                       </div>
                       <span className="text-gray-400 text-theme-xs">
-                        {minutesAgo(conversation.last_message_at)}
+                        {timeAgo(conversation.last_message_at ?? "")}
                       </span>
                     </div>
                   </div>

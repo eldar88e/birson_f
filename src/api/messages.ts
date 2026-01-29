@@ -16,12 +16,12 @@ class MessageService {
   }
 
   async createMessage(conversationId: number, messageData: Message): Promise<Message> {
-    const response = await apiClient.post<{ message: Message }>(
-      `${ROUTES.CONVERSATIONS.INDEX}/${conversationId}/${ROUTES.MESSAGES.INDEX}`,
+    const response = await apiClient.post<{ data: { message: Message } }>(
+      `${ROUTES.CONVERSATIONS.INDEX}/${conversationId}${ROUTES.MESSAGES.INDEX}`,
       { message: messageData },
       true
     );
-    return response.message;
+    return response.data.message;
   }
 }
 

@@ -1,9 +1,41 @@
-export default function ChatBoxSendForm() {
+import { useState, type FormEvent } from "react";
+import { messageService } from "../../api/messages";
+import type { Message } from "../../entities/message/model";
+
+interface ChatBoxSendFormProps {
+  conversationId: number | null;
+  onMessageSent?: (message: Message) => void;
+}
+
+export default function ChatBoxSendForm({ conversationId, onMessageSent }: ChatBoxSendFormProps) {
+  const [text, setText] = useState("");
+  const [isSending, setIsSending] = useState(false);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    const trimmed = text.trim();
+    if (!trimmed || !conversationId || isSending) return;
+
+    setIsSending(true);
+    try {
+      const created = await messageService.createMessage(conversationId, {
+        conversation_id: conversationId,
+        text: trimmed,
+      });
+      setText("");
+      onMessageSent?.(created);
+    } catch {
+      // TODO: показать ошибку пользователю
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
     <div className="sticky bottom-0 p-3 border-t border-gray-200 dark:border-gray-800">
-      <form className="flex items-center justify-between">
+      <form className="flex items-center justify-between" onSubmit={handleSubmit}>
         <div className="relative w-full">
-          <button className="absolute text-gray-500 -translate-y-1/2 left-1 top-1/2 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90 sm:left-3">
+          <button type="button" className="absolute text-gray-500 -translate-y-1/2 left-1 top-1/2 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90 sm:left-3">
             <svg
               className="fill-current"
               width="24"
@@ -23,13 +55,16 @@ export default function ChatBoxSendForm() {
 
           <input
             type="text"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
             placeholder="Type a message"
-            className="w-full pl-12 pr-5 text-sm text-gray-800 bg-transparent border-none outline-hidden h-9 placeholder:text-gray-400 focus:border-0 focus:ring-0 dark:text-white/90"
+            disabled={!conversationId || isSending}
+            className="w-full pl-12 pr-5 text-sm text-gray-800 bg-transparent border-none outline-hidden h-9 placeholder:text-gray-400 focus:border-0 focus:ring-0 dark:text-white/90 disabled:opacity-50"
           />
         </div>
 
         <div className="flex items-center">
-          <button className="mr-2 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90">
+          <button type="button" className="mr-2 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90">
             <svg
               className="fill-current"
               width="24"
@@ -47,7 +82,7 @@ export default function ChatBoxSendForm() {
             </svg>
           </button>
 
-          <button className="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90">
+          <button type="button" className="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90">
             <svg
               className="stroke-current"
               width="24"
@@ -109,7 +144,11 @@ export default function ChatBoxSendForm() {
             </svg>
           </button>
 
-          <button className="flex items-center justify-center ml-3 text-white rounded-lg h-9 w-9 bg-brand-500 hover:bg-brand-600 xl:ml-5">
+          <button
+            type="submit"
+            disabled={!conversationId || !text.trim() || isSending}
+            className="flex items-center justify-center ml-3 text-white rounded-lg h-9 w-9 bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed xl:ml-5"
+          >
             <svg
               width="20"
               height="20"
