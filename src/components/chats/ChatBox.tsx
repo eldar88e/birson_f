@@ -5,6 +5,7 @@ import { messageService } from "../../api/messages";
 import { Message } from "../../entities/message/model";
 import { useSearchParams } from "react-router";
 import Loader from "../../shared/ui/Loader";
+import SvgIcon from "../../shared/ui/SvgIcon";
 import { timeAgo } from "../../shared/lib/formatDate";
 
 export default function ChatBox() {
@@ -88,12 +89,18 @@ export default function ChatBox() {
               }`}
             >
               {message.direction !== "outgoing" && (
-                <div className="w-10 h-10 overflow-hidden rounded-full">
-                  <img
-                    src="./images/user/user-18.jpg"
-                    alt="profile"
-                    className="object-cover object-center w-full h-full"
-                  />
+                <div className="w-10 h-10 shrink-0 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                  {message.photo_url ? (
+                    <img
+                      src={message.photo_url}
+                      alt="profile"
+                      className="object-cover object-center w-full h-full"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-gray-500 dark:text-gray-400">
+                      <SvgIcon name="user" width={32} />
+                    </div>
+                  )}
                 </div>
               )}
               <div className={`${message.direction === "outgoing" ? "text-right" : ""}`}>

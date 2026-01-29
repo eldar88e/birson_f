@@ -93,6 +93,20 @@ export function timeAgo(dateString: string): string {
 }
 
 /**
+ * Проверяет, что активность была недавно (в пределах N минут).
+ * Используется для индикатора «онлайн» в чатах.
+ */
+export function isRecentlyActive(
+  dateString: string,
+  withinMinutes: number = 5
+): boolean {
+  const date = parseDate(dateString);
+  if (!date) return false;
+  const diffMs = Date.now() - date.getTime();
+  return diffMs >= 0 && diffMs <= withinMinutes * 60 * 1000;
+}
+
+/**
  * @deprecated Используйте {@link timeAgo}. Оставлено для обратной совместимости.
  */
 export function minutesAgo(dateString: string): string {

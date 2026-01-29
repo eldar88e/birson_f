@@ -5,7 +5,8 @@ import { MoreDotIcon } from "../../icons";
 import { conversationService } from "../../api/conversation";
 import { Conversation } from "../../entities/conversation/model";
 import Loader from "../../shared/ui/Loader";
-import { timeAgo } from "../../shared/lib/formatDate";
+import SvgIcon from "../../shared/ui/SvgIcon";
+import { isRecentlyActive, timeAgo } from "../../shared/lib/formatDate";
 import { useNavigate, useSearchParams } from "react-router";
 
 interface ChatListProps {
@@ -125,19 +126,32 @@ export default function ChatList({ isOpen, onToggle }: ChatListProps) {
                     isActive ? "bg-brand-50 dark:bg-brand-900/20" : ""
                   }`}
                 >
-                  <div className="relative h-12 w-full max-w-[48px] rounded-full">
-                    <img
-                      src="./images/user/user-18.jpg"
-                      alt="profile"
-                      className="object-cover object-center w-full h-full overflow-hidden rounded-full"
-                    />
-                    <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full border-[1.5px] border-white bg-success-500 dark:border-gray-900"></span>
+                  <div className="relative h-12 w-12 shrink-0">
+                    <div className="absolute inset-0 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                      {conversation.photo_url ? (
+                        <img
+                          src={conversation.photo_url}
+                          alt={conversation.user || "profile"}
+                          className="h-full w-full object-cover object-center"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-gray-500 dark:text-gray-400">
+                          <SvgIcon name="user" width={32} />
+                        </div>
+                      )}
+                    </div>
+                    {isRecentlyActive(conversation.last_message_at ?? "") && (
+                      <span
+                        className="absolute -bottom-px -right-px block h-3 w-3 shrink-0 rounded-full border-2 border-white bg-success-500 dark:border-gray-800"
+                        aria-hidden
+                      />
+                    )}
                   </div>
                   <div className="w-full">
                     <div className="flex items-start justify-between">
                       <div>
                         <h5 className="text-sm font-medium text-gray-800 dark:text-white/90">
-                          {conversation.user}
+                          {conversation.user || "Неизвестный пользователь"}
                         </h5>
                         <p className="mt-0.5 text-theme-xs text-gray-500 dark:text-gray-400">
                           {conversation.source}

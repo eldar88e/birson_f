@@ -22,6 +22,14 @@ class ConversationService {
     );
     return response.conversation;
   }
+
+  async saveConversationUser(conversationId: number): Promise<void> {
+    await apiClient.post<void>(
+      `${ROUTES.CONVERSATIONS.INDEX}/${conversationId}/user`,
+      {},
+      true
+    );
+  }
 }
 
 export const conversationService = new ConversationService();

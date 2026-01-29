@@ -4,4 +4,5 @@ export interface Message {
   text: string;
   direction?: "incoming" | "outgoing";
   created_at?: string;
+  photo_url?: string;
 }
