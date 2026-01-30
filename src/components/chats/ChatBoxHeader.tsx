@@ -12,8 +12,10 @@ import { useNotification } from "../../context/NotificationContext";
 import { useConfirmDelete } from "../../hooks/useConfirmDelete";
 import { ConfirmDeleteModal } from "../../shared/ui/ConfirmDeleteModal";
 import Loader from "../../shared/ui/Loader";
+import { useTranslation } from "react-i18next";
 
 export default function ChatBoxHeader() {
+  const { t } = useTranslation("chat");
   const [isOpen, setIsOpen] = useState(false);
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -122,10 +124,10 @@ export default function ChatBoxHeader() {
 
             <div>
               <h5 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                {currentConversation?.user || "Неизвестный пользователь"}
+                {currentConversation?.user || t("undefinedUser")}
               </h5>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {currentConversation?.source || "Неизвестный источник"}
+                {currentConversation?.source || t("undefinedSource")}
               </p>
             </div>
           </>

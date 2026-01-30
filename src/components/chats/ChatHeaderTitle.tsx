@@ -1,30 +1,32 @@
-import { Dropdown } from "../ui/dropdown/Dropdown";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
+// import { Dropdown } from "../ui/dropdown/Dropdown";
+// import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { MoreDotIcon } from "../../icons";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function ChatHeaderTitle() {
+  const { t } = useTranslation("chat");
   const [isOpen, setIsOpen] = useState(false);
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
   }
 
-  function closeDropdown() {
-    setIsOpen(false);
-  }
+  // function closeDropdown() {
+  //   setIsOpen(false);
+  // }
   return (
     <div className="flex items-start justify-between">
       <div>
         <h3 className="font-semibold text-gray-800 text-theme-xl dark:text-white/90 sm:text-2xl">
-          Chats
+          {t("chats")}
         </h3>
       </div>
       <div className="relative inline-block">
         <button onClick={toggleDropdown}>
           <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 size-6" />
         </button>
-        <Dropdown isOpen={isOpen} onClose={closeDropdown} className="w-40 p-2">
+        {/* <Dropdown isOpen={isOpen} onClose={closeDropdown} className="w-40 p-2">
           <DropdownItem
             onItemClick={closeDropdown}
             className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
@@ -37,7 +39,7 @@ export default function ChatHeaderTitle() {
           >
             Delete
           </DropdownItem>
-        </Dropdown>
+        </Dropdown> */}
       </div>
     </div>
   );

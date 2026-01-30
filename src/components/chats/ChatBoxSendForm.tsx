@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { messageService } from "../../api/messages";
 import type { Message } from "../../entities/message/model";
 import SvgIcon from "../../shared/ui/SvgIcon";
+import { useTranslation } from "react-i18next";
 
 interface ChatBoxSendFormProps {
   conversationId: number | null;
@@ -11,6 +12,7 @@ interface ChatBoxSendFormProps {
 export default function ChatBoxSendForm({ conversationId, onMessageSent }: ChatBoxSendFormProps) {
   const [text, setText] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const { t } = useTranslation("chat");
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -58,7 +60,7 @@ export default function ChatBoxSendForm({ conversationId, onMessageSent }: ChatB
             type="text"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Type a message"
+            placeholder={t("sendForm.placeholder")}
             disabled={!conversationId || isSending}
             className="w-full pl-12 pr-5 text-sm text-gray-800 bg-transparent border-none outline-hidden h-9 placeholder:text-gray-400 focus:border-0 focus:ring-0 dark:text-white/90 disabled:opacity-50"
           />

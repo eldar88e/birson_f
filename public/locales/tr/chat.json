@@ -1,0 +1,8 @@
+{
+  "chats": "Sohbetler",
+  "chat": "Sohbet",
+  "sendForm": {
+    "placeholder": "Bir mesaj yazın..."
+  },
+  "undefinedUser": "Tanımsız Kullanıcı"
+}

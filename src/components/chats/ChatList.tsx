@@ -8,6 +8,7 @@ import Loader from "../../shared/ui/Loader";
 import SvgIcon from "../../shared/ui/SvgIcon";
 import { isRecentlyActive, timeAgo } from "../../shared/lib/formatDate";
 import { useNavigate, useSearchParams } from "react-router";
+import { useTranslation } from "react-i18next";
 
 interface ChatListProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface ChatListProps {
 }
 
 export default function ChatList({ isOpen, onToggle }: ChatListProps) {
+  const { t } = useTranslation("chat");
   const [isOpenTwo, setIsOpenTwo] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -165,7 +167,7 @@ export default function ChatList({ isOpen, onToggle }: ChatListProps) {
                     <div className="flex items-start justify-between">
                       <div>
                         <h5 className="text-sm font-medium text-gray-800 dark:text-white/90">
-                          {conversation.user || "Неизвестный пользователь"}
+                          {conversation.user || t("undefinedUser")}
                         </h5>
                         <p className="mt-0.5 text-theme-xs text-gray-500 dark:text-gray-400">
                           {conversation.source}

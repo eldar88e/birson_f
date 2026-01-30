@@ -30,5 +30,7 @@
     "save": "Kaydet",
     "update": "Güncelle"
   },
-  "title": "Başlık"
+  "title": "Başlık",
+  "search": "Ara...",
+  "searchPlaceholder": "Ara veya komut yazın..."
 }

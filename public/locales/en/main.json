@@ -30,5 +30,7 @@
     "save": "Save",
     "update": "Update"
   },
-  "title": "Title"
+  "title": "Title",
+  "search": "Search...",
+  "searchPlaceholder": "Search or type command..."
 }

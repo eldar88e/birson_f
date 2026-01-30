@@ -1,10 +1,13 @@
 import ChatHeaderTitle from "./ChatHeaderTitle";
+import { useTranslation } from "react-i18next";
 
 interface ChatHeaderProps {
   onToggle: () => void;
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ onToggle }) => {
+export default function ChatHeader({ onToggle }: ChatHeaderProps) {
+  const { t } = useTranslation("main");
+
   return (
     <div className="sticky px-4 pt-4 pb-4 sm:px-5 sm:pt-5 xl:pb-0">
       <ChatHeaderTitle />
@@ -50,7 +53,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ onToggle }) => {
             </button>
             <input
               type="text"
-              placeholder="Search..."
+              placeholder={t("search")}
               className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-[42px] pr-3.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
             />
           </form>
@@ -59,5 +62,3 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ onToggle }) => {
     </div>
   );
 };
-
-export default ChatHeader;

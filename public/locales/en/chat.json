@@ -1,0 +1,8 @@
+{
+  "chats": "Chats",
+  "chat": "Chat",
+  "sendForm": {
+    "placeholder": "Type a message..."
+  },
+  "undefinedUser": "Undefined User"
+}
