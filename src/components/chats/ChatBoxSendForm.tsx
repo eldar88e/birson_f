@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from "react";
+import { useState, useRef, type FormEvent, type ChangeEvent } from "react";
 import { messageService } from "../../api/messages";
 import type { Message } from "../../entities/message/model";
 import SvgIcon from "../../shared/ui/SvgIcon";
 import { useTranslation } from "react-i18next";
+import { useNotification } from "../../context/NotificationContext";
 
 interface ChatBoxSendFormProps {
   conversationId: number | null;
@@ -11,32 +12,110 @@ interface ChatBoxSendFormProps {
 
 export default function ChatBoxSendForm({ conversationId, onMessageSent }: ChatBoxSendFormProps) {
   const [text, setText] = useState("");
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
   const { t } = useTranslation("chat");
+  const { showNotification } = useNotification();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const clearAttachment = () => {
+    setAttachedFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const trimmed = text.trim();
-    if (!trimmed || !conversationId || isSending) return;
+    // Можно отправить либо текст, либо файл, либо оба
+    if ((!trimmed && !attachedFile) || !conversationId || isSending) return;
 
     setIsSending(true);
     try {
       const created = await messageService.createMessage(conversationId, {
         conversation_id: conversationId,
         text: trimmed,
+        uploadfile: attachedFile || undefined,
       });
       setText("");
+      clearAttachment();
       onMessageSent?.(created);
     } catch {
-      // TODO: показать ошибку пользователю
+      showNotification({
+        variant: "error",
+        title: "Не удалось отправить сообщение",
+      });
     } finally {
       setIsSending(false);
     }
   };
 
+  const handleAttachClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Проверка типа файла
+    if (!file.type.startsWith("image/")) {
+      showNotification({
+        variant: "error",
+        title: "Можно загружать только изображения",
+      });
+      return;
+    }
+
+    // Проверка размера (24MB макс)
+    if (file.size > 24 * 1024 * 1024) {
+      showNotification({
+        variant: "error",
+        title: "Файл слишком большой (макс. 24MB)",
+      });
+      return;
+    }
+
+    // Очистить предыдущий preview URL
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
+    setAttachedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const canSend = conversationId && (text.trim() || attachedFile) && !isSending;
+
   return (
-    <div className="sticky bottom-0 p-3 border-t border-gray-200 dark:border-gray-800">
-      <form className="flex items-center justify-between" onSubmit={handleSubmit}>
+    <div className="sticky bottom-0 border-t border-gray-200 dark:border-gray-800">
+      {/* Превью прикреплённого файла */}
+      {previewUrl && (
+        <div className="px-3 pt-3 pb-0">
+          <div className="relative inline-block">
+            <img
+              src={previewUrl}
+              alt="Превью"
+              className="h-16 w-auto rounded-lg object-cover"
+            />
+            <button
+              type="button"
+              onClick={clearAttachment}
+              className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-gray-800 text-white hover:bg-gray-700"
+            >
+              <SvgIcon name="close" width={12} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <form className="flex items-center justify-between p-3" onSubmit={handleSubmit}>
         <div className="relative w-full">
           <button type="button" className="absolute text-gray-500 -translate-y-1/2 left-1 top-1/2 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90 sm:left-3">
             <svg
@@ -67,12 +146,24 @@ export default function ChatBoxSendForm({ conversationId, onMessageSent }: ChatB
         </div>
 
         <div className="flex items-center">
-          <button type="button" className="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={handleAttachClick}
+            disabled={!conversationId || isSending}
+            className={`text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90 disabled:opacity-50 disabled:cursor-not-allowed ${attachedFile ? "text-brand-500 dark:text-brand-400" : ""}`}
+          >
             <SvgIcon name="attach" width={24} />
           </button>
           <button
             type="submit"
-            disabled={!conversationId || !text.trim() || isSending}
+            disabled={!canSend}
             className="flex items-center justify-center ml-3 text-white rounded-lg h-9 w-9 bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed xl:ml-5"
           >
             <SvgIcon name="send" width={24} />

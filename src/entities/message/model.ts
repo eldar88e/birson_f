@@ -5,4 +5,10 @@ export interface Message {
   direction?: "incoming" | "outgoing";
   created_at?: string;
   photo_url?: string;
+  published_at?: string;
+  msg_type?: "text" | "image";
+  data?: {
+    image_url?: string;
+  };
+  uploadfile?: File;
 }

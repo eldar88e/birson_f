@@ -7,6 +7,7 @@ import { useSearchParams } from "react-router";
 import Loader from "../../shared/ui/Loader";
 import SvgIcon from "../../shared/ui/SvgIcon";
 import { timeAgo } from "../../shared/lib/formatDate";
+import { useConversationChannel } from "../../hooks/useConversationChannel";
 
 export default function ChatBox() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -42,6 +43,27 @@ export default function ChatBox() {
     }
     fetchMessages();
   }, [conversationId, fetchMessages]);
+
+  // Подписка на WebSocket для получения сообщений в реальном времени
+  const handleNewMessage = useCallback((message: Message) => {
+    setMessages((prev) => {
+      // Проверяем, что сообщение ещё не добавлено (например, если мы его сами отправили)
+      if (prev.some((m) => m.id === message.id)) {
+        return prev;
+      }
+      return [...prev, message];
+    });
+  }, []);
+
+  const handleMessageDeleted = useCallback((messageId: number) => {
+    setMessages((prev) => prev.filter((m) => m.id !== messageId));
+  }, []);
+
+  useConversationChannel({
+    conversationId: conversationId ? Number(conversationId) : null,
+    onNewMessage: handleNewMessage,
+    onMessageDeleted: handleMessageDeleted,
+  });
 
   useEffect(() => {
     if (messages.length > 0 && !isLoading) {
@@ -104,15 +126,30 @@ export default function ChatBox() {
                 </div>
               )}
               <div className={`${message.direction === "outgoing" ? "text-right" : ""}`}>
-                <div
-                  className={`px-3 py-2 rounded-lg ${
-                    message.direction === "outgoing"
-                      ? "bg-brand-500 text-white dark:bg-brand-500"
-                      : "bg-gray-100 dark:bg-white/5 text-gray-800 dark:text-white/90"
-                  } ${message.direction === "outgoing" ? "rounded-tr-sm" : "rounded-tl-sm"}`}
-                >
-                  <p className="text-sm ">{message.text}</p>
-                </div>
+                {message.msg_type === "image" && message.data?.image_url ? (
+                  <div
+                    className={`overflow-hidden rounded-lg ${
+                      message.direction === "outgoing" ? "rounded-tr-sm" : "rounded-tl-sm"
+                    }`}
+                  >
+                    <img
+                      src={message.data.image_url}
+                      alt="Изображение"
+                      className="max-w-[270px] max-h-[300px] object-cover rounded-lg cursor-pointer"
+                      onClick={() => window.open(message.data?.image_url, "_blank")}
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className={`px-3 py-2 rounded-lg ${
+                      message.direction === "outgoing"
+                        ? "bg-brand-500 text-white dark:bg-brand-500"
+                        : "bg-gray-100 dark:bg-white/5 text-gray-800 dark:text-white/90"
+                    } ${message.direction === "outgoing" ? "rounded-tr-sm" : "rounded-tl-sm"}`}
+                  >
+                    <p className="text-sm">{message.text}</p>
+                  </div>
+                )}
                 <p className="mt-2 text-gray-500 text-theme-xs dark:text-gray-400">
                   {timeAgo(message.created_at || "")}
                 </p>

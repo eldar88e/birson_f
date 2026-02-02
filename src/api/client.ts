@@ -191,6 +191,40 @@ class ApiClient {
     });
   }
 
+  async postFormData<T>(
+    endpoint: string,
+    formData: FormData,
+    requiresAuth: boolean = false
+  ): Promise<T> {
+    const url = `${this.baseURL}${endpoint}`;
+    const headers: HeadersInit = {};
+
+    if (requiresAuth) {
+      const token = this.getAuthToken();
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: formData,
+    });
+
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new ApiError(
+        data?.message || `Request failed with status ${response.status}`,
+        response.status,
+        data
+      );
+    }
+
+    return data as T;
+  }
+
   async put<T>(
     endpoint: string,
     body?: unknown,
