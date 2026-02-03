@@ -15,13 +15,15 @@ interface UserAutocompleteProps {
   placeholder?: string;
   value?: User | null;
   onChange?: (user: User | null) => void;
+  disabled?: boolean;
 }
 
 export default function UserAutocomplete({
   label,
   placeholder = "Введите имя или номер телефона",
   value,
-  onChange
+  onChange,
+  disabled = false
 }: UserAutocompleteProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<User[]>([]);
@@ -50,7 +52,8 @@ export default function UserAutocomplete({
   useEffect(() => {
     if (value) {
       isUserSelectedRef.current = true;
-      setSearchQuery(value.full_name || value.phone);
+      const displayName = value.full_name || value.phone || value.email || "";
+      setSearchQuery(displayName);
     } else {
       setSearchQuery("");
     }
@@ -62,7 +65,7 @@ export default function UserAutocomplete({
       return;
     }
 
-    if (searchQuery.length < 2) {
+    if (!searchQuery || searchQuery.length < 2) {
       setUsers([]);
       setIsOpen(false);
       setIsLoading(false);
@@ -116,7 +119,7 @@ export default function UserAutocomplete({
 
   const handleSelectUser = (user: User) => {
     isUserSelectedRef.current = true;
-    setSearchQuery(user.full_name || user.phone);
+    setSearchQuery(user.full_name || user.phone || user.email || "");
     onChange?.(user);
     setIsOpen(false);
     setHighlightedIndex(-1);
@@ -150,15 +153,16 @@ export default function UserAutocomplete({
   };
 
   const getUserDisplayName = (user: User): string => {
-    return user.full_name || user.phone;
+    return user.full_name || user.phone || user.email || "";
   };
 
   const handleOpenAddUserModal = () => {
-    const queryParts = searchQuery.trim().split(/\s+/);
+    const query = searchQuery || "";
+    const queryParts = query.trim().split(/\s+/);
     setFormData({
       first_name: queryParts[0] || "",
       last_name: queryParts.slice(1).join(" ") || "",
-      phone: /^[\d\s\+\-\(\)]+$/.test(searchQuery) ? searchQuery : "",
+      phone: /^[\d\s\+\-\(\)]+$/.test(query) ? query : "",
       email: "",
       role: DEFAULT_USER_ROLE,
     });
@@ -204,7 +208,7 @@ export default function UserAutocomplete({
         description: "Новый пользователь успешно добавлен",
       });
 
-      const displayName = newUser.full_name || newUser.phone;
+      const displayName = newUser.full_name || newUser.phone || newUser.email || "";
       
       isUserSelectedRef.current = true;
       onChange?.(newUser);
@@ -239,18 +243,19 @@ export default function UserAutocomplete({
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={() => {
-            if (searchQuery.length >= 2) {
+            if (searchQuery && searchQuery.length >= 2 && !disabled) {
               setIsOpen(true);
             }
           }}
           onClick={(e) => {
             e.stopPropagation();
-            if (searchQuery.length >= 2 && users.length > 0) {
+            if (searchQuery && searchQuery.length >= 2 && users.length > 0 && !disabled) {
               setIsOpen(true);
             }
           }}
           placeholder={placeholder}
-          className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+          disabled={disabled}
+          className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
         />
         {isLoading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -305,7 +310,7 @@ export default function UserAutocomplete({
         )}
       </div>
 
-      {isOpen && searchQuery.length >= 2 && (
+      {isOpen && searchQuery && searchQuery.length >= 2 && (
         <div 
           className="absolute z-[10] w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-700"
           onClick={(e) => e.stopPropagation()}

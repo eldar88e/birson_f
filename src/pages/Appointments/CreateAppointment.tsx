@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PageMeta from "../../components/common/PageMeta.tsx";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb.tsx";
 import Label from "../../components/form/Label.tsx";
@@ -12,9 +12,10 @@ import { appointmentService } from "../../api/appointmet.ts";
 import {useNotification} from "../../context/NotificationContext.tsx";
 import { Appointment } from "../../entities/appointments/model.ts";
 import {ROUTES} from "../../shared/config/routes.ts";
-import {useNavigate} from "react-router";
+import {useNavigate, useSearchParams} from "react-router";
 import Button from "../../components/ui/button/Button.tsx";
 import type { AppointmentItem } from "../../api/appointmetItems.ts";
+import { userService } from "../../api/users.ts";
 
 type AppointmentFormData = {
   client_id: number | null;
@@ -26,10 +27,12 @@ type AppointmentFormData = {
 export default function CreateAppointment() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [appointmentItems, setAppointmentItems] = useState<AppointmentItem[]>([]);
+  const [searchParams] = useSearchParams();
 
   const navigate = useNavigate();
   const { showNotification } = useNotification();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingUser, setIsLoadingUser] = useState(false);
 
   const [formData, setFormData] = useState<AppointmentFormData>({
     client_id: null,
@@ -37,6 +40,30 @@ export default function CreateAppointment() {
     comment: "",
     appointment_at: ""
   });
+
+  // Загрузка пользователя из URL параметра
+  useEffect(() => {
+    const userId = searchParams.get("userId");
+    if (userId) {
+      setIsLoadingUser(true);
+      userService.getUser(Number(userId))
+        .then((user) => {
+          setSelectedUser(user);
+          setFormData((prev) => ({ ...prev, client_id: user.id }));
+        })
+        .catch((error) => {
+          console.error("Failed to load user:", error);
+          showNotification({
+            variant: "error",
+            title: "Ошибка загрузки пользователя",
+            description: "Не удалось загрузить данные пользователя",
+          });
+        })
+        .finally(() => {
+          setIsLoadingUser(false);
+        });
+    }
+  }, [searchParams, showNotification]);
 
   const handleUserChange = (user: User | null) => {
     setSelectedUser(user);
@@ -124,10 +151,12 @@ export default function CreateAppointment() {
             <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
               <div>
                 <UserAutocomplete
+                  key={selectedUser?.id || 'empty'}
                   label="Клиент"
-                  placeholder="Введите имя или номер телефона"
+                  placeholder={isLoadingUser ? "Загрузка пользователя..." : "Введите имя или номер телефона"}
                   value={selectedUser}
                   onChange={handleUserChange}
+                  disabled={isLoadingUser}
                 />
               </div>
               <div>

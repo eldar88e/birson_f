@@ -92,6 +92,12 @@ export default function ChatBoxHeader() {
     deleteModal.open();
   }
 
+  function handleCreateAppointment() {
+    if (!currentConversation?.user_id) return;
+    closeDropdown();
+    navigate(`${ROUTES.APPOINTMENTS.ADD_APPOINTMENT}?userId=${currentConversation.user_id}`);
+  }
+
   return (
     <div className="sticky flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-800 xl:px-6">
       <div className="flex items-center gap-3">
@@ -162,6 +168,12 @@ export default function ChatBoxHeader() {
                 className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
               >
                 Подробнее
+              </DropdownItem>
+              <DropdownItem
+                onItemClick={handleCreateAppointment}
+                className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+              >
+                Создать запись
               </DropdownItem>
               <DropdownItem
                 onItemClick={handleDeleteClick}
