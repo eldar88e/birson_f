@@ -48,6 +48,8 @@ export default function AppointmentListTable() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<string>("");
+  const [sortField, setSortField] = useState<string>("appointment_at");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -55,6 +57,7 @@ export default function AppointmentListTable() {
       try {
         let path = `?page=${page}`
         if (filter) path += `&q[state_eq]=${filter}`
+        if (sortField) path += `&q[s]=${sortField} ${sortDirection}`
         const data = await appointmentService.getAppointments(path);
         setAppointments(data.data);
         setPages(data.meta);
@@ -67,7 +70,7 @@ export default function AppointmentListTable() {
     };
 
     fetchAppointments();
-  }, [page, filter]);
+  }, [page, filter, sortField, sortDirection]);
 
   const [selected, setSelected] = useState<Set<number>>(new Set());
 
@@ -86,6 +89,18 @@ export default function AppointmentListTable() {
       if (isAllSelected) return new Set();
       return new Set(appointments.map(a => a.id));
     });
+  };
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      // Переключаем направление если поле то же самое
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      // Новое поле - по умолчанию desc
+      setSortField(field);
+      setSortDirection("desc");
+    }
+    setPage(1); // Сбрасываем на первую страницу при сортировке
   };
 
   return (
@@ -179,7 +194,7 @@ export default function AppointmentListTable() {
                   </th>
                   <th
                     className="cursor-pointer p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400"
-                    // onClick={() => sortBy("customer")}
+                    onClick={() => handleSort("client_full_name")}
                   >
                     <div className="flex items-center gap-3">
                       <p className="text-theme-xs font-medium text-gray-700 dark:text-gray-400">
@@ -187,12 +202,11 @@ export default function AppointmentListTable() {
                       </p>
                       <span className="flex flex-col gap-0.5">
                         <svg
-                          // className={
-                          //   sort.sortBy === "customer" &&
-                          //   sort.sortDirection === "asc"
-                          //     ? "text-gray-500"
-                          //     : "text-gray-300"
-                          // }
+                          className={
+                            sortField === "client_full_name" && sortDirection === "asc"
+                              ? "text-gray-500 dark:text-gray-300"
+                              : "text-gray-300 dark:text-gray-600"
+                          }
                           width="8"
                           height="5"
                           viewBox="0 0 8 5"
@@ -205,12 +219,11 @@ export default function AppointmentListTable() {
                           />
                         </svg>
                         <svg
-                          // className={
-                          //   sort.sortBy === "customer" &&
-                          //   sort.sortDirection === "desc"
-                          //     ? "text-gray-500"
-                          //     : "text-gray-300"
-                          // }
+                          className={
+                            sortField === "client_full_name" && sortDirection === "desc"
+                              ? "text-gray-500 dark:text-gray-300"
+                              : "text-gray-300 dark:text-gray-600"
+                          }
                           width="8"
                           height="5"
                           viewBox="0 0 8 5"
@@ -225,11 +238,97 @@ export default function AppointmentListTable() {
                       </span>
                     </div>
                   </th>
-                  <th className="p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400">
-                    Дата записи
+                  <th 
+                    className="cursor-pointer p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400"
+                    onClick={() => handleSort("appointment_at")}
+                  >
+                    <div className="flex items-center gap-3">
+                      <p className="text-theme-xs font-medium text-gray-700 dark:text-gray-400">
+                        Дата записи
+                      </p>
+                      <span className="flex flex-col gap-0.5">
+                        <svg
+                          className={
+                            sortField === "appointment_at" && sortDirection === "asc"
+                              ? "text-gray-500 dark:text-gray-300"
+                              : "text-gray-300 dark:text-gray-600"
+                          }
+                          width="8"
+                          height="5"
+                          viewBox="0 0 8 5"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M4.40962 0.585167C4.21057 0.300808 3.78943 0.300807 3.59038 0.585166L1.05071 4.21327C0.81874 4.54466 1.05582 5 1.46033 5H6.53967C6.94418 5 7.18126 4.54466 6.94929 4.21327L4.40962 0.585167Z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                        <svg
+                          className={
+                            sortField === "appointment_at" && sortDirection === "desc"
+                              ? "text-gray-500 dark:text-gray-300"
+                              : "text-gray-300 dark:text-gray-600"
+                          }
+                          width="8"
+                          height="5"
+                          viewBox="0 0 8 5"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M4.40962 4.41483C4.21057 4.69919 3.78943 4.69919 3.59038 4.41483L1.05071 0.786732C0.81874 0.455343 1.05582 0 1.46033 0H6.53967C6.94418 0 7.18126 0.455342 6.94929 0.786731L4.40962 4.41483Z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                      </span>
+                    </div>
                   </th>
-                  <th className="p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400">
-                    Сумма
+                  <th 
+                    className="cursor-pointer p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400"
+                    onClick={() => handleSort("price")}
+                  >
+                    <div className="flex items-center gap-3">
+                      <p className="text-theme-xs font-medium text-gray-700 dark:text-gray-400">
+                        Сумма
+                      </p>
+                      <span className="flex flex-col gap-0.5">
+                        <svg
+                          className={
+                            sortField === "price" && sortDirection === "asc"
+                              ? "text-gray-500 dark:text-gray-300"
+                              : "text-gray-300 dark:text-gray-600"
+                          }
+                          width="8"
+                          height="5"
+                          viewBox="0 0 8 5"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M4.40962 0.585167C4.21057 0.300808 3.78943 0.300807 3.59038 0.585166L1.05071 4.21327C0.81874 4.54466 1.05582 5 1.46033 5H6.53967C6.94418 5 7.18126 4.54466 6.94929 4.21327L4.40962 0.585167Z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                        <svg
+                          className={
+                            sortField === "price" && sortDirection === "desc"
+                              ? "text-gray-500 dark:text-gray-300"
+                              : "text-gray-300 dark:text-gray-600"
+                          }
+                          width="8"
+                          height="5"
+                          viewBox="0 0 8 5"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M4.40962 4.41483C4.21057 4.69919 3.78943 4.69919 3.59038 4.41483L1.05071 0.786732C0.81874 0.455343 1.05582 0 1.46033 0H6.53967C6.94418 0 7.18126 0.455342 6.94929 0.786731L4.40962 4.41483Z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                      </span>
+                    </div>
                   </th>
                   <th className="p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400">
                     Статус
