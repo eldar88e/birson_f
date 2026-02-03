@@ -122,7 +122,7 @@ export default function InvestmentModal({ isModalOpen, onClose, investment, onSu
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <UserAutocomplete
-              label="Пользователь"
+              label="Инвестор"
               placeholder="Введите имя или номер телефона"
               value={selectedUser}
               onChange={(user) => {
