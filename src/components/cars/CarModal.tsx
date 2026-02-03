@@ -36,14 +36,32 @@ export default function CarModal({ isModalOpen, onClose, ownerId, onSuccess }: C
     comment: "",
   });
 
+  const [errors, setErrors] = useState<{
+    owner_id: boolean;
+    brand: boolean;
+    license_plate: boolean;
+  }>({
+    owner_id: false,
+    brand: false,
+    license_plate: false,
+  });
+
   const handleCreateCar = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.brand || !formData.model || !formData.license_plate) {
+    const newErrors = {
+      owner_id: !formData.owner_id,
+      brand: !formData.brand.trim(),
+      license_plate: !formData.license_plate.trim(),
+    };
+
+    setErrors(newErrors);
+
+    if (newErrors.owner_id || newErrors.brand || newErrors.license_plate) {
       showNotification({
         variant: "error",
         title: "Ошибка валидации",
-        description: "Заполните обязательные поля: Марка, Модель, Номер",
+        description: "Заполните обязательные поля: Владелец, Марка, Номер",
       });
       return;
     }
@@ -79,6 +97,11 @@ export default function CarModal({ isModalOpen, onClose, ownerId, onSuccess }: C
         owner_id: ownerId,
         comment: "",
       });
+      setErrors({
+        owner_id: false,
+        brand: false,
+        license_plate: false,
+      });
     } catch (error) {
       showNotification({
         variant: "error",
@@ -91,12 +114,25 @@ export default function CarModal({ isModalOpen, onClose, ownerId, onSuccess }: C
   const handleUserChange = (user: User | null) => {
     setSelectedUser(user);
     setFormData((prev) => ({ ...prev, owner_id: user?.id || 0 }));
+
+    if (errors.owner_id) {
+      setErrors((prev) => ({ ...prev, owner_id: false }));
+    }
+  };
+
+  const handleClose = () => {
+    onClose();
+    setErrors({
+      owner_id: false,
+      brand: false,
+      license_plate: false,
+    });
   };
 
   return (
     <Modal
         isOpen={isModalOpen}
-        onClose={onClose}
+        onClose={handleClose}
         className="max-w-[500px] p-6 lg:p-8"
       >
         <div>
@@ -106,12 +142,17 @@ export default function CarModal({ isModalOpen, onClose, ownerId, onSuccess }: C
           <form className="space-y-4">
             {ownerId === 0 && (
               <div>
-                <UserAutocomplete
-                  label="Владелец"
-                  placeholder="Введите имя или номер телефона"
-                  value={selectedUser}
-                  onChange={handleUserChange}
-                />
+                <Label>Владелец *</Label>
+                <div className={errors.owner_id ? "ring-2 ring-error-500 rounded-lg" : ""}>
+                  <UserAutocomplete
+                    placeholder="Введите имя или номер телефона"
+                    value={selectedUser}
+                    onChange={handleUserChange}
+                  />
+                </div>
+                {errors.owner_id && (
+                  <p className="mt-1.5 text-xs text-error-500">Выберите владельца</p>
+                )}
               </div>
             )}
 
@@ -121,9 +162,15 @@ export default function CarModal({ isModalOpen, onClose, ownerId, onSuccess }: C
                 type="text"
                 placeholder="Введите марку"
                 value={formData.brand}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, brand: e.target.value }))
-                }
+                onChange={(e) => {
+                  setFormData((prev) => ({ ...prev, brand: e.target.value }));
+                  // Очищаем ошибку при вводе
+                  if (errors.brand) {
+                    setErrors((prev) => ({ ...prev, brand: false }));
+                  }
+                }}
+                error={errors.brand}
+                hint={errors.brand ? "Заполните марку автомобиля" : ""}
                 required
               />
             </div>
@@ -147,9 +194,15 @@ export default function CarModal({ isModalOpen, onClose, ownerId, onSuccess }: C
                 type="text"
                 placeholder="А123БВ777"
                 value={formData.license_plate}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, license_plate: e.target.value }))
-                }
+                onChange={(e) => {
+                  setFormData((prev) => ({ ...prev, license_plate: e.target.value }));
+                  // Очищаем ошибку при вводе
+                  if (errors.license_plate) {
+                    setErrors((prev) => ({ ...prev, license_plate: false }));
+                  }
+                }}
+                error={errors.license_plate}
+                hint={errors.license_plate ? "Заполните номер автомобиля" : ""}
                 required
               />
             </div>

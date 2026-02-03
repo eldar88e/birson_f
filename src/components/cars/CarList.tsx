@@ -119,16 +119,16 @@ export default function CarListComponent() {
                 Марка
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
-                Год
+                Номер
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
                 Владелец
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
-                Цвет
+                Год
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
-                Номер
+                Цвет
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
                 VIN
@@ -153,18 +153,18 @@ export default function CarListComponent() {
                   </p>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
+                  <p className="text-sm text-gray-700 dark:text-gray-400">
+                    {car.brand}
+                  </p>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-800 dark:text-white/90 flex items-center gap-2">
                     {car.model}
                   </div>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <p className="text-sm text-gray-700 dark:text-gray-400">
-                    {car.brand}
-                  </p>
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <p className="text-sm text-gray-700 dark:text-gray-400">
-                    {car.year}
+                    {car.license_plate}
                   </p>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
@@ -176,12 +176,13 @@ export default function CarListComponent() {
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <p className="text-sm text-gray-700 dark:text-gray-400">
-                    —
+                    {car.year}
                   </p>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <p className="text-sm text-gray-700 dark:text-gray-400">
-                    {car.license_plate}
+                    {/* {car.color} */}
+                    -
                   </p>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
