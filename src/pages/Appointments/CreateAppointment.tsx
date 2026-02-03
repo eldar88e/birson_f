@@ -41,7 +41,6 @@ export default function CreateAppointment() {
     appointment_at: ""
   });
 
-  // Загрузка пользователя из URL параметра
   useEffect(() => {
     const userId = searchParams.get("userId");
     if (userId) {
