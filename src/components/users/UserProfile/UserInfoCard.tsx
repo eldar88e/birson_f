@@ -63,7 +63,16 @@ export default function UserInfoCard({ user }: UserInfoCardProps) {
             Личная информация
           </h4>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:gap-7 2xl:gap-x-32">
+          <div>
+              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                Фамилия
+              </p>
+              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                {user.last_name || "—"}
+              </p>
+            </div>
+
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                 Имя
@@ -75,19 +84,10 @@ export default function UserInfoCard({ user }: UserInfoCardProps) {
 
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Фамилия
-              </p>
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {user.middle_name || "—"}
-              </p>
-            </div>
-
-            <div>
-              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                 Отчество
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {user.last_name || "—"}
+                {user.middle_name || "—"}
               </p>
             </div>
 
@@ -160,8 +160,8 @@ export default function UserInfoCard({ user }: UserInfoCardProps) {
                     <Label>Фамилия</Label>
                     <Input
                       type="text"
-                      value={formData.middle_name}
-                      onChange={(e) => handleChange("middle_name", e.target.value)}
+                      value={formData.last_name}
+                      onChange={(e) => handleChange("last_name", e.target.value)}
                       placeholder="Иванов"
                     />
                   </div>
@@ -180,8 +180,8 @@ export default function UserInfoCard({ user }: UserInfoCardProps) {
                     <Label>Отчество</Label>
                     <Input
                       type="text"
-                      value={formData.last_name}
-                      onChange={(e) => handleChange("last_name", e.target.value)}
+                      value={formData.middle_name}
+                      onChange={(e) => handleChange("middle_name", e.target.value)}
                       placeholder="Иванович"
                     />
                   </div>
