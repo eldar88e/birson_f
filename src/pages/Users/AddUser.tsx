@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
@@ -10,6 +10,8 @@ import { apiClient } from "../../api/client";
 import { useNotification } from "../../context/NotificationContext";
 import { ROUTES } from "../../shared/config/routes";
 import { User } from "../../entities/user/model";
+import { positionService } from "../../api/position";
+import type { Position } from "../../entities/position/model";
 
 export type CreateUserData = Omit<User, "id" | "created_at" | "full_name">;
 
@@ -17,6 +19,8 @@ export default function AddUser() {
   const navigate = useNavigate();
   const { showNotification } = useNotification();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [isLoadingPositions, setIsLoadingPositions] = useState(false);
   
   const [formData, setFormData] = useState<CreateUserData>({
     email: "",
@@ -42,8 +46,28 @@ export default function AddUser() {
     source: "manual",
     comment: "",
     active: true,
-    position: "other"
+    position: ""
   });
+
+  // Загружаем должности при монтировании компонента
+  useEffect(() => {
+    setIsLoadingPositions(true);
+    positionService.getPositions("?page=1")
+      .then((data) => {
+        setPositions(data.data);
+      })
+      .catch((error) => {
+        console.error("Failed to load positions:", error);
+        showNotification({
+          variant: "error",
+          title: "Ошибка загрузки",
+          description: "Не удалось загрузить список должностей",
+        });
+      })
+      .finally(() => {
+        setIsLoadingPositions(false);
+      });
+  }, [showNotification]);
 
   const handleChange = (field: keyof CreateUserData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -377,15 +401,19 @@ export default function AddUser() {
                 <Label htmlFor="position">Должность</Label>
                 <select
                   id="position"
-                  value={formData.position}
-                  onChange={(e) => handleChange("position", e.target.value)}
-                  className="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                  value={formData.position_id}
+                  onChange={(e) => handleChange("position_id", e.target.value)}
+                  disabled={isLoadingPositions}
+                  className="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <option value="other">Другое</option>
-                  <option value="cleaner">Химчистка</option>
-                  <option value="detailer">Детейлер</option>
-                  <option value="upholsterer">Обивщик</option>
-                  <option value="painter">Маляр</option>
+                  <option value="">
+                    {isLoadingPositions ? "Загрузка..." : "Выберите должность"}
+                  </option>
+                  {positions.map((position) => (
+                    <option key={position.id} value={position.id}>
+                      {position.title}
+                    </option>
+                  ))}
                 </select>
               </div>
 

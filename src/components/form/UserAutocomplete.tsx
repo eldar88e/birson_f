@@ -196,8 +196,7 @@ export default function UserAutocomplete({
         role: "user",
         active: true,
         source: "manual",
-        password: "",
-        position: "other",
+        password: ""
       };
 
       const newUser = await userService.createUser(userData);

@@ -10,7 +10,8 @@ import { useModal } from "../../hooks/useModal";
 import { useNotification } from "../../context/NotificationContext";
 import Input from "./input/InputField";
 import SvgIcon from "../../shared/ui/SvgIcon";
-import { USER_POSITIONS } from "../../entities/user/model";
+import { positionService } from "../../api/position";
+import type { Position } from "../../entities/position/model";
 import ContractorModal from "../contractors/ContractorModal";
 
 const DEFAULT_PERFORMER_ROLE = "staff";
@@ -52,15 +53,40 @@ export default function PerformerAutocomplete({
     phone: string;
     email: string;
     role: string;
-    position: string;
+    position_id: number;
   }>({
     first_name: "",
     last_name: "",
     phone: "",
     email: "",
     role: DEFAULT_PERFORMER_ROLE,
-    position: "",
+    position_id: 0,
   });
+
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [isLoadingPositions, setIsLoadingPositions] = useState(false);
+
+  // Загружаем должности при открытии модального окна
+  useEffect(() => {
+    if (isOpen) {
+      setIsLoadingPositions(true);
+      positionService.getPositions("?page=1")
+        .then((data) => {
+          setPositions(data.data);
+        })
+        .catch((error) => {
+          console.error("Failed to load positions:", error);
+          showNotification({
+            variant: "error",
+            title: "Ошибка загрузки",
+            description: "Не удалось загрузить список должностей",
+          });
+        })
+        .finally(() => {
+          setIsLoadingPositions(false);
+        });
+    }
+  }, [isOpen, showNotification]);
 
   useEffect(() => {
     const loadPerformer = async () => {
@@ -259,7 +285,7 @@ export default function PerformerAutocomplete({
 
   const handleCreateUser = async () => {
 
-    if (!userFormData.first_name || !userFormData.phone || !userFormData.position) {
+    if (!userFormData.first_name || !userFormData.phone || !userFormData.position_id) {
       showNotification({
         variant: "error",
         title: "Ошибка валидации",
@@ -278,7 +304,7 @@ export default function PerformerAutocomplete({
         active: true,
         source: "manual",
         password: "",
-        position: "other",
+        position_id: userFormData.position_id,
       };
 
       const newUser = await userService.createUser(userData);
@@ -303,7 +329,7 @@ export default function PerformerAutocomplete({
         phone: "",
         email: "",
         role: DEFAULT_PERFORMER_ROLE,
-        position: "",
+        position_id: 0,
       });
     } catch (error) {
       showNotification({
@@ -320,6 +346,10 @@ export default function PerformerAutocomplete({
     setSearchQuery("");
     setIsContractorModalOpen(false);
     setIsOpen(false);
+  };
+
+  const handleChange = (field: string, value: string) => {
+    setUserFormData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -458,6 +488,18 @@ export default function PerformerAutocomplete({
             </h4>
             <div className="space-y-4">
               <div>
+                <Label>Фамилия</Label>
+                <Input
+                  type="text"
+                  placeholder="Введите фамилию"
+                  value={userFormData.last_name}
+                  onChange={(e) =>
+                    setUserFormData((prev) => ({ ...prev, last_name: e.target.value }))
+                  }
+                />
+              </div>
+
+              <div>
                 <Label>Имя *</Label>
                 <Input
                   type="text"
@@ -467,18 +509,6 @@ export default function PerformerAutocomplete({
                     setUserFormData((prev) => ({ ...prev, first_name: e.target.value }))
                   }
                   required
-                />
-              </div>
-
-              <div>
-                <Label>Фамилия</Label>
-                <Input
-                  type="text"
-                  placeholder="Введите фамилию"
-                  value={userFormData.last_name}
-                  onChange={(e) =>
-                    setUserFormData((prev) => ({ ...prev, last_name: e.target.value }))
-                  }
                 />
               </div>
 
@@ -511,17 +541,20 @@ export default function PerformerAutocomplete({
               <div>
                 <Label>Должность *</Label>
                 <select
-                  value={userFormData.position}
-                  className="dark:bg-dark-900 shadow-theme-xs bg-none appearance-none focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-                  onChange={(e) =>
-                    setUserFormData((prev) => ({ ...prev, position: e.target.value }))
-                  }
-                >
-                  <option value="">Выберите должность</option>
-                  {USER_POSITIONS.map((position) => (
-                    <option key={position.value} value={position.value}>{position.label}</option>
-                  ))}
-                </select>
+                      value={userFormData.position_id}
+                      onChange={(e) => handleChange("position_id", e.target.value)}
+                      disabled={isLoadingPositions}
+                      className="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <option value="">
+                        {isLoadingPositions ? "Загрузка..." : "Выберите должность"}
+                      </option>
+                      {positions.map((position) => (
+                        <option key={position.id} value={position.id}>
+                          {position.title}
+                        </option>
+                      ))}
+                    </select>
               </div>
 
               <div className="flex items-center justify-end gap-3 mt-6">

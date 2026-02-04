@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useModal } from "../../../hooks/useModal";
 import { Modal } from "../../ui/modal";
 import Button from "../../ui/button/Button";
@@ -7,8 +7,10 @@ import Label from "../../form/Label";
 import { apiClient } from "../../../api/client";
 import type { User } from "../../../entities/user/model";
 import { useNotification } from "../../../context/NotificationContext";
-import { USER_POSITIONS, USER_ROLES } from "../../../entities/user/model";
+import { USER_ROLES } from "../../../entities/user/model";
 import SvgIcon from "../../../shared/ui/SvgIcon";
+import { positionService } from "../../../api/position";
+import type { Position } from "../../../entities/position/model";
 
 interface UserInfoCardProps {
   user: User;
@@ -26,9 +28,33 @@ export default function UserInfoCard({ user }: UserInfoCardProps) {
     additional_phone: user.additional_phone || "",
     role: user.role,
     comment: user.comment || "",
-    position: user.position,
+    position_id: user.position_id,
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [isLoadingPositions, setIsLoadingPositions] = useState(false);
+
+  // Загружаем должности при открытии модального окна
+  useEffect(() => {
+    if (isOpen) {
+      setIsLoadingPositions(true);
+      positionService.getPositions("?page=1")
+        .then((data) => {
+          setPositions(data.data);
+        })
+        .catch((error) => {
+          console.error("Failed to load positions:", error);
+          showNotification({
+            variant: "error",
+            title: "Ошибка загрузки",
+            description: "Не удалось загрузить список должностей",
+          });
+        })
+        .finally(() => {
+          setIsLoadingPositions(false);
+        });
+    }
+  }, [isOpen, showNotification]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -241,12 +267,18 @@ export default function UserInfoCard({ user }: UserInfoCardProps) {
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Должность</Label>
                     <select
-                      value={formData.position}
-                      onChange={(e) => handleChange("position", e.target.value)}
-                      className="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                      value={formData.position_id}
+                      onChange={(e) => handleChange("position_id", e.target.value)}
+                      disabled={isLoadingPositions}
+                      className="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {USER_POSITIONS.map((position) => (
-                        <option key={position.value} value={position.value}>{position.label}</option>
+                      <option value="">
+                        {isLoadingPositions ? "Загрузка..." : "Выберите должность"}
+                      </option>
+                      {positions.map((position) => (
+                        <option key={position.id} value={position.id}>
+                          {position.title}
+                        </option>
                       ))}
                     </select>
                   </div>
