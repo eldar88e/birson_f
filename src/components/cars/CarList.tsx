@@ -29,6 +29,7 @@ export default function CarListComponent() {
   const [error, setError] = useState("");
   const [page, setPage] = useState(pages.page);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCar, setEditingCar] = useState<Car | null>(null);
 
   useEffect(() => {
     const fetchCars = async () => {
@@ -70,24 +71,43 @@ export default function CarListComponent() {
     );
   }
 
+  const handleOpenModal = () => {
+    setEditingCar(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditCar = (car: Car) => {
+    setEditingCar(car);
+    setIsModalOpen(true);
+  };
+
+  const handleSuccess = (updatedCar: Car) => {
+    if (editingCar?.id) {
+      setCars((prev) =>
+        prev.map((c) => (c.id === updatedCar.id ? updatedCar : c))
+      );
+    } else {
+      setCars((prev) => [updatedCar, ...prev]);
+    }
+    setIsModalOpen(false);
+    setEditingCar(null);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingCar(null);
+  };
+
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
       <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
         <button
           className="bg-brand-500 shadow-sm hover inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white transition hover:bg-brand-600"
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleOpenModal}
         >
           <SvgIcon name="plus" />
           Добавить
         </button>
-        <CarModal 
-          isModalOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)}
-          ownerId={0}
-          onSuccess={(car) => {
-            setCars((prev) => [...prev, car]);
-          }}
-        />
         <div className="flex gap-3.5">
           <div className="hidden flex-col gap-3 sm:flex sm:flex-row sm:items-center">
             <div className="relative">
@@ -176,7 +196,7 @@ export default function CarListComponent() {
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <p className="text-sm text-gray-700 dark:text-gray-400">
-                    {car.year}
+                    {car.year || "—"}
                   </p>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
@@ -196,24 +216,30 @@ export default function CarListComponent() {
                   </p>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <div className=" flex items-center justify-center">
-                  <DeleteAction
-                    id={car.id}
-                    itemName={`Автомобиль #${car.id}`}
-                    onDelete={(id) => carService.deleteCar(id)}
-                    onSuccess={() =>
-                      setCars((prev) => prev.filter((c) => c.id !== car.id))
-                    }
-                  >
-                    {(open) => (
-                      <button
-                        onClick={open}
-                        className="text-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                      >
-                        Удалить
-                      </button>
-                    )}
-                  </DeleteAction>
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => handleEditCar(car)}
+                      className="text-xs flex rounded-lg px-3 py-2 font-medium text-brand-600 hover:bg-brand-50 hover:text-brand-700 dark:text-brand-400 dark:hover:bg-brand-900/20"
+                    >
+                      Редактировать
+                    </button>
+                    <DeleteAction
+                      id={car.id}
+                      itemName={`Автомобиль ${car.brand} ${car.model} (${car.license_plate})`}
+                      onDelete={(id) => carService.deleteCar(id)}
+                      onSuccess={() =>
+                        setCars((prev) => prev.filter((c) => c.id !== car.id))
+                      }
+                    >
+                      {(open) => (
+                        <button
+                          onClick={open}
+                          className="text-xs flex rounded-lg px-3 py-2 font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-900"
+                        >
+                          Удалить
+                        </button>
+                      )}
+                    </DeleteAction>
                   </div>
                 </td>
               </tr>
@@ -227,6 +253,14 @@ export default function CarListComponent() {
           onChange={setPage}
         />
       </div>
+
+      <CarModal 
+        isModalOpen={isModalOpen} 
+        onClose={handleCloseModal}
+        ownerId={0}
+        car={editingCar}
+        onSuccess={handleSuccess}
+      />
     </div>
   );
 };

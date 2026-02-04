@@ -1,8 +1,8 @@
 import { Modal } from "../ui/modal";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
-import { useState } from "react";
-import { carService, type CreateCarData } from "../../api/cars";
+import { useState, useEffect } from "react";
+import { carService } from "../../api/cars";
 import { useNotification } from "../../context/NotificationContext";
 import UserAutocomplete from "../form/UserAutocomplete";
 import type { User } from "../../entities/user/model";
@@ -12,10 +12,11 @@ interface CarModalProps {
   isModalOpen: boolean;
   onClose: () => void;
   ownerId: number;
+  car?: Car | null;
   onSuccess?: (car: Car) => void;
 }
 
-export default function CarModal({ isModalOpen, onClose, ownerId, onSuccess }: CarModalProps) {
+export default function CarModal({ isModalOpen, onClose, ownerId, car, onSuccess }: CarModalProps) {
   const { showNotification } = useNotification();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [formData, setFormData] = useState<{
@@ -23,7 +24,7 @@ export default function CarModal({ isModalOpen, onClose, ownerId, onSuccess }: C
     model: string;
     license_plate: string;
     vin: string;
-    year: number;
+    year: number | null;
     owner_id: number;
     comment: string;
   }>({
@@ -31,7 +32,7 @@ export default function CarModal({ isModalOpen, onClose, ownerId, onSuccess }: C
     model: "",
     license_plate: "",
     vin: "",
-    year: new Date().getFullYear(),
+    year: null,
     owner_id: ownerId || 0,
     comment: "",
   });
@@ -46,7 +47,36 @@ export default function CarModal({ isModalOpen, onClose, ownerId, onSuccess }: C
     license_plate: false,
   });
 
-  const handleCreateCar = async (e: React.FormEvent) => {
+  useEffect(() => {
+    if (car) {
+      setFormData({
+        brand: car.brand,
+        model: car.model,
+        license_plate: car.license_plate,
+        vin: car.vin || "",
+        year: car.year,
+        owner_id: car.owner_id,
+        comment: car.comment || "",
+      });
+    } else {
+      setFormData({
+        brand: "",
+        model: "",
+        license_plate: "",
+        vin: "",
+        year: null,
+        owner_id: ownerId || 0,
+        comment: "",
+      });
+    }
+    setErrors({
+      owner_id: false,
+      brand: false,
+      license_plate: false,
+    });
+  }, [car, ownerId, isModalOpen]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const newErrors = {
@@ -67,46 +97,41 @@ export default function CarModal({ isModalOpen, onClose, ownerId, onSuccess }: C
     }
 
     try {
-      const carData: CreateCarData = {
-        brand: formData.brand,
-        model: formData.model,
-        license_plate: formData.license_plate,
-        vin: formData.vin,
+      const carData = {
+        brand: formData.brand.trim(),
+        model: formData.model.trim(),
+        license_plate: formData.license_plate.trim(),
+        vin: formData.vin.trim(),
         year: formData.year,
         owner_id: formData.owner_id,
-        comment: formData.comment,
+        comment: formData.comment.trim(),
       };
 
-      const car = await carService.createCar(carData);
+      let updatedCar: Car;
 
-      showNotification({
-        variant: "success",
-        title: "Автомобиль создан!",
-        description: "Новый автомобиль успешно добавлен",
-      });
+      if (car?.id) {
+        updatedCar = await carService.updateCar(car.id, carData);
+        showNotification({
+          variant: "success",
+          title: "Автомобиль обновлен!",
+          description: "Данные автомобиля успешно обновлены",
+        });
+      } else {
+        updatedCar = await carService.createCar(carData);
+        showNotification({
+          variant: "success",
+          title: "Автомобиль создан!",
+          description: "Новый автомобиль успешно добавлен",
+        });
+      }
 
-      onSuccess?.(car);
-      onClose();
-
-      setFormData({
-        brand: "",
-        model: "",
-        license_plate: "",
-        vin: "",
-        year: new Date().getFullYear(),
-        owner_id: ownerId,
-        comment: "",
-      });
-      setErrors({
-        owner_id: false,
-        brand: false,
-        license_plate: false,
-      });
+      onSuccess?.(updatedCar);
+      handleClose();
     } catch (error) {
       showNotification({
         variant: "error",
-        title: "Ошибка создания",
-        description: `Не удалось создать автомобиль. ${error}`,
+        title: car?.id ? "Ошибка обновления" : "Ошибка создания",
+        description: `Не удалось ${car?.id ? "обновить" : "создать"} автомобиль. ${error}`,
       });
     }
   };
@@ -137,10 +162,10 @@ export default function CarModal({ isModalOpen, onClose, ownerId, onSuccess }: C
       >
         <div>
           <h4 className="font-semibold text-gray-800 mb-6 text-title-sm dark:text-white/90">
-            Добавить новый автомобиль
+            {car?.id ? "Редактировать автомобиль" : "Добавить новый автомобиль"}
           </h4>
           <form className="space-y-4">
-            {ownerId === 0 && (
+            {ownerId === 0 && car?.id && (
               <div>
                 <Label>Владелец *</Label>
                 <div className={errors.owner_id ? "ring-2 ring-error-500 rounded-lg" : ""}>
@@ -223,12 +248,20 @@ export default function CarModal({ isModalOpen, onClose, ownerId, onSuccess }: C
               <Label>Год</Label>
               <Input
                 type="number"
-                placeholder="2020"
-                value={formData.year === 0 ? "" : formData.year}
+                placeholder={new Date().getFullYear().toString()}
+                min="1"
+                max={new Date().getFullYear().toString()}
+                value={formData.year === null ? "" : formData.year}
                 onChange={(e) => {
                   const value = e.target.value;
-                  const numValue = value === "" ? 0 : Number(value);
-                  setFormData((prev) => ({ ...prev, year: isNaN(numValue) ? 0 : numValue }));
+                  if (value === "") {
+                    setFormData((prev) => ({ ...prev, year: null }));
+                  } else {
+                    const numValue = Number(value);
+                    if (!isNaN(numValue)) {
+                      setFormData((prev) => ({ ...prev, year: numValue }));
+                    }
+                  }
                 }}
               />
             </div>
@@ -248,10 +281,17 @@ export default function CarModal({ isModalOpen, onClose, ownerId, onSuccess }: C
             <div className="flex items-center justify-end gap-3 mt-6">
               <button
                 type="button"
-                onClick={handleCreateCar}
+                onClick={handleClose}
+                className="inline-flex items-center justify-center gap-2 rounded-lg transition px-5 py-3.5 text-sm bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
                 className="inline-flex items-center justify-center gap-2 rounded-lg transition px-5 py-3.5 text-sm bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Создать
+                {car?.id ? "Сохранить" : "Создать"}
               </button>
             </div>
           </form>

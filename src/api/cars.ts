@@ -46,6 +46,15 @@ class CarService {
     return response.car;
   }
 
+  async updateCar(id: number, carData: CreateCarData): Promise<Car> {
+    const response = await apiClient.patch<{ car: Car }>(
+      `${ROUTES.CARS.INDEX}/${id}`,
+      { car: carData },
+      true
+    );
+    return response.car;
+  }
+
   async deleteCar(id: number): Promise<void> {
     await apiClient.delete(`${ROUTES.CARS.INDEX}/${id}`, true);
   }

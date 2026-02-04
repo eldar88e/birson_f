@@ -5,7 +5,7 @@ export interface Car {
   model: string;
   license_plate: string;
   vin: string;
-  year: number;
+  year: number | null;
   // color: string;
   comment: string;
 }
