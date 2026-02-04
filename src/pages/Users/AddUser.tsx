@@ -158,7 +158,6 @@ export default function AddUser() {
                   placeholder="user@example.com"
                   value={formData.email}
                   onChange={(e) => handleChange("email", e.target.value)}
-                  required
                 />
               </div>
 
