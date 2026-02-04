@@ -275,7 +275,7 @@ export default function PerformerAutocomplete({
         phone: /^[\d\s\+\-\(\)]+$/.test(searchQuery) ? searchQuery : "",
         email: "",
         role: DEFAULT_PERFORMER_ROLE,
-        position: "",
+        position_id: 0,
       });
       openModal();
     } else {
