@@ -84,6 +84,7 @@ const supportItems: NavItem[] = [
       { name: "contractors", path: ROUTES.CONTRACTORS.INDEX },
       { name: "services", path: ROUTES.SERVICES.INDEX },
       { name: "expense-categories", path: ROUTES.EXPENSE_CATEGORIES.INDEX },
+      { name: "positions", path: ROUTES.POSITIONS.INDEX },
     ],
   },
 ];

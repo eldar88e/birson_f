@@ -55,4 +55,7 @@ export const ROUTES = {
   MESSAGES: {
     INDEX: "/messages",
   },
+  POSITIONS: {
+    INDEX: "/positions",
+  },
 } as const;

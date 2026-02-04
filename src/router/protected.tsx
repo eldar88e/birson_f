@@ -31,6 +31,8 @@ import Investments from "../pages/Investments";
 
 import Chats from "../pages/Chats";
 
+import PositionList from "../pages/PositionList";
+
 export const protectedRoutes = (
   <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
     <Route index path={ROUTES.ROOT} element={<Ecommerce />} />
@@ -61,5 +63,7 @@ export const protectedRoutes = (
     <Route path={ROUTES.INVESTMENTS.INDEX} element={<Investments />} />
 
     <Route path={ROUTES.CHATS.INDEX} element={<Chats />} />
+
+    <Route path={ROUTES.POSITIONS.INDEX} element={<PositionList />} />
   </Route>
 );

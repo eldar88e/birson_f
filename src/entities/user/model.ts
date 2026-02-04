@@ -29,6 +29,7 @@ export interface User {
 
   role: "user" | "admin" | "manager" | "staff";
   position?: string;
+  position_id?: number;
   active: boolean;
   created_at: string;
   password?: string;
