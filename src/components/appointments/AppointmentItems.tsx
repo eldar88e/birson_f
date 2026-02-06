@@ -35,7 +35,6 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
   const [performers, setPerformers] = useState<AppointmentItemPerformer[]>([]);
   const [selectedCar, setSelectedCar] = useState<Car | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [formData, setFormData] = useState<Omit<AppointmentItem, "id" | "order_id" | "order_item_performers">>({
     service_id: 0,
     car_id: 0,
@@ -583,7 +582,6 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
       <Modal
         isOpen={isModalOpen}
         onClose={() => {
-          if (isServiceModalOpen) return;
           closeModal();
           setEditingItemId(null);
         }}
@@ -607,7 +605,6 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                       service_id: serviceId || 0,
                     }));
                   }}
-                  onServiceModalOpenChange={setIsServiceModalOpen}
                 />
               </div>
 

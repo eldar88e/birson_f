@@ -65,28 +65,75 @@ export default function PerformerAutocomplete({
 
   const [positions, setPositions] = useState<Position[]>([]);
   const [isLoadingPositions, setIsLoadingPositions] = useState(false);
+  const [positionSearch, setPositionSearch] = useState("");
+  const [isPositionDropdownOpen, setIsPositionDropdownOpen] = useState(false);
+  const [isCreatingPosition, setIsCreatingPosition] = useState(false);
+  const positionWrapperRef = useRef<HTMLDivElement>(null);
 
-  // Загружаем должности при открытии модального окна
-  useEffect(() => {
-    if (isOpen) {
-      setIsLoadingPositions(true);
-      positionService.getPositions("?page=1")
-        .then((data) => {
-          setPositions(data.data);
-        })
-        .catch((error) => {
-          console.error("Failed to load positions:", error);
-          showNotification({
-            variant: "error",
-            title: "Ошибка загрузки",
-            description: "Не удалось загрузить список должностей",
-          });
-        })
-        .finally(() => {
-          setIsLoadingPositions(false);
-        });
+  const loadPositions = () => {
+    if (positions.length > 0 || isLoadingPositions) return;
+    setIsLoadingPositions(true);
+    positionService.getPositions()
+      .then((data) => {
+        setPositions(data.data);
+      })
+      .catch((error) => {
+        console.error("Failed to load positions:", error);
+      })
+      .finally(() => {
+        setIsLoadingPositions(false);
+      });
+  };
+
+  const filteredPositions = positions.filter((p) =>
+    p.title.toLowerCase().includes(positionSearch.toLowerCase())
+  );
+
+  const positionExactMatch = positions.some(
+    (p) => p.title.toLowerCase() === positionSearch.trim().toLowerCase()
+  );
+
+  const handleSelectPosition = (position: Position) => {
+    setUserFormData((prev) => ({ ...prev, position_id: position.id }));
+    setPositionSearch(position.title);
+    setIsPositionDropdownOpen(false);
+  };
+
+  const handleCreatePosition = async () => {
+    const title = positionSearch.trim();
+    if (!title) return;
+
+    setIsCreatingPosition(true);
+    try {
+      const newPosition = await positionService.createPosition({ title });
+      setPositions((prev) => [newPosition, ...prev]);
+      setUserFormData((prev) => ({ ...prev, position_id: newPosition.id }));
+      setPositionSearch(newPosition.title);
+      setIsPositionDropdownOpen(false);
+      showNotification({
+        variant: "success",
+        title: "Должность создана!",
+      });
+    } catch (error) {
+      showNotification({
+        variant: "error",
+        title: "Ошибка",
+        description: `Не удалось создать должность. ${error}`,
+      });
+    } finally {
+      setIsCreatingPosition(false);
     }
-  }, [isOpen, showNotification]);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (positionWrapperRef.current && !positionWrapperRef.current.contains(event.target as Node)) {
+        setIsPositionDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const loadPerformer = async () => {
@@ -277,6 +324,8 @@ export default function PerformerAutocomplete({
         role: DEFAULT_PERFORMER_ROLE,
         position_id: 0,
       });
+      setPositionSearch("");
+      setIsPositionDropdownOpen(false);
       openModal();
     } else {
       setIsContractorModalOpen(true);
@@ -320,6 +369,8 @@ export default function PerformerAutocomplete({
       onChange?.(newUser.id, newUser);
       setInputValue(displayName);
       setSearchQuery("");
+      setPositionSearch("");
+      setIsPositionDropdownOpen(false);
       closeModal();
       setIsOpen(false);
 
@@ -348,9 +399,6 @@ export default function PerformerAutocomplete({
     setIsOpen(false);
   };
 
-  const handleChange = (field: string, value: string) => {
-    setUserFormData(prev => ({ ...prev, [field]: value }));
-  };
 
   return (
     <div className={`relative ${className}`} ref={wrapperRef}>
@@ -540,21 +588,83 @@ export default function PerformerAutocomplete({
 
               <div>
                 <Label>Должность *</Label>
-                <select
-                      value={userFormData.position_id}
-                      onChange={(e) => handleChange("position_id", e.target.value)}
-                      disabled={isLoadingPositions}
-                      className="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                <div className="relative" ref={positionWrapperRef}>
+                  <input
+                    type="text"
+                    value={positionSearch}
+                    onChange={(e) => {
+                      setPositionSearch(e.target.value);
+                      setIsPositionDropdownOpen(true);
+                      if (!e.target.value) {
+                        setUserFormData((prev) => ({ ...prev, position_id: 0 }));
+                      }
+                    }}
+                    onFocus={() => { loadPositions(); setIsPositionDropdownOpen(true); }}
+                    placeholder="Введите должность"
+                    className="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                  />
+                  {isLoadingPositions && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <svg className="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                    </div>
+                  )}
+                  {!isLoadingPositions && positionSearch && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPositionSearch("");
+                        setUserFormData((prev) => ({ ...prev, position_id: 0 }));
+                        setIsPositionDropdownOpen(false);
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                     >
-                      <option value="">
-                        {isLoadingPositions ? "Загрузка..." : "Выберите должность"}
-                      </option>
-                      {positions.map((position) => (
-                        <option key={position.id} value={position.id}>
-                          {position.title}
-                        </option>
-                      ))}
-                    </select>
+                      <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                        <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+                  )}
+
+                  {isPositionDropdownOpen && (
+                    <div className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 dark:bg-gray-900 dark:border-gray-700">
+                      {filteredPositions.length > 0 && (
+                        <div className="max-h-40 overflow-auto">
+                          {filteredPositions.map((position) => (
+                            <div
+                              key={position.id}
+                              onClick={() => handleSelectPosition(position)}
+                              className="px-4 py-2.5 cursor-pointer text-sm text-gray-800 hover:bg-gray-100 dark:text-white/90 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-800 last:border-b-0"
+                            >
+                              {position.title}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {positionSearch.trim() && !positionExactMatch && (
+                        <div className="border-t border-gray-100 dark:border-gray-800">
+                          <button
+                            type="button"
+                            onClick={handleCreatePosition}
+                            disabled={isCreatingPosition}
+                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-900/20 disabled:opacity-50"
+                          >
+                            <SvgIcon name="plus" width={16} />
+                            {isCreatingPosition ? "Создание..." : `Создать "${positionSearch.trim()}"`}
+                          </button>
+                        </div>
+                      )}
+
+                      {filteredPositions.length === 0 && !positionSearch.trim() && (
+                        <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">
+                          Начните вводить название
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-3 mt-6">

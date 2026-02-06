@@ -15,7 +15,7 @@ interface Positions {
 export type CreatePositionData = Omit<Position, "id">;
 
 class PositionService {
-  async getPositions(params: string): Promise<Positions> {
+  async getPositions(params: string = ""): Promise<Positions> {
     const url = `${ROUTES.POSITIONS.INDEX}${params}`
     const response = await apiClient.get<Positions>(url, true);
     return response;
