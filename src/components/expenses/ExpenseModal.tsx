@@ -21,6 +21,7 @@ export default function ExpenseModal({ isModalOpen, onClose, expense, onSuccess 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<CreateExpenseData>({
     expense_category_id: undefined,
+    category: "",
     amount: 0,
     description: "",
     spent_at: new Date().toISOString().split("T")[0],
@@ -30,6 +31,7 @@ export default function ExpenseModal({ isModalOpen, onClose, expense, onSuccess 
     if (expense) {
       setFormData({
         expense_category_id: expense.expense_category_id,
+        category: expense.category,
         amount: expense.amount || 0,
         description: expense.description || "",
         spent_at: expense.spent_at ? expense.spent_at.split("T")[0] : new Date().toISOString().split("T")[0],
@@ -37,6 +39,7 @@ export default function ExpenseModal({ isModalOpen, onClose, expense, onSuccess 
     } else {
       setFormData({
         expense_category_id: undefined,
+        category: "",
         amount: 0,
         description: "",
         spent_at: new Date().toISOString().split("T")[0],

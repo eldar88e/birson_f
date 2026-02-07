@@ -368,7 +368,7 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
     const legacyFee = (item as any).performer_fee;
     return sum + Number(legacyFee ?? 0);
   }, 0);
-  const total: number = subtotal + materialsTotal + deliveryTotal + performerFeeTotal;
+  const totalCleared: number = subtotal - performerFeeTotal - materialsTotal + deliveryTotal;
 
   return (
     <div className="space-y-6">
@@ -548,7 +548,7 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
             <li className="flex justify-between gap-5">
               <span className="text-sm text-gray-500 dark:text-gray-400">Цена услуг</span>
               <span className="text-sm font-medium text-gray-700 dark:text-gray-400">
-                {subtotal.toFixed(2)} ₽
+                {totalCleared.toFixed(2)} ₽
               </span>
             </li>
             <li className="flex items-center justify-between">
@@ -572,7 +572,7 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
             <li className="flex items-center justify-between">
               <span className="font-medium text-gray-700 dark:text-gray-400">Итого</span>
               <span className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                {total.toFixed(2)} ₽
+                {subtotal.toFixed(2)} ₽
               </span>
             </li>
           </ul>
