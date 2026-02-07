@@ -675,18 +675,18 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                 <Label>Исполнители *</Label>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="primary"
                   onClick={addPerformer}
-                  className="text-sm"
                 >
                   <SvgIcon name="plus" width={16} />
-                  Добавить исполнителя
+                  <span className="sm:block hidden">Добавить исполнителя</span>
                 </Button>
               </div>
               
               {performers.filter(p => !p._destroy).length === 0 ? (
                 <div className="text-sm text-gray-500 dark:text-gray-400 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                  Исполнители не добавлены. Нажмите "Добавить исполнителя" для добавления.
+                  Исполнители не добавлены. <span className="hidden sm:inline-block">Нажмите "Добавить исполнителя" для добавления.</span>
+                  <span className="sm:hidden inline-block">Нажмите "+" для добавления.</span>
                 </div>
               ) : (
                 <div className="space-y-3">

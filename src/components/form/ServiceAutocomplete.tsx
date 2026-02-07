@@ -224,10 +224,10 @@ export default function ServiceAutocomplete({
                       key={service.id}
                       onClick={() => handleSelectService(service)}
                       onMouseEnter={() => setHighlightedIndex(index)}
-                      className={`cursor-pointer px-4 py-2.5 text-sm border-b border-gray-100 dark:border-gray-800 last:border-b-0 ${
+                      className={`cursor-pointer px-4 py-2.5 text-sm border-b border-gray-100 dark:border-gray-800 last:border-b-0 text-gray-800 dark:text-white/90 ${
                         index === highlightedIndex
                           ? "bg-gray-100 dark:bg-gray-800"
-                          : "text-gray-800 hover:bg-gray-50 dark:text-white/90 dark:hover:bg-gray-800"
+                          : "hover:bg-gray-50 dark:hover:bg-gray-800"
                       }`}
                     >
                       {service.title}
