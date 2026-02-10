@@ -7,6 +7,7 @@ import { useNotification } from "../../context/NotificationContext";
 import UserAutocomplete from "../form/UserAutocomplete";
 import type { User } from "../../entities/user/model";
 import type { Car } from "../../entities/car/model";
+import { userService } from "../../api/users";
 
 interface CarModalProps {
   isModalOpen: boolean;
@@ -19,6 +20,7 @@ interface CarModalProps {
 export default function CarModal({ isModalOpen, onClose, ownerId, car, onSuccess }: CarModalProps) {
   const { showNotification } = useNotification();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isLoadingOwner, setIsLoadingOwner] = useState(false);
   const [formData, setFormData] = useState<{
     brand: string;
     model: string;
@@ -40,11 +42,9 @@ export default function CarModal({ isModalOpen, onClose, ownerId, car, onSuccess
   const [errors, setErrors] = useState<{
     owner_id: boolean;
     brand: boolean;
-    license_plate: boolean;
   }>({
     owner_id: false,
     brand: false,
-    license_plate: false,
   });
 
   useEffect(() => {
@@ -71,10 +71,33 @@ export default function CarModal({ isModalOpen, onClose, ownerId, car, onSuccess
     }
     setErrors({
       owner_id: false,
-      brand: false,
-      license_plate: false,
+      brand: false
     });
   }, [car, ownerId, isModalOpen]);
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+
+    const idToLoad = car?.owner_id || ownerId || 0;
+    if (!idToLoad) {
+      setSelectedUser(null);
+      return;
+    }
+
+    // Avoid overwriting user's manual selection in the same modal session
+    if (selectedUser?.id === idToLoad) return;
+
+    setIsLoadingOwner(true);
+    userService
+      .getUser(idToLoad)
+      .then((user) => setSelectedUser(user))
+      .catch((e) => {
+        console.error("Failed to load car owner:", e);
+        setSelectedUser(null);
+      })
+      .finally(() => setIsLoadingOwner(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isModalOpen, car?.owner_id, ownerId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,16 +105,15 @@ export default function CarModal({ isModalOpen, onClose, ownerId, car, onSuccess
     const newErrors = {
       owner_id: !formData.owner_id,
       brand: !formData.brand.trim(),
-      license_plate: !formData.license_plate.trim(),
     };
 
     setErrors(newErrors);
 
-    if (newErrors.owner_id || newErrors.brand || newErrors.license_plate) {
+    if (newErrors.owner_id || newErrors.brand) {
       showNotification({
         variant: "error",
         title: "Ошибка валидации",
-        description: "Заполните обязательные поля: Владелец, Марка, Номер",
+        description: "Заполните обязательные поля: Владелец, Марка",
       });
       return;
     }
@@ -150,7 +172,6 @@ export default function CarModal({ isModalOpen, onClose, ownerId, car, onSuccess
     setErrors({
       owner_id: false,
       brand: false,
-      license_plate: false,
     });
   };
 
@@ -165,21 +186,20 @@ export default function CarModal({ isModalOpen, onClose, ownerId, car, onSuccess
             {car?.id ? "Редактировать автомобиль" : "Добавить новый автомобиль"}
           </h4>
           <form className="space-y-4">
-            {ownerId === 0 && car?.id && (
-              <div>
-                <Label>Владелец *</Label>
-                <div className={errors.owner_id ? "ring-2 ring-error-500 rounded-lg" : ""}>
-                  <UserAutocomplete
-                    placeholder="Введите имя или номер телефона"
-                    value={selectedUser}
-                    onChange={handleUserChange}
-                  />
-                </div>
-                {errors.owner_id && (
-                  <p className="mt-1.5 text-xs text-error-500">Выберите владельца</p>
-                )}
+            <div>
+              <Label>Владелец *</Label>
+              <div className={errors.owner_id ? "ring-2 ring-error-500 rounded-lg" : ""}>
+                <UserAutocomplete
+                  placeholder={isLoadingOwner ? "Загрузка владельца..." : "Введите имя или номер телефона"}
+                  value={selectedUser}
+                  onChange={handleUserChange}
+                  disabled={isLoadingOwner}
+                />
               </div>
-            )}
+              {errors.owner_id && (
+                <p className="mt-1.5 text-xs text-error-500">Выберите владельца</p>
+              )}
+            </div>
 
             <div>
               <Label>Марка *</Label>
@@ -221,13 +241,7 @@ export default function CarModal({ isModalOpen, onClose, ownerId, car, onSuccess
                 value={formData.license_plate}
                 onChange={(e) => {
                   setFormData((prev) => ({ ...prev, license_plate: e.target.value }));
-                  // Очищаем ошибку при вводе
-                  if (errors.license_plate) {
-                    setErrors((prev) => ({ ...prev, license_plate: false }));
-                  }
                 }}
-                error={errors.license_plate}
-                hint={errors.license_plate ? "Заполните номер автомобиля" : ""}
                 required
               />
             </div>
