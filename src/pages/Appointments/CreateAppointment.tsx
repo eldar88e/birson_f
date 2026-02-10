@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import PageMeta from "../../components/common/PageMeta.tsx";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb.tsx";
 import Label from "../../components/form/Label.tsx";
@@ -7,15 +7,15 @@ import UserAutocomplete from "../../components/form/UserAutocomplete.tsx";
 import type { User } from "../../entities/user/model.ts";
 // import AppointmentItemPreview from "../../components/appointments/AppointmentItemPreview.tsx";
 import AppointmentItems from "../../components/appointments/AppointmentItems.tsx";
+import Button from "../../components/ui/button/Button.tsx";
 import SvgIcon from "../../shared/ui/SvgIcon.tsx";
 import { appointmentService } from "../../api/appointmet.ts";
 import {useNotification} from "../../context/NotificationContext.tsx";
 import { Appointment } from "../../entities/appointments/model.ts";
-import {ROUTES} from "../../shared/config/routes.ts";
-import {useNavigate, useSearchParams} from "react-router";
-import Button from "../../components/ui/button/Button.tsx";
+import { useSearchParams } from "react-router";
 import type { AppointmentItem } from "../../api/appointmetItems.ts";
 import { userService } from "../../api/users.ts";
+import Loader from "../../shared/ui/Loader";
 
 type AppointmentFormData = {
   client_id: number | null;
@@ -29,10 +29,15 @@ export default function CreateAppointment() {
   const [appointmentItems, setAppointmentItems] = useState<AppointmentItem[]>([]);
   const [searchParams] = useSearchParams();
 
-  const navigate = useNavigate();
   const { showNotification } = useNotification();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingUser, setIsLoadingUser] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [appointmentId, setAppointmentId] = useState<number | null>(null);
+  const hasCreatedRef = useRef(false);
+  const lastSavedKeyRef = useRef<string>("");
+  const saveTimeoutRef = useRef<number | null>(null);
 
   const [formData, setFormData] = useState<AppointmentFormData>({
     client_id: null,
@@ -41,27 +46,94 @@ export default function CreateAppointment() {
     appointment_at: ""
   });
 
+  const normalizeAppointmentItems = (items: any[] | undefined | null): AppointmentItem[] => {
+    if (!items) return [];
+    return items.map((item: any) => ({
+      ...item,
+      id: typeof item.id === "string" ? parseInt(item.id, 10) : item.id,
+      order_id: typeof item.order_id === "string" ? parseInt(item.order_id, 10) : item.order_id,
+      service_id: typeof item.service_id === "string" ? parseInt(item.service_id, 10) : item.service_id,
+      car_id: typeof item.car_id === "string" ? parseInt(item.car_id, 10) : (item.car_id || 0),
+      price: typeof item.price === "string" ? parseFloat(item.price) : Number(item.price) || 0,
+      materials_price: typeof item.materials_price === "string" ? parseFloat(item.materials_price) : Number(item.materials_price) || 0,
+      delivery_price: typeof item.delivery_price === "string" ? parseFloat(item.delivery_price) : Number(item.delivery_price) || 0,
+      paid: typeof item.paid === "string" ? item.paid === "true" : Boolean(item.paid),
+    }));
+  };
+
   useEffect(() => {
-    const userId = searchParams.get("userId");
-    if (userId) {
-      setIsLoadingUser(true);
-      userService.getUser(Number(userId))
-        .then((user) => {
-          setSelectedUser(user);
-          setFormData((prev) => ({ ...prev, client_id: user.id }));
-        })
-        .catch((error) => {
-          console.error("Failed to load user:", error);
-          showNotification({
-            variant: "error",
-            title: "Ошибка загрузки пользователя",
-            description: "Не удалось загрузить данные пользователя",
-          });
-        })
-        .finally(() => {
-          setIsLoadingUser(false);
-        });
+    // Создаём запись один раз при заходе на /appointments/add
+    if (hasCreatedRef.current) return;
+    hasCreatedRef.current = true;
+
+    setIsCreating(true);
+    setCreateError(null);
+
+    const userIdParam = searchParams.get("userId");
+    const userId = userIdParam ? Number(userIdParam) : null;
+
+    const payload: Partial<Appointment> = { state: "initial" };
+    if (userId && !Number.isNaN(userId)) {
+      payload.client_id = userId;
     }
+
+    appointmentService.createAppointment(payload)
+      .then(async (created) => {
+        setAppointmentId(created.id);
+
+        // Подставляем созданные значения (если backend что-то вернул)
+        const nextFormData: AppointmentFormData = {
+          client_id: created.client_id ?? null,
+          state: created.state ?? "initial",
+          comment: created.comment ?? "",
+          appointment_at: created.appointment_at ?? "",
+        };
+        setFormData(nextFormData);
+        lastSavedKeyRef.current = JSON.stringify({
+          client_id: nextFormData.client_id,
+          state: nextFormData.state,
+          appointment_at: nextFormData.appointment_at,
+        });
+
+        // Если backend вернул позиции сразу — покажем их
+        if (created.order_items && created.order_items.length > 0) {
+          setAppointmentItems(normalizeAppointmentItems(created.order_items));
+        }
+
+        // Если клиент указан — загрузим данные пользователя и позиции записи
+        if (created.client_id) {
+          setIsLoadingUser(true);
+          try {
+            const [user, fullAppointment] = await Promise.all([
+              userService.getUser(created.client_id),
+              appointmentService.getAppointment(created.id),
+            ]);
+            setSelectedUser(user);
+
+            if (fullAppointment.order_items && fullAppointment.order_items.length > 0) {
+              setAppointmentItems(normalizeAppointmentItems(fullAppointment.order_items));
+            }
+          } catch (e) {
+            console.error("Failed to load appointment details:", e);
+            // User loading failure should not break the page
+            setSelectedUser((prev) => prev);
+          } finally {
+            setIsLoadingUser(false);
+          }
+        }
+      })
+      .catch((e) => {
+        console.error("Failed to create appointment:", e);
+        setCreateError("Не удалось создать запись");
+        showNotification({
+          variant: "error",
+          title: "Ошибка создания",
+          description: "Не удалось создать запись",
+        });
+      })
+      .finally(() => {
+        setIsCreating(false);
+      });
   }, [searchParams, showNotification]);
 
   const handleUserChange = (user: User | null) => {
@@ -77,60 +149,80 @@ export default function CreateAppointment() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const saveNow = async (): Promise<boolean> => {
+    if (!appointmentId) return false;
+    if (isCreating) return false;
 
-    if (!formData.client_id) {
-      showNotification({
-        variant: "error",
-        title: "Ошибка валидации",
-        description: "Необходимо выбрать клиента",
-      });
-      return;
+    if (saveTimeoutRef.current) {
+      window.clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
     }
 
-    if (appointmentItems.length === 0 || !appointmentItems.some(item => item.car_id && item.car_id > 0)) {
-      showNotification({
-        variant: "error",
-        title: "Ошибка валидации",
-        description: "Необходимо выбрать автомобиль хотя бы для одной позиции",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
+    setIsAutoSaving(true);
     try {
-      const itemsToSend = appointmentItems.map(({ id, order_id, order_item_performers, service, ...item }) => ({
-        ...item,
-        order_item_performers_attributes: item.order_item_performers_attributes || [],
-      }));
+      await appointmentService.updateAppointment(appointmentId, {
+        client_id: formData.client_id ?? undefined,
+        state: formData.state,
+        comment: formData.comment,
+        appointment_at: formData.appointment_at,
+      });
 
-      const response = await appointmentService.createAppointment({
-        ...formData,
+      lastSavedKeyRef.current = JSON.stringify({
         client_id: formData.client_id,
-        order_items_attributes: itemsToSend,
+        state: formData.state,
+        appointment_at: formData.appointment_at,
       });
-
-      showNotification({
-        variant: "success",
-        title: "Запись создана!",
-        description: "Новая запись успешно добавлена в систему",
-      });
-
-      setTimeout(() => {
-        navigate(`${ROUTES.APPOINTMENTS.INDEX}/${response.id}`);
-      }, 1000);
+      return true;
     } catch (error) {
       showNotification({
         variant: "error",
-        title: "Ошибка создания",
-        description: error instanceof Error ? error.message : "Не удалось создать пользователя",
+        title: "Ошибка сохранения",
+        description: error instanceof Error ? error.message : "Не удалось сохранить запись",
       });
+      return false;
     } finally {
-      setIsSubmitting(false);
+      setIsAutoSaving(false);
     }
   };
+
+  const handleManualSave = async () => {
+    const ok = await saveNow();
+    if (!ok) return;
+    showNotification({
+      variant: "success",
+      title: "Сохранено",
+      description: "Запись обновлена",
+    });
+  };
+
+  useEffect(() => {
+    if (!appointmentId) return;
+    if (isCreating) return;
+
+    const key = JSON.stringify({
+      client_id: formData.client_id,
+      state: formData.state,
+      appointment_at: formData.appointment_at,
+    });
+
+    if (key === lastSavedKeyRef.current) return;
+
+    if (saveTimeoutRef.current) {
+      window.clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = window.setTimeout(() => {
+      void saveNow();
+    }, 600);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        window.clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appointmentId, isCreating, formData.client_id, formData.state, formData.appointment_at]);
 
   return (
     <>
@@ -139,14 +231,34 @@ export default function CreateAppointment() {
         description="Добавление новой записи в CRM систему"
       />
       <PageBreadcrumb pageTitle="Запись" />
+
+      {isCreating && (
+        <div className="mb-6">
+          <Loader text="Создаём запись..." />
+        </div>
+      )}
+
+      {createError && (
+        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+          <p className="text-sm text-red-600 dark:text-red-400">{createError}</p>
+        </div>
+      )}
+
       <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-          <h2 className="text-xl font-medium text-gray-800 dark:text-white">
-            Добавить запись
-          </h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-xl font-medium text-gray-800 dark:text-white">
+              Добавить запись
+            </h2>
+            {appointmentId && (
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                {isAutoSaving ? "Сохранение..." : ""}
+              </div>
+            )}
+          </div>
         </div>
         <div className="border-b border-gray-200 p-4 sm:p-8 dark:border-gray-800">
-          <form className="space-y-6" id="create-appointment-form" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
               <div>
                 <UserAutocomplete
@@ -189,35 +301,37 @@ export default function CreateAppointment() {
               placeholder="Введите коментарий..."
               value={formData.comment}
               onChange={(e) => handleChange("comment", e.target.value)}
+              onBlur={() => void saveNow()}
               rows={3}
             ></textarea>
           </form>
         </div>
         <div className="border-b border-gray-200 p-4 sm:p-8 dark:border-gray-800">
-          {selectedUser ? (
+          {appointmentId && formData.client_id ? (
             <AppointmentItems 
-              clientId={selectedUser.id} 
+              appointmentId={appointmentId}
+              clientId={formData.client_id} 
               items={appointmentItems}
               onItemsChange={setAppointmentItems}
             />
           )
         : (
           <div className="text-center text-gray-500 py-8 dark:text-gray-400">
-            Для добавления услуг необходимо выбрать клиента
+            {appointmentId ? "Для добавления услуг необходимо выбрать клиента" : "Создаём запись..."}
           </div>
         )}
         </div>
+
         <div className="p-4 sm:p-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            {/* <AppointmentItemPreview /> */}
             <Button
-              type="submit"
-              form="create-appointment-form"
+              type="button"
               variant="primary"
-              disabled={isSubmitting}
+              onClick={handleManualSave}
+              disabled={isAutoSaving || isCreating || !appointmentId}
             >
               <SvgIcon name="save" />
-              {isSubmitting ? "Создание..." : "Создать запись"}
+              {isAutoSaving ? "Сохранение..." : "Сохранить"}
             </Button>
           </div>
         </div>

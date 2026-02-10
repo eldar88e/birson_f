@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import Button from "../ui/button/Button";
 import AppointmentItems from "./AppointmentItems";
@@ -26,6 +26,8 @@ export default function AppointmentMain() {
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const lastSavedKeyRef = useRef<string>("");
+  const saveTimeoutRef = useRef<number | null>(null);
   const [formData, setFormData] = useState<{
     client_id: number;
     state: Appointment["state"];
@@ -51,7 +53,7 @@ export default function AppointmentMain() {
         const appointmentData = await appointmentService.getAppointment(appointmentIdNum);
         setAppointment(appointmentData);
 
-        if (appointmentData.client_id) return;
+        if (!appointmentData.client_id) return;
 
         try {
           const user = await userService.getUser(appointmentData.client_id);
@@ -73,11 +75,17 @@ export default function AppointmentMain() {
   const handleOpenEditModal = () => {
     if (!appointment) return;
     
-    setFormData({
+    const nextFormData = {
       client_id: appointment.client_id,
       state: appointment.state,
       comment: appointment.comment || "",
       appointment_at: appointment.appointment_at || "",
+    };
+    setFormData(nextFormData);
+    lastSavedKeyRef.current = JSON.stringify({
+      client_id: nextFormData.client_id,
+      state: nextFormData.state,
+      appointment_at: nextFormData.appointment_at,
     });
     openModal();
   };
@@ -90,50 +98,85 @@ export default function AppointmentMain() {
     }));
   };
 
-  const handleSave = async () => {
-    if (!appointment || !appointmentId) return;
+  const saveNow = async (): Promise<boolean> => {
+    if (!appointment || !appointmentId) return false;
+    if (!formData.client_id) return false;
 
-    if (!formData.client_id) {
-      showNotification({
-        variant: "error",
-        title: "Ошибка валидации",
-        description: "Необходимо выбрать клиента",
-      });
-      return;
+    if (saveTimeoutRef.current) {
+      window.clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
     }
 
     setIsSaving(true);
-
     try {
-      const updatedAppointment = await appointmentService.updateAppointment(
-        parseInt(appointmentId),
-        {
-          client_id: formData.client_id,
-          state: formData.state,
-          comment: formData.comment,
-          appointment_at: formData.appointment_at,
-        }
-      );
+      const updatedAppointment = await appointmentService.updateAppointment(parseInt(appointmentId, 10), {
+        client_id: formData.client_id,
+        state: formData.state,
+        comment: formData.comment,
+        appointment_at: formData.appointment_at,
+      });
 
       setAppointment(updatedAppointment);
 
-      showNotification({
-        variant: "success",
-        title: "Запись обновлена!",
-        description: "Основная информация о записи успешно обновлена",
+      lastSavedKeyRef.current = JSON.stringify({
+        client_id: formData.client_id,
+        state: formData.state,
+        appointment_at: formData.appointment_at,
       });
-
-      closeModal();
+      return true;
     } catch (error) {
       showNotification({
         variant: "error",
         title: "Ошибка обновления",
         description: error instanceof Error ? error.message : "Не удалось обновить запись",
       });
+      return false;
     } finally {
       setIsSaving(false);
     }
   };
+
+  const handleManualSave = async () => {
+    const ok = await saveNow();
+    if (!ok) return;
+    showNotification({
+      variant: "success",
+      title: "Сохранено",
+      description: "Запись обновлена",
+    });
+    closeModal();
+  };
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+    if (!appointmentId) return;
+    if (!appointment) return;
+    if (!formData.client_id) return;
+
+    const key = JSON.stringify({
+      client_id: formData.client_id,
+      state: formData.state,
+      appointment_at: formData.appointment_at,
+    });
+
+    if (key === lastSavedKeyRef.current) return;
+
+    if (saveTimeoutRef.current) {
+      window.clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = window.setTimeout(() => {
+      void saveNow();
+    }, 600);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        window.clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isModalOpen, appointmentId, appointment, formData.client_id, formData.state, formData.appointment_at]);
 
   if (isLoading) {
     return (
@@ -260,7 +303,7 @@ export default function AppointmentMain() {
           <h4 className="font-semibold text-gray-800 mb-6 text-title-sm dark:text-white/90">
             Редактировать запись
           </h4>
-          <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-4">
+          <form onSubmit={(e) => { e.preventDefault(); }} className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <Label>Статус *</Label>
@@ -312,6 +355,7 @@ export default function AppointmentMain() {
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, comment: e.target.value }))
                 }
+                onBlur={() => void saveNow()}
                 rows={3}
               />
             </div>
@@ -321,13 +365,13 @@ export default function AppointmentMain() {
                 type="button"
                 variant="outline"
                 onClick={closeModal}
-                disabled={isSaving}
               >
                 Отмена
               </Button>
               <Button
-                type="submit"
+                type="button"
                 variant="primary"
+                onClick={handleManualSave}
                 disabled={isSaving}
               >
                 {isSaving ? "Сохранение..." : "Сохранить"}
