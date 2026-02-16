@@ -26,7 +26,7 @@ export default function ContractorModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<CreateContractorData>({
     name: "",
-    entity_type: "",
+    entity_type: "individual",
     email: "",
     phone: "",
     inn: "",
@@ -84,7 +84,7 @@ export default function ContractorModal({
     } else if (initialData) {
       setFormData({
         name: "",
-        entity_type: "",
+        entity_type: "individual",
         email: "",
         phone: "",
         inn: "",
@@ -103,7 +103,7 @@ export default function ContractorModal({
     } else {
       setFormData({
         name: "",
-        entity_type: "",
+        entity_type: "individual",
         email: "",
         phone: "",
         inn: "",
