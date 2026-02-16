@@ -454,9 +454,6 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                 <th className="px-5 py-4 text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
                   Доставка
                 </th>
-                <th className="px-5 py-4 text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
-                  Оплачено
-                </th>
                 <th className="relative px-5 py-4 text-sm font-medium whitespace-nowrap text-gray-700 dark:text-gray-400">
                   <span className="sr-only">Actions</span>
                 </th>
@@ -465,7 +462,7 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
             <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-white/[0.03]">
               {appointmentItems.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-5 py-4 text-center text-gray-400">
+                  <td colSpan={9} className="px-5 py-4 text-center text-gray-400">
                     Позиции не добавлены
                   </td>
                 </tr>
@@ -550,13 +547,6 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                       {Number(item.delivery_price || 0) > 0 ? `${Number(item.delivery_price || 0).toFixed(2)} ₽` : "-"}
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                      {item.paid ? (
-                        <span className="text-success-600 dark:text-success-500">Да</span>
-                      ) : (
-                        <span className="text-gray-400">Нет</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
                       <div className="flex items-center justify-center gap-2">
                         <button 
                           onClick={() => handleEditItem(item)}
@@ -616,10 +606,10 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
             Итого по заказу
           </p>
           <ul className="space-y-2">
-            <li className="flex justify-between gap-5">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Цена услуг</span>
+            <li className="flex items-center justify-between">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Зарплата</span>
               <span className="text-sm font-medium text-gray-700 dark:text-gray-400">
-                {totalCleared.toFixed(2)} ₽
+                {performerFeeTotal.toFixed(2)} ₽
               </span>
             </li>
             <li className="flex items-center justify-between">
@@ -634,14 +624,27 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                 {deliveryTotal.toFixed(2)} ₽
               </span>
             </li>
-            <li className="flex items-center justify-between">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Зарплата</span>
+            <li className="flex justify-between gap-5">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Цена услуг</span>
               <span className="text-sm font-medium text-gray-700 dark:text-gray-400">
-                {performerFeeTotal.toFixed(2)} ₽
+                {totalCleared.toFixed(2)} ₽
               </span>
             </li>
             <li className="flex items-center justify-between">
               <span className="font-medium text-gray-700 dark:text-gray-400">Итого</span>
+              <span className="text-lg font-semibold text-gray-800 dark:text-white/90">
+                {subtotal.toFixed(2)} ₽
+              </span>
+            </li>
+
+            <li className="flex items-center justify-between mt-5">
+              <span className="font-medium text-gray-700 dark:text-gray-400">Предоплата</span>
+              <span className="text-lg font-semibold text-gray-800 dark:text-white/90">
+                0.00 ₽
+              </span>
+            </li>
+            <li className="flex items-center justify-between">
+              <span className="font-medium text-gray-700 dark:text-gray-400">К оплате</span>
               <span className="text-lg font-semibold text-gray-800 dark:text-white/90">
                 {subtotal.toFixed(2)} ₽
               </span>
@@ -694,7 +697,7 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <Label>Статус</Label>
                 <select
@@ -723,20 +726,6 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                   min="0"
                   step={0.01}
                 />
-              </div>
-
-              <div>
-                <Label>Оплачено</Label>
-                <div className="flex items-center h-11">
-                  <input
-                    type="checkbox"
-                    name="paid"
-                    checked={formData.paid}
-                    onChange={handleInputChange}
-                    className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700"
-                  />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Да</span>
-                </div>
               </div>
             </div>
 
