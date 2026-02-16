@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import Button from "../ui/button/Button";
@@ -32,6 +32,8 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
   const [appointmentItems, setAppointmentItems] = useState<AppointmentItem[]>(items || []);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
+  const [statusDropdownId, setStatusDropdownId] = useState<number | null>(null);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
   const [performers, setPerformers] = useState<AppointmentItemPerformer[]>([]);
   const [selectedCar, setSelectedCar] = useState<Car | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -56,6 +58,50 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
   useEffect(() => {
     onItemsChange?.(appointmentItems);
   }, [appointmentItems, onItemsChange]);
+
+  useEffect(() => {
+    if (!statusDropdownId) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(e.target as Node)) {
+        setStatusDropdownId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [statusDropdownId]);
+
+  const handleStatusChange = async (item: AppointmentItem, newState: AppointmentItem["state"]) => {
+    setStatusDropdownId(null);
+    if (item.state === newState) return;
+
+    const prevState = item.state;
+    setAppointmentItems((prev) =>
+      prev.map((i) => (i.id === item.id ? { ...i, state: newState } : i))
+    );
+
+    if (appointmentId && item.id) {
+      try {
+        await appointmentItemService.updateAppointmentItem(appointmentId, item.id, {
+          ...item,
+          state: newState,
+          order_item_performers_attributes: item.order_item_performers?.map((p) => ({
+            id: p.id,
+            performer_id: p.performer_id,
+            performer_type: p.performer_type,
+            performer_fee: p.performer_fee,
+          })) || [],
+        });
+      } catch {
+        setAppointmentItems((prev) =>
+          prev.map((i) => (i.id === item.id ? { ...i, state: prevState } : i))
+        );
+        showNotification({
+          variant: "error",
+          title: "Не удалось обновить статус",
+        });
+      }
+    }
+  };
 
   const normalizeAppointmentItem = (item: any): AppointmentItem => {
     const normalized: AppointmentItem = {
@@ -452,7 +498,32 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                       )}
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
-                      <StatusBadge state={item.state} />
+                      <div className="relative" ref={statusDropdownId === item.id ? statusDropdownRef : undefined}>
+                        <button
+                          type="button"
+                          onClick={() => setStatusDropdownId(statusDropdownId === item.id ? null : (item.id ?? null))}
+                        >
+                          <StatusBadge state={item.state} />
+                        </button>
+                        {statusDropdownId === item.id && (
+                          <div className="absolute left-0 top-full z-40 mt-1 w-44 rounded-lg border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                            {APPOINTMENT_ITEM_STATES.map((s) => (
+                              <button
+                                key={s.value}
+                                type="button"
+                                onClick={() => handleStatusChange(item, s.value as AppointmentItem["state"])}
+                                className={`flex w-full items-center rounded-md px-3 py-2 text-left text-sm ${
+                                  item.state === s.value
+                                    ? "bg-gray-100 font-medium text-gray-900 dark:bg-white/10 dark:text-white"
+                                    : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
+                                }`}
+                              >
+                                <StatusBadge state={s.value as AppointmentItem["state"]} />
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="px-5 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
                       {Number(item.price || 0).toFixed(2)} ₽
@@ -494,7 +565,7 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                         >
                           <svg width="18" height="18" stroke="CurrentColor" fill="CurrentColor" aria-hidden="true" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                             <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path>
-                            <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path>
+                            <path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd"></path>
                           </svg>
                         </button>
                         <button 
