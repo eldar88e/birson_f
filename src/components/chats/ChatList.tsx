@@ -18,19 +18,24 @@ interface ChatListProps {
 export default function ChatList({ isOpen, onToggle }: ChatListProps) {
   const { t } = useTranslation("chat");
   const [isOpenTwo, setIsOpenTwo] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const currentConversationId = searchParams.get("conversationId");
   const hasSetDefaultRef = useRef(false);
+  const pageRef = useRef(1);
+  const lastPageRef = useRef(1);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const fetchConversations = useCallback(() => {
-    setIsLoading(true);
+    pageRef.current = 1;
     conversationService
       .getConversations()
       .then((response) => {
         setConversations(response.data);
+        lastPageRef.current = response.meta.last;
         const currentId = searchParams.get("conversationId");
         if (
           !hasSetDefaultRef.current &&
@@ -44,6 +49,20 @@ export default function ChatList({ isOpen, onToggle }: ChatListProps) {
       .finally(() => setIsLoading(false));
   }, [navigate, searchParams]);
 
+  const fetchMoreConversations = useCallback(() => {
+    if (isLoadingMore || pageRef.current >= lastPageRef.current) return;
+    const nextPage = pageRef.current + 1;
+    setIsLoadingMore(true);
+    conversationService
+      .getConversations(`?page=${nextPage}`)
+      .then((response) => {
+        pageRef.current = nextPage;
+        lastPageRef.current = response.meta.last;
+        setConversations((prev) => [...prev, ...response.data]);
+      })
+      .finally(() => setIsLoadingMore(false));
+  }, [isLoadingMore]);
+
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
@@ -53,6 +72,21 @@ export default function ChatList({ isOpen, onToggle }: ChatListProps) {
     window.addEventListener("chats:conversationDeleted", handler);
     return () => window.removeEventListener("chats:conversationDeleted", handler);
   }, [fetchConversations]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      if (scrollHeight - scrollTop - clientHeight < 100) {
+        fetchMoreConversations();
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [fetchMoreConversations]);
 
   function toggleDropdownTwo() {
     setIsOpenTwo(!isOpenTwo);
@@ -64,6 +98,7 @@ export default function ChatList({ isOpen, onToggle }: ChatListProps) {
 
   return (
     <div
+      ref={scrollContainerRef}
       className={`flex-col overflow-auto no-scrollbar transition-all duration-300 ${
         isOpen
           ? "fixed top-0 left-0 z-999999 h-screen bg-white dark:bg-gray-900"
@@ -121,19 +156,18 @@ export default function ChatList({ isOpen, onToggle }: ChatListProps) {
           </button>
         </div>
       </div>
-      <div className="flex flex-col max-h-full px-4 overflow-auto sm:px-5">
-        <div className="max-h-full space-y-1 overflow-auto custom-scrollbar">
+      <div className="flex flex-col px-4 sm:px-5">
+        <div className="space-y-1">
           {isLoading ? (
               <Loader text="Загрузка чатов..." />
             ) : (
               [...conversations].map((conversation) => {
                 const isActive = currentConversationId === String(conversation.id);
                 return (
-                <div 
-                  key={conversation.id} 
+                <div
+                  key={conversation.id}
                   onClick={() => {
                     navigate(`?conversationId=${conversation.id}`);
-                    // Закрываем sidebar только если он открыт (на мобильных устройствах)
                     if (isOpen) {
                       onToggle();
                     }
@@ -182,6 +216,11 @@ export default function ChatList({ isOpen, onToggle }: ChatListProps) {
               );
             }))
           }
+          {isLoadingMore && (
+            <div className="py-3">
+              <Loader text="Загрузка..." />
+            </div>
+          )}
         </div>
       </div>
     </div>

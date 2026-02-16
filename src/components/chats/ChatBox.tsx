@@ -11,7 +11,7 @@ import { useConversationChannel } from "../../hooks/useConversationChannel";
 
 export default function ChatBox() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchParams] = useSearchParams();
   const conversationId = searchParams.get("conversationId");
   const [error, setError] = useState("");
@@ -20,12 +20,12 @@ export default function ChatBox() {
 
   const fetchMessages = useCallback(() => {
     if (!conversationId) return;
-    setIsLoading(true);
-    setError("");
+
     messageService
       .getMessages(Number(conversationId))
       .then((response) => {
         setMessages(response.data);
+        setError("");
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "Failed to load messages");
@@ -36,11 +36,6 @@ export default function ChatBox() {
   }, [conversationId]);
 
   useEffect(() => {
-    if (!conversationId) {
-      setMessages([]);
-      setError("");
-      return;
-    }
     fetchMessages();
   }, [conversationId, fetchMessages]);
 
@@ -162,7 +157,6 @@ export default function ChatBox() {
       </div>
       <ChatBoxSendForm
         conversationId={conversationId ? Number(conversationId) : null}
-        onMessageSent={(msg) => setMessages((prev) => [...prev, msg])}
       />
       {/* <!-- ====== Chat Box End --> */}
     </div>

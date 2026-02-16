@@ -15,7 +15,7 @@ class MessageService {
     return response;
   }
 
-  async createMessage(conversationId: number, messageData: Message): Promise<Message> {
+  async createMessage(conversationId: number, messageData: Message): Promise<void> {
     const url = `${ROUTES.CONVERSATIONS.INDEX}/${conversationId}${ROUTES.MESSAGES.INDEX}`;
 
     // Если есть файл — отправляем через FormData
@@ -26,21 +26,12 @@ class MessageService {
         formData.append("message[text]", messageData.text);
       }
 
-      const response = await apiClient.postFormData<{ data: { message: Message } }>(
-        url,
-        formData,
-        true
-      );
-      return response.data.message;
+      await apiClient.postFormData<void>(url, formData, true);
+      return;
     }
 
     // Обычное текстовое сообщение
-    const response = await apiClient.post<{ data: { message: Message } }>(
-      url,
-      { message: messageData },
-      true
-    );
-    return response.data.message;
+    await apiClient.post<void>(url, { message: messageData }, true);
   }
 }
 

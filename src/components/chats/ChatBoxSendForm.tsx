@@ -1,16 +1,14 @@
 import { useState, useRef, type FormEvent, type ChangeEvent } from "react";
 import { messageService } from "../../api/messages";
-import type { Message } from "../../entities/message/model";
 import SvgIcon from "../../shared/ui/SvgIcon";
 import { useTranslation } from "react-i18next";
 import { useNotification } from "../../context/NotificationContext";
 
 interface ChatBoxSendFormProps {
   conversationId: number | null;
-  onMessageSent?: (message: Message) => void;
 }
 
-export default function ChatBoxSendForm({ conversationId, onMessageSent }: ChatBoxSendFormProps) {
+export default function ChatBoxSendForm({ conversationId }: ChatBoxSendFormProps) {
   const [text, setText] = useState("");
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -38,14 +36,14 @@ export default function ChatBoxSendForm({ conversationId, onMessageSent }: ChatB
 
     setIsSending(true);
     try {
-      const created = await messageService.createMessage(conversationId, {
+      await messageService.createMessage(conversationId, {
         conversation_id: conversationId,
         text: trimmed,
         uploadfile: attachedFile || undefined,
       });
       setText("");
       clearAttachment();
-      onMessageSent?.(created);
+      // onMessageSent?.(created);
     } catch {
       showNotification({
         variant: "error",
