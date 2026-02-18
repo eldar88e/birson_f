@@ -800,6 +800,7 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                             label="Исполнитель"
                             placeholder={performer.performer_type === "User" ? "Введите имя или номер телефона пользователя" : "Введите имя или номер телефона контрагента"}
                             value={performer.performer_id === 0 ? null : performer.performer_id}
+                            initialLabel={performer.performer_name}
                             performerType={performer.performer_type}
                             onChange={(performerId, performerObj) => {
                               const performerName = performerObj 

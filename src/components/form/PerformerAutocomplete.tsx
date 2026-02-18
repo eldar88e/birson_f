@@ -22,6 +22,7 @@ interface PerformerAutocompleteProps {
   label?: string;
   placeholder?: string;
   value?: number | null;
+  initialLabel?: string;
   performerType: "User" | "Contractor";
   onChange?: (performerId: number | null, performer?: Performer | null) => void;
   className?: string;
@@ -31,6 +32,7 @@ export default function PerformerAutocomplete({
   label,
   placeholder = "Введите имя или номер телефона",
   value,
+  initialLabel,
   performerType,
   onChange,
   className = "",
@@ -136,8 +138,14 @@ export default function PerformerAutocomplete({
   }, []);
 
   useEffect(() => {
-    const loadPerformer = async () => {
-      if (value && value > 0) {
+    if (value && value > 0) {
+      if (initialLabel) {
+        setInputValue(initialLabel);
+        setSearchQuery("");
+        return;
+      }
+
+      const loadPerformer = async () => {
         try {
           if (performerType === "User") {
             const searchResults = await userService.searchUsers(value.toString(), 1);
@@ -146,14 +154,6 @@ export default function PerformerAutocomplete({
               setSelectedPerformer(performer);
               setInputValue(performer.full_name || performer.phone || "");
               setSearchQuery("");
-            } else {
-              const users = await userService.getUsers();
-              const foundPerformer = users.find(u => u.id === value && u.role === "user");
-              if (foundPerformer) {
-                setSelectedPerformer(foundPerformer);
-                setInputValue(foundPerformer.full_name || foundPerformer.phone || "");
-                setSearchQuery("");
-              }
             }
           } else {
             const response = await contractorService.getContractors();
@@ -168,15 +168,15 @@ export default function PerformerAutocomplete({
         } catch {
           // Ignore errors
         }
-      } else {
-        setSelectedPerformer(null);
-        setInputValue("");
-        setSearchQuery("");
-      }
-    };
+      };
 
-    loadPerformer();
-  }, [value, performerType]);
+      loadPerformer();
+    } else {
+      setSelectedPerformer(null);
+      setInputValue("");
+      setSearchQuery("");
+    }
+  }, [value, performerType, initialLabel]);
 
   const searchPerformers = useCallback(async (query: string) => {
     if (query.length < 2) {
