@@ -17,7 +17,6 @@ import { carService } from "../../api/cars";
 import { useConfirmDelete } from "../../hooks/useConfirmDelete";
 import { ConfirmDeleteModal } from "../../shared/ui/ConfirmDeleteModal";
 import type { Service } from "../../entities/service/model";
-import { serviceService } from "../../api/services";
 
 interface AppointmentItemProps {
   appointmentId?: number;
@@ -195,19 +194,7 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
       comment: item.comment,
     });
     
-    // Load service if service_id exists
-    if (item.service_id) {
-      try {
-        const response = await serviceService.getServices();
-        const services = response.data;
-        const service = services.find(s => s.id === item.service_id);
-        setSelectedService(service || null);
-      } catch {
-        setSelectedService(null);
-      }
-    } else {
-      setSelectedService(null);
-    }
+    setSelectedService(null);
     
     // Load car if car_id exists
     if (item.car_id && clientId) {
@@ -672,6 +659,7 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
                   label="Услуга *"
                   placeholder="Введите название услуги"
                   value={formData.service_id === 0 ? null : formData.service_id}
+                  initialLabel={editingItemId ? appointmentItems.find(i => i.id === editingItemId)?.service : undefined}
                   onChange={(serviceId, service) => {
                     setSelectedService(service || null);
                     setFormData((prev) => ({

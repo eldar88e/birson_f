@@ -10,6 +10,7 @@ interface ServiceAutocompleteProps {
   label?: string;
   placeholder?: string;
   value?: number | null;
+  initialLabel?: string;
   onChange?: (serviceId: number | null, service?: Service | null) => void;
   className?: string;
 }
@@ -18,6 +19,7 @@ export default function ServiceAutocomplete({
   label,
   placeholder = "Введите название услуги",
   value,
+  initialLabel,
   onChange,
   className = "",
 }: ServiceAutocompleteProps) {
@@ -61,12 +63,15 @@ export default function ServiceAutocomplete({
         isServiceSelectedRef.current = true;
         setSearchQuery(foundService.title);
       }
+    } else if (value && value > 0 && initialLabel && services.length === 0) {
+      isServiceSelectedRef.current = true;
+      setSearchQuery(initialLabel);
     } else if (!value) {
       setSelectedService(null);
       isServiceSelectedRef.current = false;
       setSearchQuery("");
     }
-  }, [value, services]);
+  }, [value, services, initialLabel]);
 
   const filteredServices = services.filter((s) =>
     s.title.toLowerCase().includes(searchQuery.toLowerCase())
