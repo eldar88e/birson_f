@@ -14,7 +14,7 @@
     "@fullcalendar/daygrid": "^6.1.15",
     "@fullcalendar/interaction": "^6.1.15",
     "@fullcalendar/list": "^6.1.15",
-    "@fullcalendar/react": "^6.1.15",
+    "@fullcalendar/react": "^6.1.20",
     "@fullcalendar/timegrid": "^6.1.15",
     "@popperjs/core": "^2.11.8",
     "@rails/actioncable": "^8.1.200",
