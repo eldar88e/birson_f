@@ -8,6 +8,8 @@ export interface Appointment {
   price: number;
   expense: number;
   paid: boolean;
+  paid_at: string;
+  deposit: number;
   comment: string;
   appointment_at: string;
   processing_at: string;

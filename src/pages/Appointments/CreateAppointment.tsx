@@ -8,6 +8,7 @@ import type { User } from "../../entities/user/model.ts";
 // import AppointmentItemPreview from "../../components/appointments/AppointmentItemPreview.tsx";
 import AppointmentItems from "../../components/appointments/AppointmentItems.tsx";
 import Button from "../../components/ui/button/Button.tsx";
+import Input from "../../components/form/input/InputField.tsx";
 import SvgIcon from "../../shared/ui/SvgIcon.tsx";
 import { appointmentService } from "../../api/appointmet.ts";
 import {useNotification} from "../../context/NotificationContext.tsx";
@@ -22,6 +23,9 @@ type AppointmentFormData = {
   state: Appointment["state"];
   comment: string;
   appointment_at: string;
+  paid: boolean;
+  paid_at: string;
+  deposit: number;
 };
 
 export default function CreateAppointment() {
@@ -43,7 +47,10 @@ export default function CreateAppointment() {
     client_id: null,
     state: "initial",
     comment: "",
-    appointment_at: ""
+    appointment_at: "",
+    paid: false,
+    paid_at: "",
+    deposit: 0,
   });
 
   const normalizeAppointmentItems = (items: any[] | undefined | null): AppointmentItem[] => {
@@ -87,12 +94,18 @@ export default function CreateAppointment() {
           state: created.state ?? "initial",
           comment: created.comment ?? "",
           appointment_at: created.appointment_at ?? "",
+          paid: created.paid ?? false,
+          paid_at: created.paid_at ?? "",
+          deposit: created.deposit ?? 0,
         };
         setFormData(nextFormData);
         lastSavedKeyRef.current = JSON.stringify({
           client_id: nextFormData.client_id,
           state: nextFormData.state,
           appointment_at: nextFormData.appointment_at,
+          paid: nextFormData.paid,
+          paid_at: nextFormData.paid_at,
+          deposit: nextFormData.deposit,
         });
 
         // Если backend вернул позиции сразу — покажем их
@@ -165,12 +178,18 @@ export default function CreateAppointment() {
         state: formData.state,
         comment: formData.comment,
         appointment_at: formData.appointment_at,
+        paid: formData.paid,
+        paid_at: formData.paid_at,
+        deposit: formData.deposit,
       });
 
       lastSavedKeyRef.current = JSON.stringify({
         client_id: formData.client_id,
         state: formData.state,
         appointment_at: formData.appointment_at,
+        paid: formData.paid,
+        paid_at: formData.paid_at,
+        deposit: formData.deposit,
       });
       return true;
     } catch (error) {
@@ -198,11 +217,15 @@ export default function CreateAppointment() {
   useEffect(() => {
     if (!appointmentId) return;
     if (isCreating) return;
+    if (!formData.client_id) return;
 
     const key = JSON.stringify({
       client_id: formData.client_id,
       state: formData.state,
       appointment_at: formData.appointment_at,
+      paid: formData.paid,
+      paid_at: formData.paid_at,
+      deposit: formData.deposit,
     });
 
     if (key === lastSavedKeyRef.current) return;
@@ -222,7 +245,7 @@ export default function CreateAppointment() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [appointmentId, isCreating, formData.client_id, formData.state, formData.appointment_at]);
+  }, [appointmentId, isCreating, formData.client_id, formData.state, formData.appointment_at, formData.paid, formData.paid_at, formData.deposit]);
 
   return (
     <>
@@ -293,6 +316,38 @@ export default function CreateAppointment() {
                   <option value="completed">Завершен</option>
                   <option value="cancelled">Отменен</option>
                 </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+              <div className="flex items-center gap-3 pt-6">
+                <input
+                  type="checkbox"
+                  id="paid"
+                  checked={formData.paid}
+                  onChange={(e) => handleChange("paid", e.target.checked)}
+                  className="h-5 w-5 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900"
+                />
+                <Label htmlFor="paid">Оплачено</Label>
+              </div>
+              <div>
+                <DatePicker
+                  id="paid-at-date"
+                  label="Дата оплаты"
+                  placeholder="Выберите дату"
+                  defaultDate={formData.paid_at || undefined}
+                  onChange={(_dates, dateStr) => {
+                    handleChange("paid_at", dateStr || "");
+                  }}
+                />
+              </div>
+              <div>
+                <Label>Депозит</Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={formData.deposit}
+                  onChange={(e) => handleChange("deposit", Number(e.target.value))}
+                />
               </div>
             </div>
             <Label>Комментарий</Label>

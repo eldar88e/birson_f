@@ -243,6 +243,15 @@ export default function AppointmentListTable() {
                       />
                   </th>
                   <th className="p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400">
+                    <SortableTableHeader
+                      label="Оплачено"
+                      field="paid"
+                      currentSortField={sortField}
+                      sortDirection={sortDirection}
+                      onSort={handleSort}
+                    />
+                  </th>
+                  <th className="p-4 text-left text-xs font-medium text-gray-700 dark:text-gray-400">
                     <div className="relative">
                       <span className="sr-only">Действия</span>
                     </div>
@@ -308,6 +317,11 @@ export default function AppointmentListTable() {
                     <td className="p-4 whitespace-nowrap">
                       <p className="text-sm text-gray-700 dark:text-gray-400">
                         {formatDate(appointment.processing_at)}
+                      </p>
+                    </td>
+                    <td className="p-4 whitespace-nowrap">
+                      <p className="text-sm text-gray-700 dark:text-gray-400">
+                        {appointment.paid ? "Да" : "Нет"}
                       </p>
                     </td>
                     <td className="p-4 whitespace-nowrap">

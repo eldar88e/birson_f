@@ -23,9 +23,10 @@ interface AppointmentItemProps {
   clientId: number;
   items?: AppointmentItem[];
   onItemsChange?: (items: AppointmentItem[]) => void;
+  deposit?: number;
 }
 
-export default function AppointmentItems({ appointmentId, clientId, items, onItemsChange }: AppointmentItemProps) {
+export default function AppointmentItems({ appointmentId, clientId, items, onItemsChange, deposit = 0 }: AppointmentItemProps) {
   const { showNotification } = useNotification();
   const { isOpen: isModalOpen, openModal, closeModal } = useModal();
   const [appointmentItems, setAppointmentItems] = useState<AppointmentItem[]>(items || []);
@@ -627,13 +628,13 @@ export default function AppointmentItems({ appointmentId, clientId, items, onIte
             <li className="flex items-center justify-between mt-5">
               <span className="font-medium text-gray-700 dark:text-gray-400">Предоплата</span>
               <span className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                0.00 ₽
+                {Number(deposit).toFixed(2)} ₽
               </span>
             </li>
             <li className="flex items-center justify-between">
               <span className="font-medium text-gray-700 dark:text-gray-400">К оплате</span>
               <span className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                {subtotal.toFixed(2)} ₽
+                {(subtotal - Number(deposit)).toFixed(2)} ₽
               </span>
             </li>
           </ul>

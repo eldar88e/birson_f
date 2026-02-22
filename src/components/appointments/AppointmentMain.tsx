@@ -14,6 +14,7 @@ import Label from "../form/Label";
 import DatePicker from "../form/date-picker";
 import UserAutocomplete from "../form/UserAutocomplete";
 import type { User } from "../../entities/user/model";
+import Input from "../form/input/InputField";
 import SvgIcon from "../../shared/ui/SvgIcon";
 import Loader from "../../shared/ui/Loader";
 
@@ -33,11 +34,17 @@ export default function AppointmentMain() {
     state: Appointment["state"];
     comment: string;
     appointment_at: string;
+    paid: boolean;
+    paid_at: string;
+    deposit: number;
   }>({
     client_id: 0,
     state: "initial",
     comment: "",
     appointment_at: "",
+    paid: false,
+    paid_at: "",
+    deposit: 0,
   });
 
   useEffect(() => {
@@ -80,12 +87,18 @@ export default function AppointmentMain() {
       state: appointment.state,
       comment: appointment.comment || "",
       appointment_at: appointment.appointment_at || "",
+      paid: appointment.paid ?? false,
+      paid_at: appointment.paid_at || "",
+      deposit: appointment.deposit ?? 0,
     };
     setFormData(nextFormData);
     lastSavedKeyRef.current = JSON.stringify({
       client_id: nextFormData.client_id,
       state: nextFormData.state,
       appointment_at: nextFormData.appointment_at,
+      paid: nextFormData.paid,
+      paid_at: nextFormData.paid_at,
+      deposit: nextFormData.deposit,
     });
     openModal();
   };
@@ -114,6 +127,9 @@ export default function AppointmentMain() {
         state: formData.state,
         comment: formData.comment,
         appointment_at: formData.appointment_at,
+        paid: formData.paid,
+        paid_at: formData.paid_at,
+        deposit: formData.deposit,
       });
 
       setAppointment(updatedAppointment);
@@ -122,6 +138,9 @@ export default function AppointmentMain() {
         client_id: formData.client_id,
         state: formData.state,
         appointment_at: formData.appointment_at,
+        paid: formData.paid,
+        paid_at: formData.paid_at,
+        deposit: formData.deposit,
       });
       return true;
     } catch (error) {
@@ -157,6 +176,9 @@ export default function AppointmentMain() {
       client_id: formData.client_id,
       state: formData.state,
       appointment_at: formData.appointment_at,
+      paid: formData.paid,
+      paid_at: formData.paid_at,
+      deposit: formData.deposit,
     });
 
     if (key === lastSavedKeyRef.current) return;
@@ -176,7 +198,7 @@ export default function AppointmentMain() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isModalOpen, appointmentId, appointment, formData.client_id, formData.state, formData.appointment_at]);
+  }, [isModalOpen, appointmentId, appointment, formData.client_id, formData.state, formData.appointment_at, formData.paid, formData.paid_at, formData.deposit]);
 
   if (isLoading) {
     return (
@@ -236,9 +258,29 @@ export default function AppointmentMain() {
               Создано:
             </span>
 
-            <span className="block text-sm text-gray-500 dark:text-gray-400">
+            <span className="mb-2 block text-sm text-gray-500 dark:text-gray-400">
               {formatDate(appointment.created_at)}
             </span>
+
+            <span className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+              Оплачено:
+            </span>
+
+            <span className="mb-2 block text-sm text-gray-500 dark:text-gray-400">
+              {appointment.paid ? "Да" : "Нет"}
+            </span>
+
+            {appointment.paid_at && (
+              <>
+                <span className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Дата оплаты:
+                </span>
+
+                <span className="block text-sm text-gray-500 dark:text-gray-400">
+                  {formatDate(appointment.paid_at)}
+                </span>
+              </>
+            )}
           </div>
 
           <div className="h-px w-full bg-gray-200 dark:bg-gray-800 sm:h-[158px] sm:w-px"></div>
@@ -291,7 +333,7 @@ export default function AppointmentMain() {
           </div>
         </div>
 
-        <AppointmentItems appointmentId={appointment.id} clientId={appointment.client_id} items={appointment.order_items} />
+        <AppointmentItems appointmentId={appointment.id} clientId={appointment.client_id} items={appointment.order_items} deposit={appointment.deposit} />
       </div>
 
       <Modal
@@ -342,6 +384,43 @@ export default function AppointmentMain() {
                   placeholder="Введите имя или номер телефона"
                   value={selectedUser}
                   onChange={handleUserChange}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="flex items-center gap-3 pt-6">
+                <input
+                  type="checkbox"
+                  id="edit-paid"
+                  checked={formData.paid}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, paid: e.target.checked }))
+                  }
+                  className="h-5 w-5 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900"
+                />
+                <Label htmlFor="edit-paid">Оплачено</Label>
+              </div>
+              <div>
+                <DatePicker
+                  id="edit-paid-at-date"
+                  label="Дата оплаты"
+                  placeholder="Выберите дату"
+                  defaultDate={formData.paid_at || undefined}
+                  onChange={(_dates, dateStr) => {
+                    setFormData((prev) => ({ ...prev, paid_at: dateStr || "" }));
+                  }}
+                />
+              </div>
+              <div>
+                <Label>Депозит</Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={formData.deposit}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, deposit: Number(e.target.value) }))
+                  }
                 />
               </div>
             </div>
